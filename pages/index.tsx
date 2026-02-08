@@ -15,7 +15,7 @@ export default function Home(): JSX.Element {
           <nav>
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>
-            <a className="cta" href="#contact">Get started</a>
+            <a className="cta" href="/signup">Get started</a>
           </nav>
         </div>
       </header>
@@ -27,7 +27,7 @@ export default function Home(): JSX.Element {
               <h1>Accounting, invoicing and payroll — made simple.</h1>
               <p>Automate bookkeeping, generate invoices, and stay compliant — all in one modern web app tailored for small businesses.</p>
               <div className="hero-actions">
-                <a className="btn primary" href="#contact">Start free trial</a>
+                <a className="btn primary" href="/signup">Start free trial</a>
                 <a className="btn ghost" href="#features">Learn more</a>
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function Home(): JSX.Element {
                   <li>Basic invoicing</li>
                   <li>Bank sync</li>
                 </ul>
-                <a className="btn" href="#contact">Choose Starter</a>
+                <a className="btn" href="/signup">Choose Package</a>
               </div>
               <div className="price-card popular">
                 <h3>Business</h3>
@@ -88,19 +88,40 @@ export default function Home(): JSX.Element {
                   <li>All Starter features</li>
                   <li>Payroll & reporting</li>
                 </ul>
-                <a className="btn primary" href="#contact">Choose Business</a>
+                <a className="btn primary" href="/signup">Choose Package</a>
               </div>
             </div>
           </div>
         </section>
 
+        <section id="testimonials" className="testimonials">
+          <div className="container">
+            <h2 className="section-title">Teams moving faster with Lumix</h2>
+            <p className="section-subtitle">Switch in days, not weeks. Keep your books clean, your invoices paid, and your team aligned.</p>
+            <div className="grid">
+              <article className="quote-card">
+                <p>“Lumix replaced three tools for us. Our month-end close dropped from 10 days to 3.”</p>
+                <span>— Mia L., Operations Lead</span>
+              </article>
+              <article className="quote-card">
+                <p>“The payroll and invoicing flow is smooth. We finally have one source of truth.”</p>
+                <span>— Theo R., Founder</span>
+              </article>
+              <article className="quote-card">
+                <p>“Setup was painless. We connected our bank in minutes and invoiced our first client the same day.”</p>
+                <span>— Priya K., Studio Owner</span>
+              </article>
+            </div>
+          </div>
+        </section>
+
         <section id="contact" className="contact container">
-          <h2 className="section-title">Get started</h2>
-          <p>Sign up for a free trial or contact our sales team for a custom plan.</p>
-          <form className="contact-form" onSubmit={(e)=>{e.preventDefault(); window.alert('Thanks — demo signup!')}}>
-            <input placeholder="Your email" type="email" required />
-            <button className="btn primary" type="submit">Start free trial</button>
-          </form>
+          <h2 className="section-title">Ready to get started?</h2>
+          <p>Choose a plan and set up your workspace in minutes. No sales calls required unless you want one.</p>
+          <div className="contact-actions">
+            <a className="btn primary" href="/signup">Create your account</a>
+            <a className="btn ghost" href="/signup">Talk to sales</a>
+          </div>
         </section>
       </main>
 
