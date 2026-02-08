@@ -5,7 +5,11 @@ import { getSupabaseBrowser } from '../lib/supabaseClient'
 import { getSupabaseServer } from '../lib/supabaseServer'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const supabase = getSupabaseServer({ req, res })
+  const supabase = getSupabaseServer({
+    req, res,
+    query: {},
+    resolvedUrl: ''
+  })
   const {
     data: { session },
   } = await supabase.auth.getSession()

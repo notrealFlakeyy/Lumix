@@ -1,5 +1,6 @@
 import Head from 'next/head'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import type { GetServerSideProps } from 'next'
 import { getSupabaseServer } from '../lib/supabaseServer'
 
@@ -9,11 +10,16 @@ type DashboardProps = {
     invoices: Array<{ id: string; client: string; due: string; amount: string; status: 'pending' | 'overdue' | 'paid' }>
     employees: Array<{ name: string; team: string; role: string }>
   }
+  employeeName: string
   role: 'admin' | 'manager' | 'viewer'
 }
 
 export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ req, res }) => {
-  const supabase = getSupabaseServer({ req, res })
+  const supabase = getSupabaseServer({
+    req, res,
+    query: {},
+    resolvedUrl: ''
+  })
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -29,7 +35,7 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role')
+    .select('company_id, role, full_name')
     .eq('id', session.user.id)
     .single()
 
@@ -54,11 +60,12 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
     ? new Date(company.next_payroll_date).toLocaleDateString()
     : 'TBD'
 
-  const outstanding = (invoices ?? []).filter((invoice) => invoice.status !== 'paid')
-  const outstandingTotal = outstanding.reduce((sum, invoice) => sum + Number(invoice.amount ?? 0), 0)
+  const outstanding = (invoices ?? []).filter((invoice: { status: string }) => invoice.status !== 'paid')
+  const outstandingTotal = outstanding.reduce((sum: number, invoice: { amount: any }) => sum + Number(invoice.amount ?? 0), 0)
 
   return {
     props: {
+      employeeName: profile?.full_name ?? '',
       role: (profile?.role ?? 'viewer') as 'admin' | 'manager' | 'viewer',
       data: {
         kpis: [
@@ -67,14 +74,14 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
           { label: 'Payroll scheduled', value: `$${payrollTotal.toLocaleString()}`, note: `Next run on ${payrollDate}` },
           { label: 'Active employees', value: `${employees?.length ?? 0}`, note: 'Active seats' },
         ],
-        invoices: (invoices ?? []).map((invoice) => ({
+        invoices: (invoices ?? []).map((invoice: { id: any; client: any; due_date: string | number | Date; status: string; amount: any }) => ({
           id: invoice.id,
           client: invoice.client,
           due: invoice.due_date ? `Due ${new Date(invoice.due_date).toLocaleDateString()}` : invoice.status === 'paid' ? 'Paid' : 'Due soon',
           amount: `$${Number(invoice.amount).toLocaleString()}`,
           status: invoice.status as 'pending' | 'overdue' | 'paid',
         })),
-        employees: (employees ?? []).map((employee) => ({
+        employees: (employees ?? []).map((employee: { full_name: any; team: any; role: any }) => ({
           name: employee.full_name,
           team: employee.team ?? 'Team',
           role: employee.role ?? 'Member',
@@ -84,8 +91,23 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
   }
 }
 
-export default function Dashboard({ data, role }: DashboardProps): JSX.Element {
+const getTimeOfDayGreeting = (hours: number): string => {
+  if (hours < 5) return 'Good night'
+  if (hours < 12) return 'Good morning'
+  if (hours < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+export default function Dashboard({ data, role, employeeName }: DashboardProps): JSX.Element {
   const canManage = role === 'admin' || role === 'manager'
+  const [greeting, setGreeting] = useState('Welcome')
+  const router = useRouter()
+
+  useEffect(() => {
+    setGreeting(getTimeOfDayGreeting(new Date().getHours()))
+  }, [])
+
+  const name = employeeName?.trim() || 'there'
   return (
     <>
       <Head>
@@ -97,12 +119,22 @@ export default function Dashboard({ data, role }: DashboardProps): JSX.Element {
         <header className="dash-header">
           <div className="container dash-header-inner">
             <div>
-              <h1>Good morning, Lucas</h1>
+              <h1>{greeting}, {name}</h1>
               <p>Here is the latest on your cash flow, invoices, and payroll.</p>
             </div>
             <div className="dash-actions">
               <button className="btn">Export report</button>
-              <button className="btn primary" disabled={!canManage}>Create invoice</button>
+              <button
+                className="btn primary"
+                disabled={!canManage}
+                onClick={() => {
+                  if (canManage) {
+                    router.push('/invoices/new')
+                  }
+                }}
+              >
+                Create invoice
+              </button>
               <button
                 className="btn ghost"
                 onClick={async () => {
