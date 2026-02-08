@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+blocked_paths='^(node_modules/|\.next/|out/|dist/|build/)'
+
+if git diff --cached --name-only | grep -E "$blocked_paths" >/dev/null 2>&1; then
+  echo "Error: build artifacts or dependencies are staged."
+  echo "Remove node_modules/.next/out/dist/build from the commit."
+  exit 1
+fi
