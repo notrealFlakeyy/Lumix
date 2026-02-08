@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="36" viewBox="0 0 120 36" fill="none">
+  <rect width="120" height="36" rx="6" fill="#071025"/>
+  <g transform="translate(10,6)">
+    <circle cx="8" cy="12" r="6" fill="#7c3aed" />
+    <text x="26" y="17" fill="#e6eef8" font-family="Inter, Arial" font-size="12">Lumix</text>
+  </g>
+</svg>
