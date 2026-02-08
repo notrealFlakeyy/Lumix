@@ -16,6 +16,7 @@ export default function Home(): JSX.Element {
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>
             <a className="cta" href="/signup">Get started</a>
+            <a className="login-link" href="/login">Log in</a>
           </nav>
         </div>
       </header>

@@ -1,10 +1,32 @@
 import Head from 'next/head'
 import React, { useState } from 'react'
+import type { GetServerSideProps } from 'next'
+import { getSupabaseBrowser } from '../lib/supabaseClient'
+import { getSupabaseServer } from '../lib/supabaseServer'
+
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  const supabase = getSupabaseServer({ req, res })
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (session) {
+    return {
+      redirect: {
+        destination: '/dashboard',
+        permanent: false,
+      },
+    }
+  }
+
+  return { props: {} }
+}
 
 export default function Signup(): JSX.Element {
   const [form, setForm] = useState({
     businessName: '',
     email: '',
+    password: '',
     size: '',
     region: '',
   })
@@ -28,6 +50,10 @@ export default function Signup(): JSX.Element {
       setError('Please enter a valid email address.')
       return
     }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
     if (!form.size) {
       setError('Please select a company size.')
       return
@@ -43,15 +69,39 @@ export default function Signup(): JSX.Element {
 
     setStatus('submitting')
     try {
-      const response = await fetch('/api/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, features }),
+      const supabase = getSupabaseBrowser()
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            business_name: form.businessName,
+            size: form.size,
+            region: form.region,
+            features,
+          },
+        },
       })
-      if (!response.ok) {
-        throw new Error('Request failed')
+      if (signUpError) {
+        throw signUpError
       }
-      setStatus('success')
+      if (data.user) {
+        await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: data.user.id,
+            businessName: form.businessName,
+            size: form.size,
+            region: form.region,
+            features,
+          }),
+        })
+        setStatus('success')
+      } else {
+        setStatus('idle')
+        setError('Please check your email to confirm your account.')
+      }
     } catch (requestError) {
       setStatus('idle')
       setError('Something went wrong. Please try again.')
@@ -90,6 +140,16 @@ export default function Signup(): JSX.Element {
                     type="email"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>Password</span>
+                  <input
+                    placeholder="Create a password"
+                    type="password"
+                    value={form.password}
+                    onChange={(event) => setForm({ ...form, password: event.target.value })}
                     required
                   />
                 </label>
