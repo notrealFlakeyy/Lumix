@@ -1,6 +1,5 @@
 import Head from 'next/head'
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import React from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSupabaseServer } from '../lib/supabaseServer'
 
@@ -10,7 +9,6 @@ type DashboardProps = {
     invoices: Array<{ id: string; client: string; due: string; amount: string; status: 'pending' | 'overdue' | 'paid' }>
     employees: Array<{ name: string; team: string; role: string }>
   }
-  employeeName: string
   role: 'admin' | 'manager' | 'viewer'
 }
 
@@ -35,7 +33,7 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role, full_name')
+    .select('company_id, role')
     .eq('id', session.user.id)
     .single()
 
@@ -65,7 +63,6 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
 
   return {
     props: {
-      employeeName: profile?.full_name ?? '',
       role: (profile?.role ?? 'viewer') as 'admin' | 'manager' | 'viewer',
       data: {
         kpis: [
@@ -91,23 +88,8 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
   }
 }
 
-const getTimeOfDayGreeting = (hours: number): string => {
-  if (hours < 5) return 'Good night'
-  if (hours < 12) return 'Good morning'
-  if (hours < 18) return 'Good afternoon'
-  return 'Good evening'
-}
-
-export default function Dashboard({ data, role, employeeName }: DashboardProps): JSX.Element {
+export default function Dashboard({ data, role }: DashboardProps): JSX.Element {
   const canManage = role === 'admin' || role === 'manager'
-  const [greeting, setGreeting] = useState('Welcome')
-  const router = useRouter()
-
-  useEffect(() => {
-    setGreeting(getTimeOfDayGreeting(new Date().getHours()))
-  }, [])
-
-  const name = employeeName?.trim() || 'there'
   return (
     <>
       <Head>
@@ -119,22 +101,12 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
         <header className="dash-header">
           <div className="container dash-header-inner">
             <div>
-              <h1>{greeting}, {name}</h1>
+              <h1 >Good morning, {}</h1>
               <p>Here is the latest on your cash flow, invoices, and payroll.</p>
             </div>
             <div className="dash-actions">
               <button className="btn">Export report</button>
-              <button
-                className="btn primary"
-                disabled={!canManage}
-                onClick={() => {
-                  if (canManage) {
-                    router.push('/invoices/new')
-                  }
-                }}
-              >
-                Create invoice
-              </button>
+              <button className="btn primary" disabled={!canManage}>Create invoice</button>
               <button
                 className="btn ghost"
                 onClick={async () => {
