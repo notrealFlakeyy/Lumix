@@ -6,7 +6,6 @@ type ProductRow = {
   quantity: number
   unit_price: number
   line_total: number
-  invoices: { company_id: string }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -47,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let totalUnitPrice = 0
   let totalUnitCount = 0
 
-  ;(items as ProductRow[]).forEach((item) => {
+  ;(items as unknown as ProductRow[]).forEach((item) => {
     const name = item.description || 'Unnamed'
     const units = Number(item.quantity) || 0
     const revenue = Number(item.line_total) || 0
