@@ -21,7 +21,7 @@ export default function ForgotPassword(): JSX.Element {
       const supabase = getSupabaseBrowser()
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/api/auth/callback?type=recovery`,
+        redirectTo: `${siteUrl}/reset-password`,
       })
       if (resetError) {
         throw resetError

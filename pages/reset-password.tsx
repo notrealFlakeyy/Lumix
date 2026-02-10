@@ -1,30 +1,6 @@
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
-import type { GetServerSideProps } from 'next'
-import { getSupabaseServer } from '../lib/supabaseServer'
 import { getSupabaseBrowser } from '../lib/supabaseClient'
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const supabase = getSupabaseServer({
-    req, res,
-    query: {},
-    resolvedUrl: ''
-  })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    }
-  }
-
-  return { props: {} }
-}
 
 export default function ResetPassword(): JSX.Element {
   const [password, setPassword] = useState('')
@@ -32,10 +8,42 @@ export default function ResetPassword(): JSX.Element {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     setError(null)
   }, [password, confirmPassword])
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowser()
+    const hash = window.location.hash.replace(/^#/, '')
+    if (!hash) {
+      setReady(true)
+      return
+    }
+    const params = new URLSearchParams(hash)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    const type = params.get('type')
+
+    if (accessToken && refreshToken && type === 'recovery') {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error: sessionError }) => {
+          if (sessionError) {
+            setError('Recovery link is invalid or expired. Please request a new one.')
+          }
+          setReady(true)
+          window.history.replaceState({}, document.title, window.location.pathname)
+        })
+        .catch(() => {
+          setError('Recovery link is invalid or expired. Please request a new one.')
+          setReady(true)
+        })
+      return
+    }
+
+    setReady(true)
+  }, [])
 
   const submitReset = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -90,6 +98,8 @@ export default function ResetPassword(): JSX.Element {
             <div className="auth-card">
               <h1>Set a new password</h1>
               <p>Choose a new password for your Lumix account.</p>
+              {!ready && <p className="form-note">Validating your recovery link…</p>}
+              {ready && (
               <form className="auth-form" onSubmit={submitReset}>
                 <label className="field">
                   <span>New password</span>
@@ -121,6 +131,7 @@ export default function ResetPassword(): JSX.Element {
                   </p>
                 )}
               </form>
+              )}
               <div className="auth-footer">
                 <a href="/login">Back to login</a>
               </div>
