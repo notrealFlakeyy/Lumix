@@ -17,9 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (typeof token === 'string' && typeof type === 'string') {
+    const otpType = type as 'signup' | 'recovery' | 'invite' | 'magiclink' | 'email_change'
     const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type,
+      type: otpType,
     })
     if (error) {
       return res.redirect('/login?error=auth_callback')
