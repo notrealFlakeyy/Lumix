@@ -2,18 +2,30 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const code = req.query.code
-
-  if (typeof code !== 'string') {
-    return res.redirect('/login?error=missing_code')
-  }
-
   const supabase = createPagesServerClient({ req, res })
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const code = req.query.code
+  const token = req.query.token
+  const type = req.query.type
+  const redirectAfterAuth = type === 'recovery' ? '/reset-password' : '/confirmed'
 
-  if (error) {
-    return res.redirect('/login?error=auth_callback')
+  if (typeof code === 'string') {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return res.redirect('/login?error=auth_callback')
+    }
+    return res.redirect(redirectAfterAuth)
   }
 
-  return res.redirect('/confirmed')
+  if (typeof token === 'string' && typeof type === 'string') {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type,
+    })
+    if (error) {
+      return res.redirect('/login?error=auth_callback')
+    }
+    return res.redirect(redirectAfterAuth)
+  }
+
+  return res.redirect('/login?error=missing_code')
 }

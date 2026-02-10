@@ -101,6 +101,9 @@ export default function Login(): JSX.Element {
                 {error && <p className="form-error" role="alert">{error}</p>}
               </form>
               <div className="auth-footer">
+                <a href="/forgot-password">Forgot password?</a>
+              </div>
+              <div className="auth-footer">
                 <span>New here?</span>
                 <a href="/signup">Create an account</a>
               </div>
