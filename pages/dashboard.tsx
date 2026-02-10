@@ -236,13 +236,52 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
                   className="btn"
                   role="menuitem"
                   onClick={() => {
+                    router.push('/dashboard/employees')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Employees
+                </button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    router.push('/dashboard/payroll')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Payroll
+                </button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    router.push('/dashboard/time')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Time tracking
+                </button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
                     router.push('/dashboard/reports')
                     setMenuOpen(false)
                   }}
                 >
                   Reports
                 </button>
-                <button className="btn" role="menuitem">Settings</button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    router.push('/dashboard/settings')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Settings
+                </button>
                 <button
                   className="btn ghost"
                   role="menuitem"

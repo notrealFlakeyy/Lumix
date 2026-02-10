@@ -7,6 +7,9 @@ type SetupRequest = {
   size?: string
   region?: string
   features?: string[]
+  payrollFrequency?: string
+  payrollCurrency?: string
+  payrollNextRunDate?: string | null
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
@@ -22,7 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     !payload.businessName ||
     !payload.size ||
     !payload.region ||
-    !Array.isArray(payload.features)
+    !Array.isArray(payload.features) ||
+    !payload.payrollFrequency ||
+    !payload.payrollCurrency
   ) {
     res.status(400).json({ message: 'Missing required fields' })
     return
@@ -36,6 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       size: payload.size,
       region: payload.region,
       features: payload.features,
+      payroll_frequency: payload.payrollFrequency,
+      payroll_currency: payload.payrollCurrency,
+      payroll_next_run_date: payload.payrollNextRunDate ?? null,
       cash_balance: 84210,
       next_payroll_total: 31900,
       next_payroll_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),

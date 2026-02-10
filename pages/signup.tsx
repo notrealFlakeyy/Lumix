@@ -33,6 +33,9 @@ export default function Signup(): JSX.Element {
     password: '',
     size: '',
     region: '',
+    payrollFrequency: 'monthly',
+    payrollCurrency: 'EUR',
+    payrollNextRunDate: '',
   })
   const [features, setFeatures] = useState<string[]>(['invoicing', 'bank-sync'])
   const [error, setError] = useState<string | null>(null)
@@ -64,6 +67,10 @@ export default function Signup(): JSX.Element {
     }
     if (!form.region) {
       setError('Please select a region.')
+      return
+    }
+    if (form.payrollFrequency === 'flexible' && !form.payrollNextRunDate) {
+      setError('Please choose the next pay run date.')
       return
     }
     if (features.length === 0) {
@@ -101,6 +108,9 @@ export default function Signup(): JSX.Element {
             size: form.size,
             region: form.region,
             features,
+            payrollFrequency: form.payrollFrequency,
+            payrollCurrency: form.payrollCurrency,
+            payrollNextRunDate: form.payrollNextRunDate || null,
           }),
         })
         setStatus('success')
@@ -187,6 +197,40 @@ export default function Signup(): JSX.Element {
                     <option value="apac">Asia-Pacific</option>
                   </select>
                 </label>
+                <label className="field">
+                  <span>Payroll frequency</span>
+                  <select
+                    required
+                    value={form.payrollFrequency}
+                    onChange={(event) => setForm({ ...form, payrollFrequency: event.target.value })}
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="bi-weekly">Bi-weekly</option>
+                    <option value="flexible">Flexible (choose date)</option>
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Payroll currency</span>
+                  <select
+                    required
+                    value={form.payrollCurrency}
+                    onChange={(event) => setForm({ ...form, payrollCurrency: event.target.value })}
+                  >
+                    <option value="EUR">EUR (€)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </label>
+                {form.payrollFrequency === 'flexible' && (
+                  <label className="field">
+                    <span>Next pay run date</span>
+                    <input
+                      type="date"
+                      value={form.payrollNextRunDate}
+                      onChange={(event) => setForm({ ...form, payrollNextRunDate: event.target.value })}
+                      required
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="feature-grid">
