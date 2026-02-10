@@ -42,6 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!payload?.full_name?.trim()) {
     return res.status(400).json({ message: 'Employee name is required.' })
   }
+  if (payload.role && !['Admin', 'Employee'].includes(payload.role)) {
+    return res.status(400).json({ message: 'Role must be Admin or Employee.' })
+  }
 
   const { data: employee, error } = await supabase
     .from('employees')

@@ -76,8 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await supabaseAdmin.from('employees').insert([
     { company_id: company.id, full_name: 'Jordan Lee', team: 'Finance', role: 'Admin', status: 'active' },
-    { company_id: company.id, full_name: 'Samira Khan', team: 'Operations', role: 'Manager', status: 'active' },
-    { company_id: company.id, full_name: 'Ella Cruz', team: 'Payroll', role: 'Viewer', status: 'active' },
+    { company_id: company.id, full_name: 'Samira Khan', team: 'Operations', role: 'Employee', status: 'active' },
+    { company_id: company.id, full_name: 'Ella Cruz', team: 'Payroll', role: 'Employee', status: 'active' },
   ])
 
   res.status(200).json({ message: 'Setup saved', companyId: company.id })

@@ -197,11 +197,14 @@ export default function EmployeesPage(): JSX.Element {
               </label>
               <label className="field">
                 <span>Role</span>
-                <input
-                  type="text"
+                <select
                   value={form.role}
                   onChange={(event) => setForm({ ...form, role: event.target.value })}
-                />
+                >
+                  <option value="">Select role</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Employee">Employee</option>
+                </select>
               </label>
               <label className="field">
                 <span>Status</span>
