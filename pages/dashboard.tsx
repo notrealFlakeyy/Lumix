@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSupabaseServer } from '../lib/supabaseServer'
 import { useRouter } from 'next/router'
@@ -101,11 +101,42 @@ const getTimeOfDayGreeting = (hours: number): string => {
 export default function Dashboard({ data, role, employeeName }: DashboardProps): JSX.Element {
   const canManage = role === 'admin' || role === 'manager'
   const [greeting, setGreeting] = useState('Welcome')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     setGreeting(getTimeOfDayGreeting(new Date().getHours()))
   }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+      }
+    }
+    const handleClick = (event: MouseEvent) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('keydown', handleKey)
+    document.addEventListener('mousedown', handleClick)
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      document.removeEventListener('mousedown', handleClick)
+    }
+  }, [menuOpen])
+
+  useEffect(() => {
+    const handleRoute = () => setMenuOpen(false)
+    router.events.on('routeChangeStart', handleRoute)
+    return () => {
+      router.events.off('routeChangeStart', handleRoute)
+    }
+  }, [router.events])
 
   const name = employeeName?.trim() || 'there'
   return (
@@ -122,29 +153,57 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
               <h1>{greeting}, {name}</h1>
               <p>Here is the latest on your cash flow, invoices, and payroll.</p>
             </div>
-            <div className="dash-actions">
-              <button className="btn">Export report</button>
+            <div className="dash-actions" ref={menuRef}>
               <button
-                className="btn primary"
-                disabled={!canManage}
-                onClick={() => {
-                  if (canManage) {
-                    router.push('/invoices/new')
-                  }
-                }}
+                className="btn burger"
+                type="button"
+                aria-expanded={menuOpen}
+                aria-controls="dashboard-menu"
+                onClick={() => setMenuOpen((prev) => !prev)}
               >
-                Create invoice
+                <span className="burger-lines" />
+                Menu
               </button>
-              <button
-                className="btn ghost"
-                onClick={async () => {
-                  const { getSupabaseBrowser } = await import('../lib/supabaseClient')
-                  await getSupabaseBrowser().auth.signOut()
-                  window.location.href = '/login'
-                }}
-              >
-                Sign out
-              </button>
+              <div className={`dash-menu ${menuOpen ? 'open' : ''}`} id="dashboard-menu" role="menu">
+                <button
+                  className="btn primary"
+                  role="menuitem"
+                  disabled={!canManage}
+                  onClick={() => {
+                    if (canManage) {
+                      router.push('/invoices/new')
+                      setMenuOpen(false)
+                    }
+                  }}
+                >
+                  New invoice
+                </button>
+                <button className="btn" role="menuitem">Export</button>
+                <button className="btn" role="menuitem">Import</button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    router.push('/dashboard/clients')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Clients
+                </button>
+                <button className="btn" role="menuitem">Reports</button>
+                <button className="btn" role="menuitem">Settings</button>
+                <button
+                  className="btn ghost"
+                  role="menuitem"
+                  onClick={async () => {
+                    const { getSupabaseBrowser } = await import('../lib/supabaseClient')
+                    await getSupabaseBrowser().auth.signOut()
+                    window.location.href = '/login'
+                  }}
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           </div>
         </header>

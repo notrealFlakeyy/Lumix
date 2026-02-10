@@ -111,6 +111,42 @@ nav a:active{transform:translateY(0)}
 .dash-header h1{margin:0 0 8px}
 .dash-header p{margin:0;color:var(--muted)}
 .dash-actions{display:flex;gap:12px;flex-wrap:wrap}
+.dash-actions{position:relative}
+.burger{display:flex;align-items:center;gap:8px}
+.burger-lines{
+  width:18px;
+  height:2px;
+  background:#e6eef8;
+  position:relative;
+}
+.burger-lines::before,
+.burger-lines::after{
+  content:'';
+  position:absolute;
+  left:0;
+  width:18px;
+  height:2px;
+  background:#e6eef8;
+}
+.burger-lines::before{top:-6px}
+.burger-lines::after{top:6px}
+.dash-menu{
+  position:absolute;
+  top:44px;
+  right:0;
+  min-width:220px;
+  padding:12px;
+  border-radius:14px;
+  background:#0b1320;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 20px 40px rgba(2,6,23,0.45);
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  z-index:20;
+  animation:fadeInUp .2s ease both;
+}
+.dash-menu.open{display:flex}
 
 .dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:10px}
 .kpi-card{
