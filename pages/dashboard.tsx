@@ -124,7 +124,17 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
             </div>
             <div className="dash-actions">
               <button className="btn">Export report</button>
-              <button className="btn primary" disabled={!canManage}>Create invoice</button>
+              <button
+                className="btn primary"
+                disabled={!canManage}
+                onClick={() => {
+                  if (canManage) {
+                    router.push('/invoices/new')
+                  }
+                }}
+              >
+                Create invoice
+              </button>
               <button
                 className="btn ghost"
                 onClick={async () => {

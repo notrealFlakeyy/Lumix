@@ -169,6 +169,14 @@ nav a:active{transform:translateY(0)}
   color:inherit;
 }
 .field input::placeholder{color:rgba(148,163,184,0.7)}
+.line-input{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(6,12,24,0.8);
+  color:inherit;
+}
+.line-input::placeholder{color:rgba(148,163,184,0.7)}
 
 .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .check-card{
