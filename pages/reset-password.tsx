@@ -65,6 +65,7 @@ export default function ResetPassword(): JSX.Element {
       if (updateError) {
         throw updateError
       }
+      await supabase.auth.signOut()
       setStatus('success')
       setCountdown(4)
       setPassword('')
