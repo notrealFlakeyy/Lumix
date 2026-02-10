@@ -4,7 +4,7 @@ import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 type TimeRow = {
   user_id: string
   net_minutes: number
-  profiles: { full_name: string }
+  profiles: { full_name: string }[] | { full_name: string }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -55,10 +55,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const totals = new Map<string, { full_name: string; minutes: number }>()
-  ;(rows as TimeRow[]).forEach((row) => {
-    const existing = totals.get(row.user_id) ?? { full_name: row.profiles.full_name, minutes: 0 }
+  ;(rows as unknown as TimeRow[]).forEach((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
+    const fullName = profile?.full_name ?? 'Unknown'
+    const existing = totals.get(row.user_id) ?? { full_name: fullName, minutes: 0 }
     totals.set(row.user_id, {
-      full_name: row.profiles.full_name,
+      full_name: fullName,
       minutes: existing.minutes + (Number(row.net_minutes) || 0),
     })
   })
