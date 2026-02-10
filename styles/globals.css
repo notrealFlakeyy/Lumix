@@ -151,6 +151,27 @@ nav a:active{transform:translateY(0)}
   animation:fadeInUp .2s ease both;
 }
 .dash-menu.open{display:flex}
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(5,8,16,0.6);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:80px 20px;
+  z-index:40;
+}
+.modal-card{
+  width:100%;
+  max-width:520px;
+  background:#0b1320;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 24px 60px rgba(2,6,23,0.6);
+  animation:fadeInUp .25s ease both;
+}
 
 .dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:10px}
 .kpi-card{

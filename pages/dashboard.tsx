@@ -102,6 +102,9 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
   const canManage = role === 'admin' || role === 'manager'
   const [greeting, setGreeting] = useState('Welcome')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
@@ -138,6 +141,36 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
     }
   }, [router.events])
 
+  const exportAllInvoices = async () => {
+    setExportError(null)
+    setExporting(true)
+    try {
+      const response = await fetch('/api/invoices/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.message ?? 'Unable to export invoices.')
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'invoices-export.pdf'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      setExportOpen(false)
+    } catch (requestError) {
+      setExportError(requestError instanceof Error ? requestError.message : 'Unable to export invoices.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const name = employeeName?.trim() || 'there'
   return (
     <>
@@ -162,7 +195,7 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
                 onClick={() => setMenuOpen((prev) => !prev)}
               >
                 <span className="burger-lines" />
-                Menu
+                <span className="sr-only">Menu</span>
               </button>
               <div className={`dash-menu ${menuOpen ? 'open' : ''}`} id="dashboard-menu" role="menu">
                 <button
@@ -178,7 +211,16 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
                 >
                   New invoice
                 </button>
-                <button className="btn" role="menuitem">Export</button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    setExportOpen(true)
+                    setMenuOpen(false)
+                  }}
+                >
+                  Export
+                </button>
                 <button className="btn" role="menuitem">Import</button>
                 <button
                   className="btn"
@@ -190,7 +232,16 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
                 >
                   Clients
                 </button>
-                <button className="btn" role="menuitem">Reports</button>
+                <button
+                  className="btn"
+                  role="menuitem"
+                  onClick={() => {
+                    router.push('/dashboard/reports')
+                    setMenuOpen(false)
+                  }}
+                >
+                  Reports
+                </button>
                 <button className="btn" role="menuitem">Settings</button>
                 <button
                   className="btn ghost"
@@ -207,6 +258,31 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
             </div>
           </div>
         </header>
+
+        {exportOpen && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true">
+            <div className="modal-card">
+              <div className="panel-header">
+                <h2>Export invoices</h2>
+                <button className="btn ghost" type="button" onClick={() => setExportOpen(false)}>
+                  Close
+                </button>
+              </div>
+              <p className="section-subtitle">
+                Export all invoices as a PDF summary. Selective export will be added later.
+              </p>
+              <div className="setup-actions">
+                <button className="btn primary" type="button" onClick={exportAllInvoices} disabled={exporting}>
+                  {exporting ? 'Exporting...' : 'Export all invoices'}
+                </button>
+                <button className="btn ghost" type="button" onClick={() => setExportOpen(false)}>
+                  Cancel
+                </button>
+              </div>
+              {exportError && <p className="form-error" role="alert">{exportError}</p>}
+            </div>
+          </div>
+        )}
 
         <section className="container dash-kpis">
           {data.kpis.map((kpi) => (
