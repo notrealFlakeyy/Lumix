@@ -74,6 +74,7 @@ export default function Signup(): JSX.Element {
     setStatus('submitting')
     try {
       const supabase = getSupabaseBrowser()
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -84,6 +85,7 @@ export default function Signup(): JSX.Element {
             region: form.region,
             features,
           },
+          emailRedirectTo: `${siteUrl}/api/auth/callback`,
         },
       })
       if (signUpError) {
