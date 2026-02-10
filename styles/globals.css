@@ -118,6 +118,9 @@ nav a:active{transform:translateY(0)}
   height:2px;
   background:#e6eef8;
   position:relative;
+  display:inline-block;
+  vertical-align:middle;
+  border-radius:2px;
 }
 .burger-lines::before,
 .burger-lines::after{
@@ -127,9 +130,10 @@ nav a:active{transform:translateY(0)}
   width:18px;
   height:2px;
   background:#e6eef8;
+  border-radius:2px;
 }
-.burger-lines::before{top:-6px}
-.burger-lines::after{top:6px}
+.burger-lines::before{top:0;transform:translateY(-6px)}
+.burger-lines::after{top:0;transform:translateY(6px)}
 .dash-menu{
   position:absolute;
   top:44px;
