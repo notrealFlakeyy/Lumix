@@ -44,9 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       payroll_frequency: payload.payrollFrequency,
       payroll_currency: payload.payrollCurrency,
       payroll_next_run_date: payload.payrollNextRunDate ?? null,
-      cash_balance: 84210,
-      next_payroll_total: 31900,
-      next_payroll_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     })
     .select('id')
     .single()
@@ -67,18 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ message: 'Could not create profile' })
     return
   }
-
-  await supabaseAdmin.from('invoices').insert([
-    { company_id: company.id, client: 'Acme Studio', invoice_number: 'INV-2041', due_date: null, amount: 4200, status: 'pending' },
-    { company_id: company.id, client: 'Northwind Labs', invoice_number: 'INV-2039', due_date: null, amount: 7850, status: 'overdue' },
-    { company_id: company.id, client: 'Bluefin Media', invoice_number: 'INV-2033', due_date: null, amount: 2960, status: 'paid' },
-  ])
-
-  await supabaseAdmin.from('employees').insert([
-    { company_id: company.id, full_name: 'Jordan Lee', team: 'Finance', role: 'Admin', status: 'active' },
-    { company_id: company.id, full_name: 'Samira Khan', team: 'Operations', role: 'Employee', status: 'active' },
-    { company_id: company.id, full_name: 'Ella Cruz', team: 'Payroll', role: 'Employee', status: 'active' },
-  ])
 
   res.status(200).json({ message: 'Setup saved', companyId: company.id })
 }

@@ -39,7 +39,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       contact_country,
       billing_email,
       billing_address,
-      vat_id
+      vat_id,
+      kpi_cash_label,
+      kpi_cash_note,
+      kpi_outstanding_label,
+      kpi_outstanding_note,
+      kpi_payroll_label,
+      kpi_payroll_note,
+      kpi_employees_label,
+      kpi_employees_note
     `)
     .eq('id', profile.company_id)
     .single()

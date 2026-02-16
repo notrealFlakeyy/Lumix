@@ -53,7 +53,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 const emptyForm = () => ({
   full_name: '',
   team: '',
-  role: '',
+  role: 'Employee',
   hourly_rate: '0',
   status: 'active',
 })
@@ -201,7 +201,6 @@ export default function EmployeesPage(): JSX.Element {
                   value={form.role}
                   onChange={(event) => setForm({ ...form, role: event.target.value })}
                 >
-                  <option value="">Select role</option>
                   <option value="Admin">Admin</option>
                   <option value="Employee">Employee</option>
                 </select>

@@ -112,6 +112,7 @@ nav a:active{transform:translateY(0)}
 .dash-header p{margin:0;color:var(--muted)}
 .dash-actions{display:flex;gap:12px;flex-wrap:wrap}
 .dash-actions{position:relative}
+.dash-primary-actions{display:flex;gap:12px;flex-wrap:wrap}
 .burger{display:flex;align-items:center;gap:8px}
 .burger-lines{
   width:18px;
@@ -297,6 +298,7 @@ nav a:active{transform:translateY(0)}
   .container{padding:20px}
   .hero{padding:56px 0 48px}
   .hero-copy h1{font-size:1.7rem}
+  .dash-primary-actions{display:none}
 }
 
 @media (max-width:480px){

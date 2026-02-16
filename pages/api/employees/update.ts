@@ -43,7 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!payload?.id || !payload?.full_name?.trim()) {
     return res.status(400).json({ message: 'Employee name is required.' })
   }
-  if (payload.role && !['Admin', 'Employee'].includes(payload.role)) {
+  const normalizedRole = payload.role?.trim() || 'Employee'
+  if (!['Admin', 'Employee'].includes(normalizedRole)) {
     return res.status(400).json({ message: 'Role must be Admin or Employee.' })
   }
 
@@ -52,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .update({
       full_name: payload.full_name.trim(),
       team: payload.team?.trim() || null,
-      role: payload.role?.trim() || null,
+      role: normalizedRole,
       hourly_rate: Number(payload.hourly_rate) || 0,
       status: payload.status?.trim() || 'active',
     })

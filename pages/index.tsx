@@ -28,7 +28,7 @@ export default function Home(): JSX.Element {
               <h1>Accounting, invoicing and payroll — made simple.</h1>
               <p>Automate bookkeeping, generate invoices, and stay compliant — all in one modern web app tailored for small businesses.</p>
               <div className="hero-actions">
-                <a className="btn primary" href="/signup">Start free trial</a>
+                <a className="btn primary" href="/signup">Get started</a>
                 <a className="btn ghost" href="#features">Learn more</a>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function Home(): JSX.Element {
             <div className="grid">
               <div className="price-card">
                 <h3>Starter</h3>
-                <p className="price">€19<span>/mo</span></p>
+                <p className="price">€149<span>/mo</span></p>
                 <ul>
                   <li>Basic invoicing</li>
                   <li>Bank sync</li>
@@ -84,7 +84,7 @@ export default function Home(): JSX.Element {
               </div>
               <div className="price-card popular">
                 <h3>Business</h3>
-                <p className="price">€49<span>/mo</span></p>
+                <p className="price">€249<span>/mo</span></p>
                 <ul>
                   <li>All Starter features</li>
                   <li>Payroll & reporting</li>

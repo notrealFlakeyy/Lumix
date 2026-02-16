@@ -15,6 +15,14 @@ create table if not exists companies (
   billing_email text,
   billing_address text,
   vat_id text,
+  kpi_cash_label text,
+  kpi_cash_note text,
+  kpi_outstanding_label text,
+  kpi_outstanding_note text,
+  kpi_payroll_label text,
+  kpi_payroll_note text,
+  kpi_employees_label text,
+  kpi_employees_note text,
   payroll_frequency text,
   payroll_currency text not null default 'EUR',
   payroll_next_run_date date,
@@ -127,7 +135,7 @@ create table if not exists employees (
   company_id uuid references companies(id) on delete cascade,
   full_name text not null,
   team text,
-  role text,
+  role text not null default 'Employee',
   hourly_rate numeric not null default 0,
   status text not null default 'active',
   created_at timestamptz default now()
@@ -327,6 +335,21 @@ create policy "employees_manage_by_admin"
   );
 
 alter table employees add column if not exists hourly_rate numeric not null default 0;
+alter table employees alter column role set default 'Employee';
+update employees
+set role = 'Employee'
+where role is null or role not in ('Admin', 'Employee');
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'employees_role_check'
+  ) then
+    alter table employees
+      add constraint employees_role_check check (role in ('Admin', 'Employee'));
+  end if;
+end $$;
 
 create policy "payroll_runs_read_by_company"
   on payroll_runs for select
@@ -503,3 +526,11 @@ create policy "time_breaks_manage"
 alter table companies add column if not exists payroll_frequency text;
 alter table companies add column if not exists payroll_currency text default 'EUR';
 alter table companies add column if not exists payroll_next_run_date date;
+alter table companies add column if not exists kpi_cash_label text;
+alter table companies add column if not exists kpi_cash_note text;
+alter table companies add column if not exists kpi_outstanding_label text;
+alter table companies add column if not exists kpi_outstanding_note text;
+alter table companies add column if not exists kpi_payroll_label text;
+alter table companies add column if not exists kpi_payroll_note text;
+alter table companies add column if not exists kpi_employees_label text;
+alter table companies add column if not exists kpi_employees_note text;

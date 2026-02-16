@@ -14,6 +14,14 @@ type CompanyForm = {
   billing_email: string
   billing_address: string
   vat_id: string
+  kpi_cash_label: string
+  kpi_cash_note: string
+  kpi_outstanding_label: string
+  kpi_outstanding_note: string
+  kpi_payroll_label: string
+  kpi_payroll_note: string
+  kpi_employees_label: string
+  kpi_employees_note: string
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
@@ -65,6 +73,14 @@ const emptyForm = (): CompanyForm => ({
   billing_email: '',
   billing_address: '',
   vat_id: '',
+  kpi_cash_label: '',
+  kpi_cash_note: '',
+  kpi_outstanding_label: '',
+  kpi_outstanding_note: '',
+  kpi_payroll_label: '',
+  kpi_payroll_note: '',
+  kpi_employees_label: '',
+  kpi_employees_note: '',
 })
 
 export default function SettingsPage(): JSX.Element {
@@ -230,6 +246,86 @@ export default function SettingsPage(): JSX.Element {
                         type="text"
                         value={form.billing_address}
                         onChange={(event) => setForm({ ...form, billing_address: event.target.value })}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="panel" style={{ marginTop: 20 }}>
+                  <div className="panel-header">
+                    <h2>Dashboard KPI labels</h2>
+                  </div>
+                  <div className="form-grid">
+                    <label className="field">
+                      <span>Cash label</span>
+                      <input
+                        type="text"
+                        value={form.kpi_cash_label}
+                        onChange={(event) => setForm({ ...form, kpi_cash_label: event.target.value })}
+                        placeholder="Cash balance"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Cash note</span>
+                      <input
+                        type="text"
+                        value={form.kpi_cash_note}
+                        onChange={(event) => setForm({ ...form, kpi_cash_note: event.target.value })}
+                        placeholder="Updated daily"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Outstanding label</span>
+                      <input
+                        type="text"
+                        value={form.kpi_outstanding_label}
+                        onChange={(event) => setForm({ ...form, kpi_outstanding_label: event.target.value })}
+                        placeholder="Outstanding invoices"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Outstanding note</span>
+                      <input
+                        type="text"
+                        value={form.kpi_outstanding_note}
+                        onChange={(event) => setForm({ ...form, kpi_outstanding_note: event.target.value })}
+                        placeholder="{count} invoices open"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Payroll label</span>
+                      <input
+                        type="text"
+                        value={form.kpi_payroll_label}
+                        onChange={(event) => setForm({ ...form, kpi_payroll_label: event.target.value })}
+                        placeholder="Payroll scheduled"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Payroll note</span>
+                      <input
+                        type="text"
+                        value={form.kpi_payroll_note}
+                        onChange={(event) => setForm({ ...form, kpi_payroll_note: event.target.value })}
+                        placeholder="Next run on {payrollDate}"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Employees label</span>
+                      <input
+                        type="text"
+                        value={form.kpi_employees_label}
+                        onChange={(event) => setForm({ ...form, kpi_employees_label: event.target.value })}
+                        placeholder="Active employees"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Employees note</span>
+                      <input
+                        type="text"
+                        value={form.kpi_employees_note}
+                        onChange={(event) => setForm({ ...form, kpi_employees_note: event.target.value })}
+                        placeholder="Active seats"
                       />
                     </label>
                   </div>

@@ -12,6 +12,14 @@ type UpdateCompanyPayload = {
   billing_email?: string
   billing_address?: string
   vat_id?: string
+  kpi_cash_label?: string
+  kpi_cash_note?: string
+  kpi_outstanding_label?: string
+  kpi_outstanding_note?: string
+  kpi_payroll_label?: string
+  kpi_payroll_note?: string
+  kpi_employees_label?: string
+  kpi_employees_note?: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -61,6 +69,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       billing_email: payload.billing_email?.trim() || null,
       billing_address: payload.billing_address?.trim() || null,
       vat_id: payload.vat_id?.trim() || null,
+      kpi_cash_label: payload.kpi_cash_label?.trim() || null,
+      kpi_cash_note: payload.kpi_cash_note?.trim() || null,
+      kpi_outstanding_label: payload.kpi_outstanding_label?.trim() || null,
+      kpi_outstanding_note: payload.kpi_outstanding_note?.trim() || null,
+      kpi_payroll_label: payload.kpi_payroll_label?.trim() || null,
+      kpi_payroll_note: payload.kpi_payroll_note?.trim() || null,
+      kpi_employees_label: payload.kpi_employees_label?.trim() || null,
+      kpi_employees_note: payload.kpi_employees_note?.trim() || null,
     })
     .eq('id', profile.company_id)
     .select(`
@@ -74,7 +90,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       contact_country,
       billing_email,
       billing_address,
-      vat_id
+      vat_id,
+      kpi_cash_label,
+      kpi_cash_note,
+      kpi_outstanding_label,
+      kpi_outstanding_note,
+      kpi_payroll_label,
+      kpi_payroll_note,
+      kpi_employees_label,
+      kpi_employees_note
     `)
     .single()
 

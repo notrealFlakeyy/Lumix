@@ -14,6 +14,14 @@ type DashboardProps = {
   role: 'admin' | 'manager' | 'viewer'
 }
 
+const applyTemplate = (template: string, values: Record<string, string>): string => {
+  let result = template
+  Object.entries(values).forEach(([key, value]) => {
+    result = result.replaceAll(`{${key}}`, value)
+  })
+  return result
+}
+
 export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ req, res }) => {
   const supabase = getSupabaseServer({
     req, res,
@@ -49,7 +57,19 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
   }
 
   const [{ data: company }, { data: invoices }, { data: employees }] = await Promise.all([
-    supabase.from('companies').select('cash_balance, next_payroll_total, next_payroll_date').eq('id', profile.company_id).single(),
+    supabase.from('companies').select(`
+      cash_balance,
+      next_payroll_total,
+      next_payroll_date,
+      kpi_cash_label,
+      kpi_cash_note,
+      kpi_outstanding_label,
+      kpi_outstanding_note,
+      kpi_payroll_label,
+      kpi_payroll_note,
+      kpi_employees_label,
+      kpi_employees_note
+    `).eq('id', profile.company_id).single(),
     supabase.from('invoices').select('id, client, invoice_number, due_date, amount, status').eq('company_id', profile.company_id).limit(5),
     supabase.from('employees').select('id, full_name, team, role').eq('company_id', profile.company_id).limit(5),
   ])
@@ -69,10 +89,30 @@ export const getServerSideProps: GetServerSideProps<DashboardProps> = async ({ r
       role: (profile?.role ?? 'viewer') as 'admin' | 'manager' | 'viewer',
       data: {
         kpis: [
-          { label: 'Cash balance', value: `$${cashBalance.toLocaleString()}`, note: 'Updated daily' },
-          { label: 'Outstanding invoices', value: `$${outstandingTotal.toLocaleString()}`, note: `${outstanding.length} invoices open` },
-          { label: 'Payroll scheduled', value: `$${payrollTotal.toLocaleString()}`, note: `Next run on ${payrollDate}` },
-          { label: 'Active employees', value: `${employees?.length ?? 0}`, note: 'Active seats' },
+          {
+            label: company?.kpi_cash_label || 'Cash balance',
+            value: `$${cashBalance.toLocaleString()}`,
+            note: company?.kpi_cash_note || 'Updated daily',
+          },
+          {
+            label: company?.kpi_outstanding_label || 'Outstanding invoices',
+            value: `$${outstandingTotal.toLocaleString()}`,
+            note: company?.kpi_outstanding_note
+              ? applyTemplate(company.kpi_outstanding_note, { count: String(outstanding.length) })
+              : `${outstanding.length} invoices open`,
+          },
+          {
+            label: company?.kpi_payroll_label || 'Payroll scheduled',
+            value: `$${payrollTotal.toLocaleString()}`,
+            note: company?.kpi_payroll_note
+              ? applyTemplate(company.kpi_payroll_note, { payrollDate })
+              : `Next run on ${payrollDate}`,
+          },
+          {
+            label: company?.kpi_employees_label || 'Active employees',
+            value: `${employees?.length ?? 0}`,
+            note: company?.kpi_employees_note || 'Active seats',
+          },
         ],
         invoices: (invoices ?? []).map((invoice: { id: any; client: any; due_date: string | number | Date; status: string; amount: any }) => ({
           id: invoice.id,
@@ -99,7 +139,9 @@ const getTimeOfDayGreeting = (hours: number): string => {
 }
 
 export default function Dashboard({ data, role, employeeName }: DashboardProps): JSX.Element {
-  const canManage = role === 'admin' || role === 'manager'
+  const [dashboardData, setDashboardData] = useState(data)
+  const [currentRole, setCurrentRole] = useState(role)
+  const [employeeDisplayName, setEmployeeDisplayName] = useState(employeeName)
   const [greeting, setGreeting] = useState('Welcome')
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
@@ -107,6 +149,7 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
   const [exportError, setExportError] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
+  const canManage = currentRole === 'admin' || currentRole === 'manager'
 
   useEffect(() => {
     setGreeting(getTimeOfDayGreeting(new Date().getHours()))
@@ -141,6 +184,41 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
     }
   }, [router.events])
 
+  const refreshDashboard = async () => {
+    const response = await fetch('/api/dashboard/summary')
+    if (response.status === 401) {
+      window.location.href = '/login'
+      return
+    }
+    if (!response.ok) {
+      return
+    }
+    const payload = await response.json().catch(() => null)
+    if (payload?.data) {
+      setDashboardData(payload.data)
+    }
+    if (payload?.role) {
+      setCurrentRole(payload.role)
+    }
+    if (typeof payload?.employeeName === 'string') {
+      setEmployeeDisplayName(payload.employeeName)
+    }
+  }
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      refreshDashboard()
+    }, 300000)
+    const onFocus = () => {
+      refreshDashboard()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [])
+
   const exportAllInvoices = async () => {
     setExportError(null)
     setExporting(true)
@@ -171,7 +249,7 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
     }
   }
 
-  const name = employeeName?.trim() || 'there'
+  const name = employeeDisplayName?.trim() || 'there'
   return (
     <>
       <Head>
@@ -187,6 +265,38 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
               <p>Here is the latest on your cash flow, invoices, and payroll.</p>
             </div>
             <div className="dash-actions" ref={menuRef}>
+              <div className="dash-primary-actions">
+                <button
+                  className="btn"
+                  type="button"
+                  onClick={() => {
+                    refreshDashboard()
+                  }}
+                >
+                  Refresh
+                </button>
+                <button
+                  className="btn"
+                  type="button"
+                  onClick={() => {
+                    router.push('/dashboard/clients')
+                  }}
+                >
+                  Clients
+                </button>
+                <button
+                  className="btn primary"
+                  type="button"
+                  disabled={!canManage}
+                  onClick={() => {
+                    if (canManage) {
+                      router.push('/invoices/new')
+                    }
+                  }}
+                >
+                  New invoice
+                </button>
+              </div>
               <button
                 className="btn burger"
                 type="button"
@@ -199,19 +309,6 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
               </button>
               <div className={`dash-menu ${menuOpen ? 'open' : ''}`} id="dashboard-menu" role="menu">
                 <button
-                  className="btn primary"
-                  role="menuitem"
-                  disabled={!canManage}
-                  onClick={() => {
-                    if (canManage) {
-                      router.push('/invoices/new')
-                      setMenuOpen(false)
-                    }
-                  }}
-                >
-                  New invoice
-                </button>
-                <button
                   className="btn"
                   role="menuitem"
                   onClick={() => {
@@ -222,16 +319,6 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
                   Export
                 </button>
                 <button className="btn" role="menuitem">Import</button>
-                <button
-                  className="btn"
-                  role="menuitem"
-                  onClick={() => {
-                    router.push('/dashboard/clients')
-                    setMenuOpen(false)
-                  }}
-                >
-                  Clients
-                </button>
                 <button
                   className="btn"
                   role="menuitem"
@@ -324,7 +411,7 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
         )}
 
         <section className="container dash-kpis">
-          {data.kpis.map((kpi) => (
+          {dashboardData.kpis.map((kpi) => (
             <div className="kpi-card" key={kpi.label}>
               <span>{kpi.label}</span>
               <strong>{kpi.value}</strong>
@@ -337,15 +424,22 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
           <div className="panel">
             <div className="panel-header">
               <h2>Invoice activity</h2>
-              <button className="btn ghost">View all</button>
+              <button
+                className="btn ghost"
+                onClick={() => {
+                  router.push('/dashboard/invoices')
+                }}
+              >
+                View all
+              </button>
             </div>
             <div className="invoice-list">
-              {data.invoices.map((invoice) => (
+              {dashboardData.invoices.map((invoice) => (
                 <div className="invoice-row" key={invoice.id}>
                   <div>
                     <strong>{invoice.client}</strong>
                     <span>
-                      {invoice.id} · {invoice.due}
+                      {invoice.id} - {invoice.due}
                     </span>
                   </div>
                   <div className="invoice-meta">
@@ -363,12 +457,12 @@ export default function Dashboard({ data, role, employeeName }: DashboardProps):
               <button className="btn ghost" disabled={!canManage}>Invite</button>
             </div>
             <div className="employee-list">
-              {data.employees.map((employee) => (
+              {dashboardData.employees.map((employee) => (
                 <div className="employee-row" key={employee.name}>
                   <div>
                     <strong>{employee.name}</strong>
                     <span>
-                      {employee.team} · {employee.role}
+                      {employee.team} - {employee.role}
                     </span>
                   </div>
                   <button className="btn" disabled={!canManage}>Manage</button>
