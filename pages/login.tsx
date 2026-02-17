@@ -4,7 +4,11 @@ import type { GetServerSideProps } from 'next'
 import { getSupabaseBrowser } from '../lib/supabaseClient'
 import { getSupabaseServer } from '../lib/supabaseServer'
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+type LoginProps = {
+  created: boolean
+}
+
+export const getServerSideProps: GetServerSideProps<LoginProps> = async ({ req, res, query }) => {
   const supabase = getSupabaseServer({
     req, res,
     query: {},
@@ -15,18 +19,28 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   } = await supabase.auth.getSession()
 
   if (session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('company_id')
+      .eq('id', session.user.id)
+      .maybeSingle()
+
     return {
       redirect: {
-        destination: '/dashboard',
+        destination: profile?.company_id ? '/dashboard' : '/signup',
         permanent: false,
       },
     }
   }
 
-  return { props: {} }
+  return {
+    props: {
+      created: query.created === '1',
+    },
+  }
 }
 
-export default function Login(): JSX.Element {
+export default function Login({ created }: LoginProps): JSX.Element {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'submitting'>('idle')
@@ -72,8 +86,9 @@ export default function Login(): JSX.Element {
         <section className="auth-panel">
           <div className="container auth-container">
             <div className="auth-card">
-              <h1>Welcome back</h1>
-              <p>Log in to access your dashboard, invoices, and payroll.</p>
+              <h1>{created ? 'Account successfully created' : 'Welcome back'}</h1>
+              <p>{created ? 'Login to get started.' : 'Log in to access your dashboard, invoices, and payroll.'}</p>
+              {created && <p className="form-note">Your account is ready. Sign in to continue.</p>}
               <form className="auth-form" onSubmit={submitLogin}>
                 <label className="field">
                   <span>Email</span>

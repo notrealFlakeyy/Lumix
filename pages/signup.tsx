@@ -15,6 +15,16 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   } = await supabase.auth.getSession()
 
   if (session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('company_id')
+      .eq('id', session.user.id)
+      .maybeSingle()
+
+    if (!profile?.company_id) {
+      return { props: {} }
+    }
+
     return {
       redirect: {
         destination: '/dashboard',

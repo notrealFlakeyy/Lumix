@@ -16,7 +16,7 @@ export default function Confirmed(): JSX.Element {
               <h1>Email confirmed</h1>
               <p>Your email has been verified. You can now log in and access your dashboard.</p>
               <div className="setup-actions">
-                <a className="btn primary" href="/login">Continue to log in</a>
+                <a className="btn primary" href="/login?created=1">Continue to log in</a>
                 <a className="btn ghost" href="/">Back to home</a>
               </div>
             </div>
@@ -24,7 +24,7 @@ export default function Confirmed(): JSX.Element {
             <div className="auth-aside">
               <h2>You're all set</h2>
               <p>We have activated your Lumix workspace. Log in to start sending invoices and managing payroll.</p>
-              <a className="btn ghost" href="/login">Go to login</a>
+              <a className="btn ghost" href="/login?created=1">Go to login</a>
             </div>
           </div>
         </section>
