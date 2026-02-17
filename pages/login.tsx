@@ -2,39 +2,12 @@ import Head from 'next/head'
 import React, { useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSupabaseBrowser } from '../lib/supabaseClient'
-import { getSupabaseServer } from '../lib/supabaseServer'
 
 type LoginProps = {
   created: boolean
 }
 
 export const getServerSideProps: GetServerSideProps<LoginProps> = async ({ req, res, query }) => {
-  const supabase = getSupabaseServer({
-    req, res,
-    query: {},
-    resolvedUrl: ''
-  })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (session) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('company_id')
-      .eq('id', session.user.id)
-      .maybeSingle()
-
-    if (profile?.company_id) {
-      return {
-        redirect: {
-          destination: '/dashboard',
-          permanent: false,
-        },
-      }
-    }
-  }
-
   return {
     props: {
       created: query.created === '1',
