@@ -31,7 +31,7 @@ nav a{
 }
 nav a:hover{color:#e6eef8;transform:translateY(-1px)}
 nav a:active{transform:translateY(0)}
-.login-link{border:1px solid rgba(255,255,255,0.08);padding:6px 10px;border-radius:999px}
+.login-link{border:1px solid rgba(255,255,255,0.08);padding:6px 10px;border-radius:10px}
 .cta{
   background:linear-gradient(90deg,var(--accent),#5b21b6);
   padding:8px 12px;

@@ -12,14 +12,12 @@ export async function proxy(req: NextRequest) {
   if (error) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/error'
-    redirectUrl.searchParams.set('reason', 'auth')
     return NextResponse.redirect(redirectUrl)
   }
 
   if (!session) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/login'
-    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
