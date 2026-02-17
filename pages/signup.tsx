@@ -109,7 +109,7 @@ export default function Signup(): JSX.Element {
         throw signUpError
       }
       if (data.user) {
-        await fetch('/api/setup', {
+        const setupResponse = await fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -123,6 +123,10 @@ export default function Signup(): JSX.Element {
             payrollNextRunDate: form.payrollNextRunDate || null,
           }),
         })
+        if (!setupResponse.ok) {
+          const setupPayload = await setupResponse.json().catch(() => null)
+          throw new Error(setupPayload?.message ?? 'Could not complete account setup.')
+        }
         setStatus('success')
       } else {
         setStatus('idle')
@@ -130,7 +134,7 @@ export default function Signup(): JSX.Element {
       }
     } catch (requestError) {
       setStatus('idle')
-      setError('Something went wrong. Please try again.')
+      setError(requestError instanceof Error ? requestError.message : 'Something went wrong. Please try again.')
     }
   }
 

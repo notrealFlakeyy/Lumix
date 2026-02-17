@@ -20,16 +20,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const payload = req.body as SetupRequest
+  const businessName = payload.businessName?.trim() ?? ''
+  const size = payload.size?.trim() ?? ''
+  const region = payload.region?.trim() ?? ''
+  const payrollFrequency = payload.payrollFrequency?.trim() ?? ''
+  const payrollCurrency = payload.payrollCurrency?.trim() ?? ''
+  const features = Array.isArray(payload.features)
+    ? payload.features.filter((feature): feature is string => typeof feature === 'string' && feature.trim().length > 0)
+    : []
+
+  const allowedPayrollFrequencies = ['monthly', 'bi-weekly', 'flexible']
+  const allowedPayrollCurrencies = ['EUR', 'USD']
+
   if (
     !payload.userId ||
-    !payload.businessName ||
-    !payload.size ||
-    !payload.region ||
-    !Array.isArray(payload.features) ||
-    !payload.payrollFrequency ||
-    !payload.payrollCurrency
+    !businessName ||
+    !size ||
+    !region ||
+    features.length === 0 ||
+    !payrollFrequency ||
+    !payrollCurrency
   ) {
     res.status(400).json({ message: 'Missing required fields' })
+    return
+  }
+
+  if (!allowedPayrollFrequencies.includes(payrollFrequency)) {
+    res.status(400).json({ message: 'Invalid payroll frequency' })
+    return
+  }
+
+  if (payrollFrequency === 'flexible' && !payload.payrollNextRunDate) {
+    res.status(400).json({ message: 'Next pay run date is required for flexible payroll' })
+    return
+  }
+
+  if (!allowedPayrollCurrencies.includes(payrollCurrency)) {
+    res.status(400).json({ message: 'Invalid payroll currency' })
     return
   }
 
@@ -37,12 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data: company, error: companyError } = await supabaseAdmin
     .from('companies')
     .insert({
-      name: payload.businessName,
-      size: payload.size,
-      region: payload.region,
-      features: payload.features,
-      payroll_frequency: payload.payrollFrequency,
-      payroll_currency: payload.payrollCurrency,
+      name: businessName,
+      size,
+      region,
+      features,
+      payroll_frequency: payrollFrequency,
+      payroll_currency: payrollCurrency,
       payroll_next_run_date: payload.payrollNextRunDate ?? null,
     })
     .select('id')

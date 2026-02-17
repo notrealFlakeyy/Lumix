@@ -25,11 +25,13 @@ export const getServerSideProps: GetServerSideProps<LoginProps> = async ({ req, 
       .eq('id', session.user.id)
       .maybeSingle()
 
-    return {
-      redirect: {
-        destination: profile?.company_id ? '/dashboard' : '/signup',
-        permanent: false,
-      },
+    if (profile?.company_id) {
+      return {
+        redirect: {
+          destination: '/dashboard',
+          permanent: false,
+        },
+      }
     }
   }
 
