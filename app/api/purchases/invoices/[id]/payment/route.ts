@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 
 const schema = z.object({
-  paymentDate: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+  paymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   amount: z.coerce.number().positive(),
 })
 

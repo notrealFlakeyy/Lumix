@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 
 const schema = z.object({
-  voidDate: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/).optional().nullable(),
+  voidDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   reason: z.string().trim().max(500).optional().nullable(),
 })
 
@@ -31,4 +31,3 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   return NextResponse.json({ ok: true })
 }
-

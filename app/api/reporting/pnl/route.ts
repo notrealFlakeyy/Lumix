@@ -4,8 +4,8 @@ import { z } from 'zod'
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 
 const schema = z.object({
-  start: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
-  end: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+  start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 
 export async function GET(req: Request) {
@@ -30,4 +30,3 @@ export async function GET(req: Request) {
 
   return NextResponse.json(data)
 }
-

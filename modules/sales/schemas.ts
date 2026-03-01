@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const isoDateString = z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+const isoDateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
 const normalizeNumberInput = (value: unknown) => {
   if (typeof value === 'string') {
