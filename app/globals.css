@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-bg: 7 18 38; /* #071226 */
+  --app-fg: 255 255 255; /* #ffffff */
+  --btn-from: 120 55 230; /* #7837e6 */
+  --btn-to: 94 36 188; /* #5e24bc */
+
+  --radius: 14px;
+
+  /* shadcn/ui tokens (override defaults) */
+  --background: var(--app-bg);
+  --foreground: var(--app-fg);
+  --card: 10 24 52;
+  --card-foreground: var(--app-fg);
+  --muted: 16 34 66;
+  --muted-foreground: 200 210 230;
+  --border: 35 60 100;
+  --input: 35 60 100;
+  --ring: var(--btn-from);
+
+  --primary: var(--btn-from);
+  --primary-foreground: var(--app-fg);
+  --secondary: 16 34 66;
+  --secondary-foreground: var(--app-fg);
+  --accent: 16 34 66;
+  --accent-foreground: var(--app-fg);
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+}
+
+body {
+  background-color: rgb(var(--app-bg));
+  color: rgb(var(--app-fg));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  a {
+    @apply underline-offset-4 hover:underline;
+  }
+}
+

@@ -1,3 +1,6 @@
+-- Legacy schema (pre-App-Router MVP).
+-- Use `supabase/migrations/20260224000000_init.sql` as the source of truth going forward.
+
 create extension if not exists "pgcrypto";
 
 create table if not exists companies (
