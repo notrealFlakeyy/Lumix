@@ -15,7 +15,13 @@ export async function POST(req: Request) {
   const json = await req.json().catch(() => null)
   const parsed = createInvoiceSchema.safeParse(json)
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid payload' }, { status: 400 })
+    return NextResponse.json(
+      {
+        message: 'Invalid payload',
+        issues: process.env.NODE_ENV === 'development' ? parsed.error.issues : undefined,
+      },
+      { status: 400 },
+    )
   }
 
   const normalized = normalizeCreateInvoice(parsed.data)
