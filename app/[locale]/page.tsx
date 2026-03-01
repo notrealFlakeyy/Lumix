@@ -27,9 +27,6 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
               <Button asChild variant="outline" size="sm">
                 <Link href="/login">{t('auth.login')}</Link>
               </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">{t('auth.signup')}</Link>
-              </Button>
             </div>
           </div>
         </header>
@@ -43,10 +40,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
-                  <Link href="/signup">{t('common.landing.primaryCta')}</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/login">{t('common.landing.secondaryCta')}</Link>
+                  <Link href="/login">{t('common.landing.primaryCta')}</Link>
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">{t('common.landing.trustNote')}</p>
@@ -144,7 +138,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
     .maybeSingle()
 
   if (!membership?.org_id) {
-    redirect(`/${locale}/signup`)
+    redirect(`/${locale}/onboarding`)
   }
 
   redirect(`/${locale}/dashboard`)

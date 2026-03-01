@@ -54,9 +54,7 @@ export function LoginForm({ locale }: { locale: string }) {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </CardContent>
         <CardFooter className="flex items-center justify-between gap-3">
-          <Link href="/signup" className="text-sm text-muted-foreground hover:underline">
-            {t('auth.signup')}
-          </Link>
+          <span className="text-sm text-muted-foreground">{t('auth.noSignupNote')}</span>
           <Button type="submit" disabled={isLoading} data-testid="login-submit">
             {t('auth.signIn')}
           </Button>

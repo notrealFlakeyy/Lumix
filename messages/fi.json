@@ -18,6 +18,7 @@
     "no": "Ei",
     "next": "Seuraava",
     "back": "Takaisin",
+    "open": "Avaa",
     "void": "Mitätöi",
     "reason": "Syy",
     "language": "Kieli",
@@ -40,12 +41,13 @@
     "unitPrice": "Yksikköhinta",
     "vatRate": "ALV %",
     "accountNumber": "Tilinumero",
-    "comingSoon": "Tulossa"
+    "comingSoon": "Tulossa",
+    "tryAgain": "Yritä uudelleen"
     ,
     "landing": {
       "heroTitle": "Moderni taloushallinto pienille ja keskisuurille yrityksille",
       "heroSubtitle": "Myynti, ostot, kirjanpito, raportointi ja palkat yhdessä järjestelmässä. Selkeät prosessit, vahva audit trail ja turvalliset kirjaussäännöt.",
-      "primaryCta": "Aloita",
+      "primaryCta": "Kirjaudu sisään",
       "secondaryCta": "Kirjaudu sisään",
       "trustNote": "MVP: ei maksullisia integraatioita. Sähköinen laskutus ja pankkiyhteydet korvattu adaptereilla ja CSV-tuonnilla.",
       "kicker": "Miksi tämä toimii",
@@ -81,7 +83,6 @@
   },
   "auth": {
     "login": "Kirjaudu sisään",
-    "signup": "Luo tili",
     "email": "Sähköposti",
     "password": "Salasana",
     "signIn": "Kirjaudu",
@@ -93,7 +94,39 @@
     "orgCreateSuccessMessage": "Yritys \"{name}\" on luotu onnistuneesti.",
     "orgCreateFailedTitle": "Yrityksen luonti epäonnistui",
     "orgCreateFailedMessage": "Tapahtui odottamaton virhe. Yritä uudelleen.",
-    "goToDashboard": "Siirry yhteenvetoon"
+    "goToDashboard": "Siirry yhteenvetoon",
+    "noSignupNote": "Tunnukset saat ylläpidolta.",
+    "missingOrgTitle": "Yritys puuttuu",
+    "missingOrgMessage": "Tiliäsi ei ole vielä liitetty yritykseen. Ota yhteys ylläpitoon.",
+    "nextStepsTitle": "Seuraavat askeleet",
+    "nextStepsLine1": "Pyydä ylläpitoa lisäämään sinut yritykseen ja määrittämään rooli.",
+    "nextStepsLine2": "Kun liitos on tehty, kirjaudu uudelleen sisään.",
+    "userManagementTitle": "Käyttäjät",
+    "userManagementSubtitle": "Lisää olemassa olevia käyttäjiä yritykseen ja määritä roolit. Käyttäjät luodaan Supabaseen ylläpidon toimesta.",
+    "userManagementCta": "Hallitse yrityksen käyttäjiä ja rooleja.",
+    "assignOrgMemberTitle": "Lisää käyttäjä yritykseen",
+    "assignOrgMemberSubtitle": "Syötä Supabase Auth -käyttäjän tunniste (UUID) ja valitse rooli.",
+    "assignOrgMember": "Lisää käyttäjä",
+    "assignOrgMemberSuccess": "Käyttäjä {userId} lisätty roolilla {role}.",
+    "createUserTitle": "Luo käyttäjä",
+    "createUserSubtitle": "Luo uusi käyttäjä Supabaseen ja liitä se automaattisesti tähän yritykseen. Tämä ei ole julkinen rekisteröinti.",
+    "createUser": "Luo käyttäjä",
+    "createUserSuccess": "Käyttäjä luotu: {email} ({userId}), rooli {role}.",
+    "tempPassword": "Väliaikainen salasana",
+    "passwordPlaceholder": "Vähintään 10 merkkiä",
+    "emailPlaceholder": "esim. etunimi.sukunimi@yritys.fi",
+    "userId": "Käyttäjätunnus",
+    "fullName": "Nimi (valinnainen)",
+    "fullNamePlaceholder": "Esim. Maija Meikäläinen",
+    "role": "Rooli",
+    "roles": {
+      "owner": "Omistaja",
+      "admin": "Ylläpitäjä",
+      "accountant": "Kirjanpitäjä",
+      "sales": "Myyjä",
+      "purchaser": "Ostaja",
+      "employee": "Työntekijä"
+    }
   },
   "dashboard": {
     "title": "Yhteenveto",
@@ -192,6 +225,10 @@
     "required": "Pakollinen kenttä",
     "notFound": "Ei löytynyt",
     "unauthorized": "Ei oikeuksia",
-    "unexpected": "Tapahtui odottamaton virhe"
+    "unexpected": "Tapahtui odottamaton virhe",
+    "unexpectedTitle": "Jotain meni pieleen",
+    "unexpectedMessage": "Tapahtui odottamaton virhe. Yritä uudelleen.",
+    "notFoundTitle": "Sivua ei löytynyt",
+    "notFoundMessage": "Pyydettyä sivua ei löytynyt."
   }
 }

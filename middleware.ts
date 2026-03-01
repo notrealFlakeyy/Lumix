@@ -3,6 +3,7 @@ import createIntlMiddleware from 'next-intl/middleware'
 import { createServerClient } from '@supabase/ssr'
 
 import { defaultLocale, locales } from './i18n/routing'
+import { publicEnv } from './lib/env/public'
 
 const intlMiddleware = createIntlMiddleware({
   locales: [...locales],
@@ -42,19 +43,13 @@ const isAuthPath = (pathname: string) => {
   if (!maybeLocale || !locales.includes(maybeLocale as any)) return false
 
   const rest = `/${parts.slice(1).join('/')}`
-  return rest === '/login' || rest.startsWith('/login/') || rest === '/signup' || rest.startsWith('/signup/')
+  return rest === '/login' || rest.startsWith('/login/')
 }
 
 export async function middleware(req: NextRequest) {
   const res = intlMiddleware(req)
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return res
-  }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(publicEnv.NEXT_PUBLIC_SUPABASE_URL, publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return req.cookies.getAll()

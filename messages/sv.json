@@ -18,6 +18,8 @@
     "no": "Nej",
     "next": "Nästa",
     "back": "Tillbaka",
+    "open": "Öppna",
+    "tryAgain": "Försök igen",
     "void": "Makuler",
     "reason": "Orsak",
     "language": "Språk",
@@ -45,7 +47,7 @@
     "landing": {
       "heroTitle": "Modern ekonomiförvaltning för små och medelstora företag",
       "heroSubtitle": "Försäljning, inköp, bokföring, rapportering och löner i ett system. Tydliga processer, audit trail och säkra bokföringsregler.",
-      "primaryCta": "Kom igång",
+      "primaryCta": "Logga in",
       "secondaryCta": "Logga in",
       "trustNote": "MVP: inga betalda integrationer. E-faktura och bankkopplingar ersätts med adapter och CSV-import.",
       "kicker": "Varför det fungerar",
@@ -81,7 +83,6 @@
   },
   "auth": {
     "login": "Logga in",
-    "signup": "Skapa konto",
     "email": "E-post",
     "password": "Lösenord",
     "signIn": "Logga in",
@@ -93,7 +94,39 @@
     "orgCreateSuccessMessage": "Företaget \"{name}\" har skapats.",
     "orgCreateFailedTitle": "Misslyckades att skapa företag",
     "orgCreateFailedMessage": "Ett oväntat fel inträffade. Försök igen.",
-    "goToDashboard": "Gå till översikten"
+    "goToDashboard": "Gå till översikten",
+    "noSignupNote": "Konton skapas av administratören.",
+    "missingOrgTitle": "Företag saknas",
+    "missingOrgMessage": "Ditt konto är ännu inte kopplat till ett företag. Kontakta administratören.",
+    "nextStepsTitle": "Nästa steg",
+    "nextStepsLine1": "Be administratören lägga till dig i ett företag och ange en roll.",
+    "nextStepsLine2": "Logga in igen när kopplingen är klar.",
+    "userManagementTitle": "Användare",
+    "userManagementSubtitle": "Koppla befintliga användare till företaget och ange roll. Konton skapas manuellt av en administratör.",
+    "userManagementCta": "Hantera användare och roller för företaget.",
+    "assignOrgMemberTitle": "Lägg till användare i företaget",
+    "assignOrgMemberSubtitle": "Ange Supabase Auth-användar-ID (UUID) och välj roll.",
+    "assignOrgMember": "Lägg till användare",
+    "assignOrgMemberSuccess": "Användare {userId} tillagd med rollen {role}.",
+    "createUserTitle": "Skapa användare",
+    "createUserSubtitle": "Skapa en ny Supabase-användare och koppla den automatiskt till företaget. Detta är ingen offentlig registrering.",
+    "createUser": "Skapa användare",
+    "createUserSuccess": "Användare skapad: {email} ({userId}), roll {role}.",
+    "tempPassword": "Tillfälligt lösenord",
+    "passwordPlaceholder": "Minst 10 tecken",
+    "emailPlaceholder": "t.ex. fornamn.efternamn@foretag.fi",
+    "userId": "Användar-ID",
+    "fullName": "Namn (valfritt)",
+    "fullNamePlaceholder": "t.ex. Alex Exempel",
+    "role": "Roll",
+    "roles": {
+      "owner": "Ägare",
+      "admin": "Admin",
+      "accountant": "Bokförare",
+      "sales": "Sälj",
+      "purchaser": "Inköp",
+      "employee": "Anställd"
+    }
   },
   "dashboard": {
     "title": "Översikt",
@@ -192,6 +225,10 @@
     "required": "Obligatoriskt fält",
     "notFound": "Hittades inte",
     "unauthorized": "Ingen behörighet",
-    "unexpected": "Ett oväntat fel inträffade"
+    "unexpected": "Ett oväntat fel inträffade",
+    "unexpectedTitle": "Något gick fel",
+    "unexpectedMessage": "Ett oväntat fel inträffade. Försök igen.",
+    "notFoundTitle": "Sidan hittades inte",
+    "notFoundMessage": "Sidan du sökte kunde inte hittas."
   }
 }

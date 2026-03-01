@@ -1,4 +1,4 @@
-# Lumix MVP – Financial Back Office (Next.js + Supabase)
+# Lumix MVP - Financial Back Office (Next.js + Supabase)
 
 Netvisor-like finance back-office MVP with:
 - Next.js **App Router** + TypeScript
@@ -10,15 +10,17 @@ Netvisor-like finance back-office MVP with:
 
 ### 1) Environment variables
 
-Create `.env.local`:
+Create `.env.local` (see `.env.example`):
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<your-anon-key>"
-SUPABASE_SERVICE_ROLE_KEY="<your-service-role-key>"
 ```
 
 Do not commit `.env.local` or any secret keys. If you accidentally committed a key, rotate it in the Supabase dashboard immediately.
+
+### Authentication (no public signup)
+This app intentionally has **no public registration flow**. Users must be created manually in Supabase Auth and assigned to an organization via `org_members`.
 
 ### 2) Apply database migrations
 
@@ -58,6 +60,8 @@ Creates:
 - an org + membership
 - default Finnish chart of accounts
 - a sample AR invoice + AP invoice (draft)
+
+Requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` to create the demo user.
 
 ```bash
 npm run seed:demo -- --email demo@example.com --password "demo-demo-demo" --org "Demo Oy"

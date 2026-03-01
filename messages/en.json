@@ -18,6 +18,8 @@
     "no": "No",
     "next": "Next",
     "back": "Back",
+    "open": "Open",
+    "tryAgain": "Try again",
     "void": "Void",
     "reason": "Reason",
     "language": "Language",
@@ -45,8 +47,8 @@
     "landing": {
       "heroTitle": "Modern financial back office for small and mid-sized businesses",
       "heroSubtitle": "Sales, purchases, accounting, reporting and payroll in one system. Clear processes, audit trail and safe double-entry rules.",
-      "primaryCta": "Get started",
-      "secondaryCta": "Sign in",
+      "primaryCta": "Log in",
+      "secondaryCta": "Log in",
       "trustNote": "MVP: no paid integrations. E-invoicing and bank connections are represented via adapters and CSV import.",
       "kicker": "Why it works",
       "kpi1Title": "Multi-tenant & roles",
@@ -81,7 +83,6 @@
   },
   "auth": {
     "login": "Log in",
-    "signup": "Create account",
     "email": "Email",
     "password": "Password",
     "signIn": "Sign in",
@@ -93,7 +94,39 @@
     "orgCreateSuccessMessage": "Organization \"{name}\" was created successfully.",
     "orgCreateFailedTitle": "Failed to create organization",
     "orgCreateFailedMessage": "An unexpected error occurred. Please try again.",
-    "goToDashboard": "Go to dashboard"
+    "goToDashboard": "Go to dashboard",
+    "noSignupNote": "Accounts are created by an administrator.",
+    "missingOrgTitle": "Organization missing",
+    "missingOrgMessage": "Your account is not yet assigned to an organization. Please contact an administrator.",
+    "nextStepsTitle": "Next steps",
+    "nextStepsLine1": "Ask an administrator to add you to an organization and assign a role.",
+    "nextStepsLine2": "Sign in again once the assignment is complete.",
+    "userManagementTitle": "Users",
+    "userManagementSubtitle": "Assign existing users to this organization and set their role. Accounts are created manually by an administrator.",
+    "userManagementCta": "Manage organization users and roles.",
+    "assignOrgMemberTitle": "Assign user to organization",
+    "assignOrgMemberSubtitle": "Enter the Supabase Auth user ID (UUID) and choose a role.",
+    "assignOrgMember": "Assign user",
+    "assignOrgMemberSuccess": "User {userId} assigned as {role}.",
+    "createUserTitle": "Create user",
+    "createUserSubtitle": "Create a new Supabase user and automatically assign them to this organization. This is not public signup.",
+    "createUser": "Create user",
+    "createUserSuccess": "User created: {email} ({userId}), role {role}.",
+    "tempPassword": "Temporary password",
+    "passwordPlaceholder": "At least 10 characters",
+    "emailPlaceholder": "e.g. firstname.lastname@company.com",
+    "userId": "User ID",
+    "fullName": "Full name (optional)",
+    "fullNamePlaceholder": "e.g. Alex Example",
+    "role": "Role",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "accountant": "Accountant",
+      "sales": "Sales",
+      "purchaser": "Purchaser",
+      "employee": "Employee"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -192,6 +225,10 @@
     "required": "Required field",
     "notFound": "Not found",
     "unauthorized": "Unauthorized",
-    "unexpected": "An unexpected error occurred"
+    "unexpected": "An unexpected error occurred",
+    "unexpectedTitle": "Something went wrong",
+    "unexpectedMessage": "An unexpected error occurred. Please try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "The page you requested could not be found."
   }
 }
