@@ -17,21 +17,18 @@ export default async function SalesInvoicesPage({ params }: { params: Promise<{ 
   const { supabase, orgId } = await getCurrentOrg()
   if (!orgId) return null
 
-  const [{ data: invoices }, { data: customers }] = await Promise.all([
-    supabase
-      .from('ar_invoices')
-      .select('id, invoice_number, due_date, total, status, created_at')
-      .eq('org_id', orgId)
-      .order('created_at', { ascending: false })
-      .limit(50),
-    supabase.from('ar_customers').select('id, name').eq('org_id', orgId).order('name'),
-  ])
+  const { data: invoices } = await supabase
+    .from('ar_invoices')
+    .select('id, invoice_number, due_date, total, status, created_at')
+    .eq('org_id', orgId)
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('sales.invoices')}</h1>
-        <CreateInvoiceForm customers={(customers ?? []).map((c) => ({ id: c.id, name: c.name }))} />
+        <CreateInvoiceForm />
       </div>
 
       <Card>

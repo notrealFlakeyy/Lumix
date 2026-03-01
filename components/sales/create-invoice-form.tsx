@@ -9,9 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-type CustomerOption = { id: string; name: string }
-
-export function CreateInvoiceForm({ customers }: { customers: CustomerOption[] }) {
+export function CreateInvoiceForm() {
   const t = useTranslations()
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -35,7 +33,7 @@ export function CreateInvoiceForm({ customers }: { customers: CustomerOption[] }
             setIsLoading(true)
             const form = new FormData(e.currentTarget)
 
-            const customerIdValue = String(form.get('customerId') ?? '')
+            const customerName = String(form.get('customerName') ?? '').trim()
             const dueDate = String(form.get('dueDate') ?? '')
             const referenceNumber = String(form.get('referenceNumber') ?? '')
 
@@ -44,11 +42,41 @@ export function CreateInvoiceForm({ customers }: { customers: CustomerOption[] }
             const unitPrice = String(form.get('unitPrice') ?? '0')
             const vatRate = String(form.get('vatRate') ?? '24')
 
+            if (!customerName) {
+              setIsLoading(false)
+              setError(t('errors.required'))
+              return
+            }
+
+            const customerRes = await fetch('/api/sales/customers', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: customerName, email: '' }),
+            })
+
+            if (!customerRes.ok) {
+              const body = await customerRes.json().catch(() => null)
+              console.error('Create customer failed', { status: customerRes.status, body })
+              setIsLoading(false)
+              setError(t('errors.unexpected'))
+              return
+            }
+
+            const customerJson = (await customerRes.json().catch(() => null)) as null | { id?: string }
+            const customerId = customerJson?.id
+
+            if (!customerId) {
+              console.error('Create customer missing id', { customerJson })
+              setIsLoading(false)
+              setError(t('errors.unexpected'))
+              return
+            }
+
             const res = await fetch('/api/sales/invoices', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                customerId: customerIdValue || null,
+                customerId,
                 dueDate: dueDate || null,
                 referenceNumber: referenceNumber || null,
                 lines: [
@@ -65,6 +93,8 @@ export function CreateInvoiceForm({ customers }: { customers: CustomerOption[] }
             setIsLoading(false)
 
             if (!res.ok) {
+              const body = await res.json().catch(() => null)
+              console.error('Create invoice failed', { status: res.status, body })
               setError(t('errors.unexpected'))
               return
             }
@@ -74,21 +104,8 @@ export function CreateInvoiceForm({ customers }: { customers: CustomerOption[] }
           }}
         >
           <div className="space-y-2">
-            <Label htmlFor="customerId">{t('sales.customers')}</Label>
-            <select
-              id="customerId"
-              name="customerId"
-              className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--btn-from))]"
-              defaultValue=""
-              data-testid="invoice-customer"
-            >
-              <option value="">{t('common.select')}</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor="customerName">{t('sales.customerName')}</Label>
+            <Input id="customerName" name="customerName" required data-testid="invoice-customerName" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

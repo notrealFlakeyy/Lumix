@@ -39,7 +39,15 @@ export async function POST(req: Request) {
     .single()
 
   if (invoiceError || !invoice) {
-    return NextResponse.json({ message: 'Failed to create invoice' }, { status: 500 })
+    console.error('Failed to create invoice', invoiceError)
+    return NextResponse.json(
+      {
+        message: 'Failed to create invoice',
+        code: invoiceError?.code ?? null,
+        details: process.env.NODE_ENV === 'development' ? invoiceError : undefined,
+      },
+      { status: 500 },
+    )
   }
 
   const { error: linesError } = await auth.supabase.from('ar_invoice_lines').insert(
@@ -57,9 +65,16 @@ export async function POST(req: Request) {
   )
 
   if (linesError) {
-    return NextResponse.json({ message: 'Failed to create invoice lines' }, { status: 500 })
+    console.error('Failed to create invoice lines', linesError)
+    return NextResponse.json(
+      {
+        message: 'Failed to create invoice lines',
+        code: linesError.code ?? null,
+        details: process.env.NODE_ENV === 'development' ? linesError : undefined,
+      },
+      { status: 500 },
+    )
   }
 
   return NextResponse.json({ id: invoice.id })
 }
-

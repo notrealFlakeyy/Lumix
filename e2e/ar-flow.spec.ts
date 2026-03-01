@@ -5,6 +5,7 @@ test('AR: create customer -> invoice -> payment -> paid', async ({ page }) => {
   const password = process.env.PLAYWRIGHT_PASSWORD
   expect(email, 'PLAYWRIGHT_EMAIL is required').toBeTruthy()
   expect(password, 'PLAYWRIGHT_PASSWORD is required').toBeTruthy()
+  const customerName = `Test Customer ${Date.now()}`
 
   await page.goto('/fi/login')
   await page.getByTestId('login-email').fill(email!)
@@ -13,11 +14,12 @@ test('AR: create customer -> invoice -> payment -> paid', async ({ page }) => {
 
   await page.goto('/fi/sales/customers')
   await page.getByTestId('create-customer').click()
-  await page.getByTestId('customer-name').fill(`Test Customer ${Date.now()}`)
+  await page.getByTestId('customer-name').fill(customerName)
   await page.getByTestId('customer-submit').click()
 
   await page.goto('/fi/sales/invoices')
   await page.getByTestId('create-invoice').click()
+  await page.getByTestId('invoice-customerName').fill(customerName)
   await page.getByTestId('invoice-description').fill('Service')
   await page.getByTestId('invoice-quantity').fill('1')
   await page.getByTestId('invoice-unitPrice').fill('100')
