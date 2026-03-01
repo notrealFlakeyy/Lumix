@@ -36,6 +36,12 @@ const config: Config = {
       },
       backgroundImage: {
         'btn-gradient': 'linear-gradient(to right, rgb(var(--btn-from)), rgb(var(--btn-to)))',
+        'app-ambient':
+          'radial-gradient(1200px circle at 15% -10%, rgba(var(--btn-from), 0.18) 0%, rgba(var(--btn-from), 0) 60%), radial-gradient(900px circle at 85% 0%, rgba(var(--btn-to), 0.14) 0%, rgba(var(--btn-to), 0) 55%)',
+      },
+      boxShadow: {
+        soft: '0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35)',
+        softSm: '0 1px 0 rgba(255,255,255,0.05), 0 12px 32px rgba(0,0,0,0.28)',
       },
       borderRadius: {
         lg: 'var(--radius)',

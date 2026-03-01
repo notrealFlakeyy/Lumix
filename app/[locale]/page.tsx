@@ -18,9 +18,9 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-app">
+      <main className="min-h-screen bg-app bg-app-ambient">
         <header className="border-b border-border/60 bg-app/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
             <div className="text-sm font-semibold">{t('common.appName')}</div>
             <div className="flex items-center gap-3">
               <LanguageSwitcher />
@@ -34,7 +34,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
           </div>
         </header>
 
-        <section className="mx-auto max-w-7xl px-6 py-14">
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div className="space-y-6">
               <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{t('common.landing.heroTitle')}</h1>
@@ -56,16 +56,16 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">{t('common.landing.kicker')}</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-3">
-                <div className="rounded-lg border border-border/60 bg-card/30 p-4">
+              <CardContent className="grid gap-4">
+                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi1Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi1Desc')}</div>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-card/30 p-4">
+                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi2Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi2Desc')}</div>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-card/30 p-4">
+                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi3Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi3Desc')}</div>
                 </div>
@@ -74,12 +74,12 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 pb-14">
-          <div className="mb-8 space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight">{t('common.landing.featuresTitle')}</h2>
-            <p className="text-muted-foreground">{t('common.landing.featuresSubtitle')}</p>
+        <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-10">
+          <div className="mb-10 max-w-2xl space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight">{t('common.landing.featuresTitle')}</h2>
+            <p className="text-base text-muted-foreground">{t('common.landing.featuresSubtitle')}</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             <Card className="bg-card/20">
               <CardHeader>
                 <CardTitle className="text-base">{t('sales.title')}</CardTitle>
@@ -120,7 +120,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
         </section>
 
         <footer className="border-t border-border/60">
-          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 md:flex-row md:items-center md:justify-between">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-10 md:flex-row md:items-center md:justify-between lg:px-10">
             <div className="text-sm text-muted-foreground">{t('common.landing.footer', { year: String(new Date().getFullYear()) })}</div>
             <div className="flex gap-4 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground">

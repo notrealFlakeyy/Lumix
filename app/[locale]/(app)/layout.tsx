@@ -43,12 +43,12 @@ export default async function AppLayout({
   const orgName = org?.name ?? ''
 
   return (
-    <div className="min-h-screen bg-app">
+    <div className="min-h-screen bg-app bg-app-ambient">
       <div className="flex min-h-screen">
         <Sidebar className="hidden md:block" />
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-10 border-b border-border/60 bg-app/80 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium">{orgName}</div>
               </div>
@@ -58,7 +58,7 @@ export default async function AppLayout({
               </div>
             </div>
           </header>
-          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6">{children}</main>
+          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10 lg:px-10">{children}</main>
         </div>
       </div>
     </div>

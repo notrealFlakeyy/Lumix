@@ -8,7 +8,7 @@
   --btn-from: 120 55 230; /* #7837e6 */
   --btn-to: 94 36 188; /* #5e24bc */
 
-  --radius: 14px;
+  --radius: 18px;
 
   /* shadcn/ui tokens (override defaults) */
   --background: var(--app-bg);
@@ -48,10 +48,20 @@ body {
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-size: 15px;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
   }
 
   a {
-    @apply underline-offset-4 hover:underline;
+    @apply underline-offset-4 hover:underline transition-colors;
   }
 }
 
+@media (min-width: 768px) {
+  @layer base {
+    body {
+      font-size: 16px;
+    }
+  }
+}

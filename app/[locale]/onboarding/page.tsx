@@ -25,8 +25,8 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   }
 
   return (
-    <main className="min-h-screen bg-app px-6 py-10">
-      <div className="mx-auto mb-8 flex max-w-5xl items-center justify-between">
+    <main className="min-h-screen bg-app bg-app-ambient px-6 py-12">
+      <div className="mx-auto mb-10 flex max-w-5xl items-center justify-between">
         <div className="text-sm text-muted-foreground">{t('common.appName')}</div>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
@@ -35,13 +35,12 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
       </div>
 
       <div className="mx-auto max-w-5xl">
-        <div className="mb-6 max-w-xl space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('auth.createOrg')}</h1>
-          <p className="text-sm text-muted-foreground">{t('auth.onboardingSubtitle')}</p>
+        <div className="mb-8 max-w-xl space-y-3">
+          <h1 className="text-3xl font-semibold tracking-tight">{t('auth.createOrg')}</h1>
+          <p className="text-base text-muted-foreground">{t('auth.onboardingSubtitle')}</p>
         </div>
         <CreateOrgForm locale={locale} />
       </div>
     </main>
   )
 }
-
