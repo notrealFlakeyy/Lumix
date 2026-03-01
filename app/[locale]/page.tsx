@@ -18,10 +18,10 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-app bg-app-ambient">
-        <header className="border-b border-border/60 bg-app/80 backdrop-blur">
+      <main className="min-h-screen bg-app bg-app-ambient text-foreground">
+        <header className="border-b border-border/25 bg-background/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-            <div className="text-sm font-semibold">{t('common.appName')}</div>
+            <div className="text-sm font-semibold text-foreground">{t('common.appName')}</div>
             <div className="flex items-center gap-3">
               <LanguageSwitcher />
               <Button asChild variant="outline" size="sm">
@@ -34,7 +34,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
           </div>
         </header>
 
-        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-24">
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div className="space-y-6">
               <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{t('common.landing.heroTitle')}</h1>
@@ -52,20 +52,20 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
               <p className="text-sm text-muted-foreground">{t('common.landing.trustNote')}</p>
             </div>
 
-            <Card className="bg-card/30">
+            <Card className="shadow-soft">
               <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">{t('common.landing.kicker')}</CardTitle>
+                <CardTitle className="text-sm font-medium text-accent">{t('common.landing.kicker')}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
+                <div className="rounded-lg border border-border/25 bg-background p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi1Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi1Desc')}</div>
                 </div>
-                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
+                <div className="rounded-lg border border-border/25 bg-background p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi2Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi2Desc')}</div>
                 </div>
-                <div className="rounded-lg border border-border/50 bg-card/30 p-5">
+                <div className="rounded-lg border border-border/25 bg-background p-5">
                   <div className="text-sm font-medium">{t('common.landing.kpi3Title')}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{t('common.landing.kpi3Desc')}</div>
                 </div>
@@ -80,37 +80,37 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
             <p className="text-base text-muted-foreground">{t('common.landing.featuresSubtitle')}</p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('sales.title')}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{t('common.landing.featureSales')}</CardContent>
             </Card>
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('purchases.title')}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{t('common.landing.featurePurchases')}</CardContent>
             </Card>
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('accounting.title')}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{t('common.landing.featureAccounting')}</CardContent>
             </Card>
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('reporting.title')}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{t('common.landing.featureReporting')}</CardContent>
             </Card>
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('payroll.title')}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{t('common.landing.featurePayroll')}</CardContent>
             </Card>
-            <Card className="bg-card/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t('inventory.title')}</CardTitle>
               </CardHeader>
@@ -119,7 +119,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
           </div>
         </section>
 
-        <footer className="border-t border-border/60">
+        <footer className="border-t border-border/25">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-10 md:flex-row md:items-center md:justify-between lg:px-10">
             <div className="text-sm text-muted-foreground">{t('common.landing.footer', { year: String(new Date().getFullYear()) })}</div>
             <div className="flex gap-4 text-sm text-muted-foreground">

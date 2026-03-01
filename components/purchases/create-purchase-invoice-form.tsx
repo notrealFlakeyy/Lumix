@@ -80,7 +80,7 @@ export function CreatePurchaseInvoiceForm({ vendors }: { vendors: VendorOption[]
             <select
               id="vendorId"
               name="vendorId"
-              className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--btn-from))]"
+              className="h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm shadow-softSm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               defaultValue=""
               data-testid="purchase-vendor"
             >

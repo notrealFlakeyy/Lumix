@@ -3,32 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --app-bg: 7 18 38; /* #071226 */
-  --app-fg: 255 255 255; /* #ffffff */
-  --btn-from: 120 55 230; /* #7837e6 */
-  --btn-to: 94 36 188; /* #5e24bc */
+  /* Light palette roles */
+  --app-bg: 255 255 255; /* #FFFFFF */
+  --app-surface: 255 255 255; /* cards/surfaces */
+  --app-contrast: 20 33 61; /* #14213D */
+  --app-fg: 0 0 0; /* #000000 */
+  --app-muted: 167 167 169; /* #A7A7A9 */
+  --app-accent: 68 255 210; /* #44FFD2 */
+  --app-accent-2: 248 228 140; /* #F8E48C */
 
-  --radius: 18px;
+  --radius: 16px;
 
   /* shadcn/ui tokens (override defaults) */
   --background: var(--app-bg);
   --foreground: var(--app-fg);
-  --card: 10 24 52;
+  --card: var(--app-surface);
   --card-foreground: var(--app-fg);
-  --muted: 16 34 66;
-  --muted-foreground: 200 210 230;
-  --border: 35 60 100;
-  --input: 35 60 100;
-  --ring: var(--btn-from);
+  --muted: var(--app-bg);
+  --muted-foreground: var(--app-muted);
+  --border: var(--app-muted);
+  --input: var(--app-muted);
+  --ring: var(--app-accent);
 
-  --primary: var(--btn-from);
+  --primary: var(--app-accent);
   --primary-foreground: var(--app-fg);
-  --secondary: 16 34 66;
-  --secondary-foreground: var(--app-fg);
-  --accent: 16 34 66;
-  --accent-foreground: var(--app-fg);
-  --destructive: 220 38 38;
-  --destructive-foreground: 255 255 255;
+  --secondary: var(--app-contrast);
+  --secondary-foreground: var(--app-bg);
+  --accent: var(--app-contrast);
+  --accent-foreground: var(--app-bg);
+  --destructive: var(--app-contrast);
+  --destructive-foreground: var(--app-bg);
 }
 
 body {
@@ -51,10 +55,30 @@ body {
     font-size: 15px;
     line-height: 1.65;
     letter-spacing: 0.01em;
+    text-rendering: geometricPrecision;
   }
 
   a {
+    color: rgb(var(--app-accent));
     @apply underline-offset-4 hover:underline transition-colors;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: rgb(var(--app-contrast));
+    letter-spacing: -0.02em;
+  }
+
+  h4,
+  h5,
+  h6 {
+    color: rgb(var(--app-contrast));
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: rgba(var(--app-accent), 0.25);
   }
 }
 

@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils'
 const badgeVariants = cva('inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium', {
   variants: {
     variant: {
-      default: 'border-border/60 bg-card/40 text-foreground',
-      success: 'border-border/60 bg-card/40 text-foreground',
-      warning: 'border-border/60 bg-card/40 text-foreground',
-      destructive: 'border-destructive/40 bg-destructive/10 text-destructive-foreground',
+      default: 'border-border/25 bg-background text-foreground',
+      success: 'border-primary/35 bg-primary/20 text-foreground',
+      warning: 'border-[rgb(var(--app-accent-2))]/45 bg-[rgb(var(--app-accent-2))]/35 text-foreground',
+      destructive: 'border-secondary/25 bg-secondary/10 text-secondary',
     },
   },
   defaultVariants: {
@@ -24,4 +24,3 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
-

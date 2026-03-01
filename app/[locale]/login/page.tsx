@@ -8,9 +8,9 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations()
 
   return (
-    <main className="min-h-screen bg-app bg-app-ambient px-6 py-12">
+    <main className="min-h-screen bg-app bg-app-ambient px-6 py-12 text-foreground">
       <div className="mx-auto mb-10 flex max-w-5xl items-center justify-between">
-        <div className="text-sm text-muted-foreground">{t('common.appName')}</div>
+        <div className="text-sm font-semibold text-foreground">{t('common.appName')}</div>
         <LanguageSwitcher />
       </div>
       <LoginForm locale={locale} />

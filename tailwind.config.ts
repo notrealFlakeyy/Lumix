@@ -31,17 +31,23 @@ const config: Config = {
         'destructive-foreground': 'rgb(var(--destructive-foreground))',
         app: {
           bg: 'rgb(var(--app-bg))',
+          surface: 'rgb(var(--app-surface))',
+          contrast: 'rgb(var(--app-contrast))',
           fg: 'rgb(var(--app-fg))',
+          muted: 'rgb(var(--app-muted))',
+          accent: 'rgb(var(--app-accent))',
+          accent2: 'rgb(var(--app-accent-2))',
         },
       },
       backgroundImage: {
-        'btn-gradient': 'linear-gradient(to right, rgb(var(--btn-from)), rgb(var(--btn-to)))',
         'app-ambient':
-          'radial-gradient(1200px circle at 15% -10%, rgba(var(--btn-from), 0.18) 0%, rgba(var(--btn-from), 0) 60%), radial-gradient(900px circle at 85% 0%, rgba(var(--btn-to), 0.14) 0%, rgba(var(--btn-to), 0) 55%)',
+          'radial-gradient(1100px circle at 18% -15%, rgba(var(--app-accent), 0.10) 0%, rgba(var(--app-accent), 0) 60%), radial-gradient(900px circle at 85% 0%, rgba(var(--app-accent-2), 0.14) 0%, rgba(var(--app-accent-2), 0) 55%)',
       },
       boxShadow: {
-        soft: '0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35)',
-        softSm: '0 1px 0 rgba(255,255,255,0.05), 0 12px 32px rgba(0,0,0,0.28)',
+        soft: '0 1px 0 rgba(0,0,0,0.03), 0 14px 30px rgba(0,0,0,0.10)',
+        softSm: '0 1px 0 rgba(0,0,0,0.03), 0 10px 20px rgba(0,0,0,0.08)',
+        glow: '0 0 0 1px rgba(var(--app-accent), 0.28), 0 0 24px rgba(var(--app-accent), 0.18)',
+        glowSm: '0 0 0 1px rgba(var(--app-accent), 0.22), 0 0 16px rgba(var(--app-accent), 0.14)',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -57,9 +63,9 @@ const config: Config = {
         '.bg-app': { backgroundColor: 'rgb(var(--app-bg))' },
         '.text-app': { color: 'rgb(var(--app-fg))' },
         '.border-app': { borderColor: 'rgb(var(--border))' },
-        '.btn-gradient': {
-          backgroundImage: 'linear-gradient(to right, rgb(var(--btn-from)), rgb(var(--btn-to)))',
-        },
+        '.bg-surface': { backgroundColor: 'rgb(var(--app-surface))' },
+        '.text-strong': { color: 'rgb(var(--app-contrast))' },
+        '.text-accent': { color: 'rgb(var(--app-accent))' },
       })
     }),
   ],

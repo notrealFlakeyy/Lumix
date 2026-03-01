@@ -18,14 +18,14 @@ export function Sidebar({ className }: { className?: string }) {
   const t = useTranslations()
 
   return (
-    <aside className={cn('w-72 border-r border-border/50 bg-card/15 px-5 py-7 backdrop-blur', className)}>
-      <div className="mb-8 text-sm font-semibold tracking-tight">{t('common.appName')}</div>
+    <aside className={cn('w-72 border-r border-border/25 bg-background px-5 py-7', className)}>
+      <div className="mb-8 text-sm font-semibold tracking-tight text-foreground">{t('common.appName')}</div>
       <nav className="space-y-1.5">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="block rounded-lg px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground"
+            className="block rounded-lg px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground"
           >
             {t(item.key)}
           </Link>

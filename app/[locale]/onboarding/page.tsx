@@ -25,9 +25,9 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   }
 
   return (
-    <main className="min-h-screen bg-app bg-app-ambient px-6 py-12">
+    <main className="min-h-screen bg-app bg-app-ambient px-6 py-12 text-foreground">
       <div className="mx-auto mb-10 flex max-w-5xl items-center justify-between">
-        <div className="text-sm text-muted-foreground">{t('common.appName')}</div>
+        <div className="text-sm font-semibold text-foreground">{t('common.appName')}</div>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <LogoutButton locale={locale} />

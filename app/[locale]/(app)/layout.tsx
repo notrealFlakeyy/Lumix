@@ -43,14 +43,14 @@ export default async function AppLayout({
   const orgName = org?.name ?? ''
 
   return (
-    <div className="min-h-screen bg-app bg-app-ambient">
+    <div className="min-h-screen bg-app bg-app-ambient text-foreground">
       <div className="flex min-h-screen">
         <Sidebar className="hidden md:block" />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-10 border-b border-border/60 bg-app/80 backdrop-blur">
+          <header className="sticky top-0 z-10 border-b border-border/25 bg-background/90 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{orgName}</div>
+                <div className="truncate text-sm font-semibold text-foreground">{orgName}</div>
               </div>
               <div className="flex items-center gap-3">
                 <LanguageSwitcher />
