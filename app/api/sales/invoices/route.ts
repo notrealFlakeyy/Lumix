@@ -18,7 +18,8 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         message: 'Invalid payload',
-        issues: process.env.NODE_ENV === 'development' ? parsed.error.issues : undefined,
+        issues: process.env.NODE_ENV !== 'production' ? parsed.error.issues : undefined,
+        received: process.env.NODE_ENV !== 'production' ? json : undefined,
       },
       { status: 400 },
     )
