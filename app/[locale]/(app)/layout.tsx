@@ -3,6 +3,7 @@ import { Sidebar } from '@/components/shell/sidebar'
 import { LanguageSwitcher } from '@/components/i18n/language-switcher'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { redirect } from 'next/navigation'
+import { computeAllowedModules } from '@/lib/auth/member-access'
 
 export default async function AppLayout({
   children,
@@ -25,7 +26,7 @@ export default async function AppLayout({
 
   const { data: membership } = await supabase
     .from('org_members')
-    .select('org_id, role')
+    .select('org_id, role, allowed_modules')
     .eq('user_id', userId)
     .limit(1)
     .maybeSingle()
@@ -41,11 +42,12 @@ export default async function AppLayout({
     .maybeSingle()
 
   const orgName = org?.name ?? ''
+  const allowedModules = computeAllowedModules(membership.role as string, (membership as any).allowed_modules)
 
   return (
     <div className="min-h-screen bg-app bg-app-ambient text-foreground">
       <div className="flex min-h-screen">
-        <Sidebar className="hidden md:block" />
+        <Sidebar className="hidden md:block" allowedModules={allowedModules} />
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-10 border-b border-border/25 bg-background/90 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">

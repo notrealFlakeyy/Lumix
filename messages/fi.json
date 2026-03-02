@@ -72,6 +72,7 @@
   },
   "nav": {
     "dashboard": "Yhteenveto",
+    "time": "Työaika",
     "sales": "Myynti",
     "purchases": "Ostot",
     "accounting": "Kirjanpito",
@@ -119,6 +120,7 @@
     "fullName": "Nimi (valinnainen)",
     "fullNamePlaceholder": "Esim. Maija Meikäläinen",
     "role": "Rooli",
+    "allowedModules": "Näkyvät osiot",
     "roles": {
       "owner": "Omistaja",
       "admin": "Ylläpitäjä",
@@ -203,7 +205,20 @@
     "timeEntries": "Tuntikirjaukset",
     "expenseClaims": "Kululaskut",
     "runPayroll": "Aja palkanlaskenta",
-    "payslip": "Palkkalaskelma"
+    "payslip": "Palkkalaskelma",
+    "time": {
+      "title": "Leimaus",
+      "clockIn": "Aloita",
+      "clockOut": "Lopeta",
+      "active": "Leimaus käynnissä",
+      "inactive": "Ei aktiivista leimausta",
+      "recent": "Viimeisimmät merkinnät",
+      "start": "Alku",
+      "end": "Loppu",
+      "minutes": "Minuutit",
+      "missingEmployeeTitle": "Työntekijäprofiili puuttuu",
+      "missingEmployeeMessage": "Tiliäsi ei ole liitetty työntekijäprofiiliin. Ota yhteys ylläpitoon."
+    }
   },
   "inventory": {
     "title": "Varasto",

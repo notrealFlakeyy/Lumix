@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { requireRouteSession } from '@/lib/auth/require-route-session'
+import { allModules, computeAllowedModules } from '@/lib/auth/member-access'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 const assignOrgMemberSchema = z.object({
   userId: z.string().uuid(),
   role: z.enum(['owner', 'admin', 'accountant', 'sales', 'purchaser', 'employee']),
   fullName: z.string().trim().min(1).max(200).optional().nullable(),
+  allowedModules: z.array(z.enum(allModules)).optional().nullable(),
 })
 
 export async function POST(req: Request) {
@@ -41,15 +43,20 @@ export async function POST(req: Request) {
 
   const existing = await admin
     .from('org_members')
-    .select('role, full_name')
+    .select('role, full_name, allowed_modules')
     .eq('org_id', auth.orgId)
     .eq('user_id', parsed.data.userId)
     .maybeSingle()
 
-  const { error: authUserError } = await admin.auth.admin.getUserById(parsed.data.userId)
-  if (authUserError) {
+  const { data: targetUser, error: authUserError } = await admin.auth.admin.getUserById(parsed.data.userId)
+  if (authUserError || !targetUser?.user) {
     return NextResponse.json({ ok: false, code: 'userNotFound' }, { status: 400 })
   }
+
+  const allowedModules =
+    parsed.data.role === 'employee'
+      ? ['time']
+      : computeAllowedModules(parsed.data.role, parsed.data.allowedModules ?? existing.data?.allowed_modules ?? null)
 
   const { data: membership, error: upsertError } = await admin
     .from('org_members')
@@ -59,10 +66,11 @@ export async function POST(req: Request) {
         user_id: parsed.data.userId,
         role: parsed.data.role,
         full_name: parsed.data.fullName ?? null,
+        allowed_modules: allowedModules,
       },
       { onConflict: 'org_id,user_id' },
     )
-    .select('org_id, user_id, role, full_name')
+    .select('org_id, user_id, role, full_name, allowed_modules')
     .single()
 
   if (upsertError || !membership) {
@@ -72,9 +80,13 @@ export async function POST(req: Request) {
 
   const action = existing.data ? 'update' : 'create'
   const oldData = existing.data
-    ? { role: existing.data.role, full_name: existing.data.full_name }
+    ? { role: existing.data.role, full_name: existing.data.full_name, allowed_modules: existing.data.allowed_modules ?? null }
     : null
-  const newData = { role: membership.role, full_name: membership.full_name }
+  const newData = {
+    role: membership.role,
+    full_name: membership.full_name,
+    allowed_modules: (membership as any).allowed_modules ?? null,
+  }
 
   const { error: auditError } = await admin.from('audit_log').insert({
     org_id: auth.orgId,
@@ -91,6 +103,29 @@ export async function POST(req: Request) {
 
   if (auditError) {
     console.error('Failed to insert audit_log', auditError)
+  }
+
+  if (parsed.data.role === 'employee') {
+    const fullName = (parsed.data.fullName ?? (targetUser.user.user_metadata as any)?.full_name ?? targetUser.user.email ?? '').trim()
+    if (fullName) {
+      const { error: hrError } = await admin
+        .from('hr_employees')
+        .upsert(
+          {
+            org_id: auth.orgId,
+            user_id: parsed.data.userId,
+            full_name: fullName,
+            email: targetUser.user.email ?? null,
+          },
+          { onConflict: 'org_id,user_id' },
+        )
+        .select('id')
+        .single()
+
+      if (hrError) {
+        console.error('Failed to upsert hr_employee', hrError)
+      }
+    }
   }
 
   return NextResponse.json({ ok: true, membership })

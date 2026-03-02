@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { requireRouteSession } from '@/lib/auth/require-route-session'
+import { allModules, computeAllowedModules } from '@/lib/auth/member-access'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 const createUserSchema = z.object({
@@ -9,6 +10,7 @@ const createUserSchema = z.object({
   password: z.string().min(10).max(200),
   fullName: z.string().trim().min(1).max(200).optional().nullable(),
   role: z.enum(['owner', 'admin', 'accountant', 'sales', 'purchaser', 'employee']).optional().nullable(),
+  allowedModules: z.array(z.enum(allModules)).optional().nullable(),
 })
 
 export async function POST(req: Request) {
@@ -33,6 +35,10 @@ export async function POST(req: Request) {
   }
 
   const role = parsed.data.role ?? 'employee'
+  const allowedModules =
+    role === 'employee'
+      ? ['time']
+      : computeAllowedModules(role, parsed.data.allowedModules ?? null)
 
   let admin
   try {
@@ -65,10 +71,11 @@ export async function POST(req: Request) {
         user_id: userId,
         role,
         full_name: parsed.data.fullName ?? null,
+        allowed_modules: allowedModules,
       },
       { onConflict: 'org_id,user_id' },
     )
-    .select('org_id, user_id, role, full_name')
+    .select('org_id, user_id, role, full_name, allowed_modules')
     .single()
 
   if (membershipError || !membership) {
@@ -94,13 +101,33 @@ export async function POST(req: Request) {
     action: 'create',
     table_name: 'org_members',
     record_id: userId,
-    new_data: { role: membership.role, full_name: membership.full_name },
+    new_data: { role: membership.role, full_name: membership.full_name, allowed_modules: (membership as any).allowed_modules ?? null },
     metadata: {
       target_user_id: userId,
     },
   })
   if (auditMemberError) console.error('Failed to insert audit_log (org_members)', auditMemberError)
 
+  if (role === 'employee') {
+    const fullName = parsed.data.fullName?.trim() || parsed.data.email
+    const { error: hrError } = await admin
+      .from('hr_employees')
+      .upsert(
+        {
+          org_id: auth.orgId,
+          user_id: userId,
+          full_name: fullName,
+          email: parsed.data.email,
+        },
+        { onConflict: 'org_id,user_id' },
+      )
+      .select('id')
+      .single()
+
+    if (hrError) {
+      console.error('Failed to upsert hr_employee', hrError)
+    }
+  }
+
   return NextResponse.json({ ok: true, userId, membership })
 }
-

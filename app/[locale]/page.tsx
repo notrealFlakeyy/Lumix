@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { computeAllowedModules, defaultModuleFor } from '@/lib/auth/member-access'
 import { Link } from '@/i18n/navigation'
 import { LanguageSwitcher } from '@/components/i18n/language-switcher'
 import { Button } from '@/components/ui/button'
@@ -132,7 +133,7 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
 
   const { data: membership } = await supabase
     .from('org_members')
-    .select('org_id')
+    .select('org_id, role, allowed_modules')
     .eq('user_id', user.id)
     .limit(1)
     .maybeSingle()
@@ -141,5 +142,6 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
     redirect(`/${locale}/onboarding`)
   }
 
-  redirect(`/${locale}/dashboard`)
+  const allowed = computeAllowedModules(membership.role as string, (membership as any).allowed_modules)
+  redirect(`/${locale}/${defaultModuleFor(allowed)}`)
 }

@@ -48,6 +48,7 @@ export type Database = {
           user_id: string
           role: string
           full_name: string | null
+          allowed_modules: string[]
           created_at: string
         }
         Insert: {
@@ -55,11 +56,74 @@ export type Database = {
           user_id: string
           role?: string
           full_name?: string | null
+          allowed_modules?: string[]
           created_at?: string
         }
         Update: {
           role?: string
           full_name?: string | null
+          allowed_modules?: string[]
+        }
+        Relationships: Relationship[]
+      }
+      hr_employees: {
+        Row: {
+          id: string
+          org_id: string
+          user_id: string | null
+          full_name: string
+          email: string | null
+          hourly_rate: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          user_id?: string | null
+          full_name: string
+          email?: string | null
+          hourly_rate?: number
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string | null
+          full_name?: string
+          email?: string | null
+          hourly_rate?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: Relationship[]
+      }
+      pay_time_entries: {
+        Row: {
+          id: string
+          org_id: string
+          employee_id: string
+          start_time: string
+          end_time: string | null
+          minutes: number
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          employee_id: string
+          start_time: string
+          end_time?: string | null
+          minutes?: number
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          end_time?: string | null
+          minutes?: number
+          status?: string
         }
         Relationships: Relationship[]
       }

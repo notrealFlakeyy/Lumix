@@ -4,12 +4,22 @@ import { createServerClient } from '@supabase/ssr'
 
 import { defaultLocale, locales } from './i18n/routing'
 import { publicEnv } from './lib/env/public'
+import { allModules, computeAllowedModules, defaultModuleFor, type AppModule } from './lib/auth/member-access'
 
 const intlMiddleware = createIntlMiddleware({
   locales: [...locales],
   defaultLocale,
   localePrefix: 'always',
 })
+
+const pathModule = (pathname: string): AppModule | null => {
+  const parts = pathname.split('/').filter(Boolean)
+  const maybeLocale = parts[0]
+  if (!maybeLocale || !locales.includes(maybeLocale as any)) return null
+  const mod = parts[1]
+  if (!mod) return null
+  return (allModules as readonly string[]).includes(mod) ? (mod as AppModule) : null
+}
 
 const isProtectedPath = (pathname: string) => {
   const parts = pathname.split('/').filter(Boolean)
@@ -32,6 +42,8 @@ const isProtectedPath = (pathname: string) => {
     rest.startsWith('/payroll/') ||
     rest === '/inventory' ||
     rest.startsWith('/inventory/') ||
+    rest === '/time' ||
+    rest.startsWith('/time/') ||
     rest === '/settings' ||
     rest.startsWith('/settings/')
   )
@@ -69,6 +81,20 @@ export async function middleware(req: NextRequest) {
   const parts = pathname.split('/').filter(Boolean)
   const locale = locales.includes(parts[0] as any) ? parts[0] : defaultLocale
 
+  let allowedModules: AppModule[] | null = null
+  if (user) {
+    const { data: membership } = await supabase
+      .from('org_members')
+      .select('org_id, role, allowed_modules')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (membership) {
+      allowedModules = computeAllowedModules(membership.role as string, (membership as any).allowed_modules)
+    }
+  }
+
   if (isProtectedPath(pathname) && !isAuthed) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = `/${locale}/login`
@@ -78,8 +104,17 @@ export async function middleware(req: NextRequest) {
 
   if (isAuthPath(pathname) && isAuthed) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = `/${locale}/dashboard`
+    redirectUrl.pathname = `/${locale}/${defaultModuleFor(allowedModules ?? ['dashboard'])}`
     return NextResponse.redirect(redirectUrl)
+  }
+
+  if (isProtectedPath(pathname) && isAuthed && allowedModules) {
+    const mod = pathModule(pathname)
+    if (mod && !allowedModules.includes(mod)) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = `/${locale}/${defaultModuleFor(allowedModules)}`
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   return res

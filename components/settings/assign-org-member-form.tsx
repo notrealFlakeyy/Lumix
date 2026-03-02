@@ -9,11 +9,51 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 type OrgRole = 'owner' | 'admin' | 'accountant' | 'sales' | 'purchaser' | 'employee'
+type AppModule = 'dashboard' | 'sales' | 'purchases' | 'accounting' | 'reporting' | 'payroll' | 'inventory' | 'settings' | 'time'
+
+const moduleOptions: Array<{ module: AppModule; labelKey: string }> = [
+  { module: 'dashboard', labelKey: 'nav.dashboard' },
+  { module: 'time', labelKey: 'nav.time' },
+  { module: 'sales', labelKey: 'nav.sales' },
+  { module: 'purchases', labelKey: 'nav.purchases' },
+  { module: 'accounting', labelKey: 'nav.accounting' },
+  { module: 'reporting', labelKey: 'nav.reporting' },
+  { module: 'payroll', labelKey: 'nav.payroll' },
+  { module: 'inventory', labelKey: 'nav.inventory' },
+  { module: 'settings', labelKey: 'nav.settings' },
+]
 
 export function AssignOrgMemberForm() {
   const t = useTranslations()
   const [isLoading, setIsLoading] = React.useState(false)
   const [result, setResult] = React.useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [role, setRole] = React.useState<OrgRole>('employee')
+  const [modules, setModules] = React.useState<Record<AppModule, boolean>>(() => ({
+    dashboard: true,
+    sales: true,
+    purchases: true,
+    accounting: true,
+    reporting: true,
+    payroll: true,
+    inventory: true,
+    settings: true,
+    time: true,
+  }))
+
+  React.useEffect(() => {
+    if (role !== 'employee') return
+    setModules({
+      dashboard: false,
+      sales: false,
+      purchases: false,
+      accounting: false,
+      reporting: false,
+      payroll: false,
+      inventory: false,
+      settings: false,
+      time: true,
+    })
+  }, [role])
 
   return (
     <Card>
@@ -33,7 +73,9 @@ export function AssignOrgMemberForm() {
             const formData = new FormData(e.currentTarget)
             const userId = String(formData.get('userId') ?? '').trim()
             const fullNameRaw = String(formData.get('fullName') ?? '').trim()
-            const role = String(formData.get('role') ?? 'employee') as OrgRole
+            const allowedModules = (Object.entries(modules) as Array<[AppModule, boolean]>)
+              .filter(([, enabled]) => enabled)
+              .map(([module]) => module)
 
             const res = await fetch('/api/admin/org-members', {
               method: 'POST',
@@ -42,6 +84,7 @@ export function AssignOrgMemberForm() {
                 userId,
                 role,
                 fullName: fullNameRaw ? fullNameRaw : null,
+                allowedModules,
               }),
             }).catch(() => null)
 
@@ -92,6 +135,8 @@ export function AssignOrgMemberForm() {
               id="role"
               name="role"
               defaultValue="employee"
+              value={role}
+              onChange={(e) => setRole(e.target.value as OrgRole)}
               className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--btn-from))] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="owner">{t('auth.roles.owner')}</option>
@@ -102,6 +147,23 @@ export function AssignOrgMemberForm() {
               <option value="employee">{t('auth.roles.employee')}</option>
             </select>
           </div>
+
+          <fieldset className="grid gap-2">
+            <legend className="text-sm font-medium">{t('auth.allowedModules')}</legend>
+            <div className="grid gap-2 md:grid-cols-2">
+              {moduleOptions.map((opt) => (
+                <label key={opt.module} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={modules[opt.module]}
+                    disabled={role === 'employee' && opt.module !== 'time'}
+                    onChange={(e) => setModules((prev) => ({ ...prev, [opt.module]: e.target.checked }))}
+                  />
+                  <span className={role === 'employee' && opt.module !== 'time' ? 'opacity-60' : undefined}>{t(opt.labelKey)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="flex items-center justify-end gap-3">
             <Button type="submit" disabled={isLoading}>

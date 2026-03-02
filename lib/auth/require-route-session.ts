@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { createSupabaseRouteClient } from '@/lib/supabase/route'
+import { computeAllowedModules, type AppModule } from '@/lib/auth/member-access'
 
 export async function requireRouteSession() {
   const supabase = await createSupabaseRouteClient()
@@ -15,7 +16,7 @@ export async function requireRouteSession() {
 
   const { data: membership } = await supabase
     .from('org_members')
-    .select('org_id, role')
+    .select('org_id, role, allowed_modules')
     .eq('user_id', user.id)
     .limit(1)
     .maybeSingle()
@@ -30,5 +31,6 @@ export async function requireRouteSession() {
     user,
     orgId: membership.org_id,
     role: membership.role as string,
+    allowedModules: computeAllowedModules(membership.role as string, (membership as any).allowed_modules) as AppModule[],
   }
 }

@@ -72,6 +72,7 @@
   },
   "nav": {
     "dashboard": "Översikt",
+    "time": "Tid",
     "sales": "Försäljning",
     "purchases": "Inköp",
     "accounting": "Bokföring",
@@ -119,6 +120,7 @@
     "fullName": "Namn (valfritt)",
     "fullNamePlaceholder": "t.ex. Alex Exempel",
     "role": "Roll",
+    "allowedModules": "Synliga moduler",
     "roles": {
       "owner": "Ägare",
       "admin": "Admin",
@@ -203,7 +205,20 @@
     "timeEntries": "Tidsregistreringar",
     "expenseClaims": "Rese- och utlägg",
     "runPayroll": "Kör lönekörning",
-    "payslip": "Lönebesked"
+    "payslip": "Lönebesked",
+    "time": {
+      "title": "Stämpling",
+      "clockIn": "Starta",
+      "clockOut": "Stoppa",
+      "active": "Stämpling pågår",
+      "inactive": "Ingen aktiv stämpling",
+      "recent": "Senaste poster",
+      "start": "Start",
+      "end": "Slut",
+      "minutes": "Minuter",
+      "missingEmployeeTitle": "Anställningsprofil saknas",
+      "missingEmployeeMessage": "Ditt konto är inte kopplat till en anställningsprofil. Kontakta en administratör."
+    }
   },
   "inventory": {
     "title": "Lager",

@@ -72,6 +72,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "time": "Time",
     "sales": "Sales",
     "purchases": "Purchases",
     "accounting": "Accounting",
@@ -119,6 +120,7 @@
     "fullName": "Full name (optional)",
     "fullNamePlaceholder": "e.g. Alex Example",
     "role": "Role",
+    "allowedModules": "Visible modules",
     "roles": {
       "owner": "Owner",
       "admin": "Admin",
@@ -203,7 +205,20 @@
     "timeEntries": "Time entries",
     "expenseClaims": "Expense claims",
     "runPayroll": "Run payroll",
-    "payslip": "Payslip"
+    "payslip": "Payslip",
+    "time": {
+      "title": "Time stamp",
+      "clockIn": "Clock in",
+      "clockOut": "Clock out",
+      "active": "Clock is running",
+      "inactive": "No active entry",
+      "recent": "Recent entries",
+      "start": "Start",
+      "end": "End",
+      "minutes": "Minutes",
+      "missingEmployeeTitle": "Employee profile missing",
+      "missingEmployeeMessage": "Your account is not linked to an employee profile. Please contact an administrator."
+    }
   },
   "inventory": {
     "title": "Inventory",
