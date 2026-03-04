@@ -1,8 +1,9 @@
 import { getTranslations } from 'next-intl/server'
+import { cookies } from 'next/headers'
 
 import type { AppLocale } from '@/i18n/routing'
 import { getCurrentOrg } from '@/lib/auth/get-current-org'
-import { formatDate } from '@/lib/format'
+import { formatDate, formatTime } from '@/lib/format'
 import { TimeStampCard, type TimeEntry } from '@/components/time/time-stamp-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -13,6 +14,9 @@ export default async function TimePage({ params }: { params: Promise<{ locale: A
   const { supabase, orgId, user } = await getCurrentOrg()
 
   if (!orgId || !user) return null
+
+  const cookieStore = await cookies()
+  const timeZone = cookieStore.get('lumix_tz')?.value
 
   const { data: employee } = await supabase
     .from('hr_employees')
@@ -96,9 +100,9 @@ export default async function TimePage({ params }: { params: Promise<{ locale: A
               {list.map((e) => {
                 const start = new Date(e.start_time)
                 const end = e.end_time ? new Date(e.end_time) : null
-                const day = formatDate(locale, start)
-                const startTime = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-                const endTime = end ? end.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : ''
+                const day = formatDate(locale, start, timeZone)
+                const startTime = formatTime(locale, start, timeZone)
+                const endTime = end ? formatTime(locale, end, timeZone) : ''
                 return (
                   <TableRow key={e.id}>
                     <TableCell className="text-muted-foreground">{day}</TableCell>
@@ -115,4 +119,3 @@ export default async function TimePage({ params }: { params: Promise<{ locale: A
     </div>
   )
 }
-

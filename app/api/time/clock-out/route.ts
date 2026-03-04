@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 
-export async function POST() {
+const payloadSchema = z
+  .object({
+    clientNow: z.string().datetime().optional(),
+    timeZone: z.string().optional().nullable(),
+  })
+  .optional()
+
+export async function POST(req: Request) {
   const auth = await requireRouteSession()
   if (!auth.ok) return auth.response
 
@@ -41,7 +49,14 @@ export async function POST() {
   }
 
   const start = new Date(openEntry.start_time)
-  const end = new Date()
+  const json = await req.json().catch(() => null)
+  const parsed = payloadSchema.safeParse(json)
+  const serverNow = new Date()
+  const clientNow = parsed.success && parsed.data?.clientNow ? new Date(parsed.data.clientNow) : null
+  const end =
+    clientNow && !Number.isNaN(clientNow.getTime()) && Math.abs(serverNow.getTime() - clientNow.getTime()) <= 10 * 60 * 1000
+      ? clientNow
+      : serverNow
   const minutes = Math.max(1, Math.floor((end.getTime() - start.getTime()) / 60000))
 
   const { error: updateError } = await auth.supabase
@@ -60,4 +75,3 @@ export async function POST() {
 
   return NextResponse.json({ ok: true, entryId: openEntry.id, minutes })
 }
-

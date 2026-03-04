@@ -10,7 +10,14 @@ export function formatEur(locale: AppLocale, amount: number) {
   return new Intl.NumberFormat(localeToIntl[locale], { style: 'currency', currency: 'EUR' }).format(amount)
 }
 
-export function formatDate(locale: AppLocale, date: Date) {
-  return new Intl.DateTimeFormat(localeToIntl[locale]).format(date)
+export function formatDate(locale: AppLocale, date: Date, timeZone?: string) {
+  return new Intl.DateTimeFormat(localeToIntl[locale], timeZone ? { timeZone } : undefined).format(date)
 }
 
+export function formatTime(locale: AppLocale, date: Date, timeZone?: string) {
+  return new Intl.DateTimeFormat(localeToIntl[locale], {
+    hour: '2-digit',
+    minute: '2-digit',
+    ...(timeZone ? { timeZone } : null),
+  }).format(date)
+}

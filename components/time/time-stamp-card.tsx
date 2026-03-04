@@ -23,7 +23,22 @@ export function TimeStampCard({ active }: { active: TimeEntry | null }) {
   const onAction = async (endpoint: string) => {
     setError(null)
     setIsLoading(true)
-    const res = await fetch(endpoint, { method: 'POST' }).catch(() => null)
+    const tz = (() => {
+      try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone
+      } catch {
+        return null
+      }
+    })()
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientNow: new Date().toISOString(),
+        timeZone: tz,
+      }),
+    }).catch(() => null)
     setIsLoading(false)
 
     if (!res || !res.ok) {
@@ -60,4 +75,3 @@ export function TimeStampCard({ active }: { active: TimeEntry | null }) {
     </Card>
   )
 }
-
