@@ -3,14 +3,32 @@ import { z } from 'zod'
 
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 import { allModules, computeAllowedModules } from '@/lib/auth/member-access'
+import { toUsernameEmail } from '@/lib/auth/username'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 const assignOrgMemberSchema = z.object({
-  userId: z.string().uuid(),
+  user: z.string().trim().min(1),
   role: z.enum(['owner', 'admin', 'accountant', 'sales', 'purchaser', 'employee']),
   fullName: z.string().trim().min(1).max(200).optional().nullable(),
   allowedModules: z.array(z.enum(allModules)).optional().nullable(),
 })
+
+async function resolveUserId(admin: ReturnType<typeof createSupabaseAdminClient>, user: string) {
+  const trimmed = user.trim()
+  const uuid = z.string().uuid().safeParse(trimmed)
+  if (uuid.success) return uuid.data
+
+  const email = toUsernameEmail(trimmed)
+  for (let page = 1; page <= 5; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error) break
+    const found = data?.users?.find((u) => (u as any).email === email)
+    if (found?.id) return found.id
+    if (!data?.users?.length) break
+  }
+
+  return null
+}
 
 export async function POST(req: Request) {
   const auth = await requireRouteSession()
@@ -41,14 +59,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, code: 'serverMisconfigured' }, { status: 500 })
   }
 
+  const userId = await resolveUserId(admin, parsed.data.user)
+  if (!userId) {
+    return NextResponse.json({ ok: false, code: 'userNotFound' }, { status: 400 })
+  }
+
   const existing = await admin
     .from('org_members')
     .select('role, full_name, allowed_modules')
     .eq('org_id', auth.orgId)
-    .eq('user_id', parsed.data.userId)
+    .eq('user_id', userId)
     .maybeSingle()
 
-  const { data: targetUser, error: authUserError } = await admin.auth.admin.getUserById(parsed.data.userId)
+  const { data: targetUser, error: authUserError } = await admin.auth.admin.getUserById(userId)
   if (authUserError || !targetUser?.user) {
     return NextResponse.json({ ok: false, code: 'userNotFound' }, { status: 400 })
   }
@@ -63,7 +86,7 @@ export async function POST(req: Request) {
     .upsert(
       {
         org_id: auth.orgId,
-        user_id: parsed.data.userId,
+        user_id: userId,
         role: parsed.data.role,
         full_name: parsed.data.fullName ?? null,
         allowed_modules: allowedModules,
@@ -93,11 +116,11 @@ export async function POST(req: Request) {
     actor_user_id: auth.user.id,
     action,
     table_name: 'org_members',
-    record_id: parsed.data.userId,
+    record_id: userId,
     old_data: oldData,
     new_data: newData,
     metadata: {
-      target_user_id: parsed.data.userId,
+      target_user_id: userId,
     },
   })
 
@@ -113,7 +136,7 @@ export async function POST(req: Request) {
         .upsert(
           {
             org_id: auth.orgId,
-            user_id: parsed.data.userId,
+            user_id: userId,
             full_name: fullName,
             email: targetUser.user.email ?? null,
           },

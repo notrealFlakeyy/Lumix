@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toUsernameEmail } from '@/lib/auth/username'
 
 export function LoginForm({ locale }: { locale: string }) {
   const t = useTranslations()
@@ -28,9 +29,10 @@ export function LoginForm({ locale }: { locale: string }) {
           setError(null)
           setIsLoading(true)
           const form = new FormData(e.currentTarget)
-          const email = String(form.get('email') ?? '')
+          const identifier = String(form.get('identifier') ?? '')
           const password = String(form.get('password') ?? '')
 
+          const email = toUsernameEmail(identifier)
           const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
           setIsLoading(false)
 
@@ -39,13 +41,13 @@ export function LoginForm({ locale }: { locale: string }) {
             return
           }
 
-          window.location.href = `/${locale}/dashboard`
+          window.location.href = `/${locale}`
         }}
       >
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">{t('auth.email')}</Label>
-            <Input id="email" name="email" type="email" required data-testid="login-email" />
+            <Label htmlFor="identifier">{t('auth.identifier')}</Label>
+            <Input id="identifier" name="identifier" type="text" required placeholder={t('auth.identifierPlaceholder')} data-testid="login-identifier" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t('auth.password')}</Label>

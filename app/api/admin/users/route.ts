@@ -3,10 +3,11 @@ import { z } from 'zod'
 
 import { requireRouteSession } from '@/lib/auth/require-route-session'
 import { allModules, computeAllowedModules } from '@/lib/auth/member-access'
+import { generateUsername, toUsernameEmail } from '@/lib/auth/username'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 const createUserSchema = z.object({
-  email: z.string().trim().email(),
+  contactEmail: z.string().trim().email().optional().nullable(),
   password: z.string().min(10).max(200),
   fullName: z.string().trim().min(1).max(200).optional().nullable(),
   role: z.enum(['owner', 'admin', 'accountant', 'sales', 'purchaser', 'employee']).optional().nullable(),
@@ -48,12 +49,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, code: 'serverMisconfigured' }, { status: 500 })
   }
 
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    email_confirm: true,
-    user_metadata: parsed.data.fullName ? { full_name: parsed.data.fullName } : undefined,
-  })
+  let created: Awaited<ReturnType<typeof admin.auth.admin.createUser>>['data'] | null = null
+  let createError: Awaited<ReturnType<typeof admin.auth.admin.createUser>>['error'] | null = null
+  let username = ''
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    username = generateUsername(parsed.data.fullName ?? parsed.data.contactEmail ?? 'user')
+    const res = await admin.auth.admin.createUser({
+      email: toUsernameEmail(username),
+      password: parsed.data.password,
+      email_confirm: true,
+      user_metadata: {
+        username,
+        ...(parsed.data.fullName ? { full_name: parsed.data.fullName } : null),
+        ...(parsed.data.contactEmail ? { contact_email: parsed.data.contactEmail } : null),
+      },
+    })
+
+    created = res.data
+    createError = res.error
+
+    if (!createError) break
+    if (createError.status !== 422) break
+  }
 
   if (createError || !created?.user?.id) {
     console.error('Failed to create user', createError)
@@ -90,7 +108,8 @@ export async function POST(req: Request) {
     table_name: 'auth.users',
     record_id: userId,
     metadata: {
-      email: parsed.data.email,
+      username,
+      contact_email: parsed.data.contactEmail ?? null,
     },
   })
   if (auditUserError) console.error('Failed to insert audit_log (auth.users)', auditUserError)
@@ -109,7 +128,7 @@ export async function POST(req: Request) {
   if (auditMemberError) console.error('Failed to insert audit_log (org_members)', auditMemberError)
 
   if (role === 'employee') {
-    const fullName = parsed.data.fullName?.trim() || parsed.data.email
+    const fullName = parsed.data.fullName?.trim() || username
     const { error: hrError } = await admin
       .from('hr_employees')
       .upsert(
@@ -117,7 +136,7 @@ export async function POST(req: Request) {
           org_id: auth.orgId,
           user_id: userId,
           full_name: fullName,
-          email: parsed.data.email,
+          email: parsed.data.contactEmail ?? null,
         },
         { onConflict: 'org_id,user_id' },
       )
@@ -129,5 +148,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, userId, membership })
+  return NextResponse.json({ ok: true, userId, username, membership })
 }

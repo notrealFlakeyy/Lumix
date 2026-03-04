@@ -71,7 +71,7 @@ export function CreateUserForm() {
             setIsLoading(true)
 
             const formData = new FormData(e.currentTarget)
-            const email = String(formData.get('email') ?? '').trim()
+            const contactEmail = String(formData.get('contactEmail') ?? '').trim()
             const fullNameRaw = String(formData.get('fullName') ?? '').trim()
             const password = String(formData.get('password') ?? '')
             const allowedModules = (Object.entries(modules) as Array<[AppModule, boolean]>)
@@ -82,7 +82,7 @@ export function CreateUserForm() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                email,
+                contactEmail: contactEmail || null,
                 password,
                 fullName: fullNameRaw ? fullNameRaw : null,
                 role,
@@ -116,13 +116,14 @@ export function CreateUserForm() {
               return
             }
 
-            const body = (await res.json().catch(() => null)) as null | { userId?: string }
+            const body = (await res.json().catch(() => null)) as null | { userId?: string; username?: string }
             const userId = body?.userId
+            const username = body?.username
 
             setResult({
               type: 'success',
               message: t('auth.createUserSuccess', {
-                email,
+                username: username ?? '',
                 userId: userId ?? '',
                 role: t(`auth.roles.${role}`),
               }),
@@ -131,8 +132,14 @@ export function CreateUserForm() {
           }}
         >
           <div className="grid gap-2">
-            <Label htmlFor="email">{t('auth.email')}</Label>
-            <Input id="email" name="email" type="email" placeholder={t('auth.emailPlaceholder')} required autoComplete="off" />
+            <Label htmlFor="contactEmail">{t('auth.contactEmail')}</Label>
+            <Input
+              id="contactEmail"
+              name="contactEmail"
+              type="email"
+              placeholder={t('auth.contactEmailPlaceholder')}
+              autoComplete="off"
+            />
           </div>
 
           <div className="grid gap-2">

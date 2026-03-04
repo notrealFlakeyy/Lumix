@@ -71,7 +71,7 @@ export function AssignOrgMemberForm() {
             setIsLoading(true)
 
             const formData = new FormData(e.currentTarget)
-            const userId = String(formData.get('userId') ?? '').trim()
+            const user = String(formData.get('user') ?? '').trim()
             const fullNameRaw = String(formData.get('fullName') ?? '').trim()
             const allowedModules = (Object.entries(modules) as Array<[AppModule, boolean]>)
               .filter(([, enabled]) => enabled)
@@ -81,7 +81,7 @@ export function AssignOrgMemberForm() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                userId,
+                user,
                 role,
                 fullName: fullNameRaw ? fullNameRaw : null,
                 allowedModules,
@@ -114,14 +114,14 @@ export function AssignOrgMemberForm() {
 
             setResult({
               type: 'success',
-              message: t('auth.assignOrgMemberSuccess', { userId, role: t(`auth.roles.${role}`) }),
+              message: t('auth.assignOrgMemberSuccess', { userId: user, role: t(`auth.roles.${role}`) }),
             })
             ;(e.currentTarget as HTMLFormElement).reset()
           }}
         >
           <div className="grid gap-2">
-            <Label htmlFor="userId">{t('auth.userId')}</Label>
-            <Input id="userId" name="userId" placeholder="00000000-0000-0000-0000-000000000000" required />
+            <Label htmlFor="user">{t('auth.userIdentifier')}</Label>
+            <Input id="user" name="user" placeholder={t('auth.userIdentifierPlaceholder')} required />
           </div>
 
           <div className="grid gap-2">
