@@ -4,7 +4,8 @@ import { createServerClient } from '@supabase/ssr'
 
 import { defaultLocale, locales } from './i18n/routing'
 import { publicEnv } from './lib/env/public'
-import { allModules, computeAllowedModules, defaultModuleFor, type AppModule } from './lib/auth/member-access'
+import { canAccessModule, getAllowedModules } from './lib/auth/permissions'
+import type { AppModule, CompanyRole } from './types/app'
 
 const intlMiddleware = createIntlMiddleware({
   locales: [...locales],
@@ -18,7 +19,9 @@ const pathModule = (pathname: string): AppModule | null => {
   if (!maybeLocale || !locales.includes(maybeLocale as any)) return null
   const mod = parts[1]
   if (!mod) return null
-  return (allModules as readonly string[]).includes(mod) ? (mod as AppModule) : null
+  return ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings'].includes(mod)
+    ? (mod as AppModule)
+    : null
 }
 
 const isProtectedPath = (pathname: string) => {
@@ -30,20 +33,20 @@ const isProtectedPath = (pathname: string) => {
   return (
     rest === '/dashboard' ||
     rest.startsWith('/dashboard/') ||
-    rest === '/sales' ||
-    rest.startsWith('/sales/') ||
-    rest === '/purchases' ||
-    rest.startsWith('/purchases/') ||
-    rest === '/accounting' ||
-    rest.startsWith('/accounting/') ||
-    rest === '/reporting' ||
-    rest.startsWith('/reporting/') ||
-    rest === '/payroll' ||
-    rest.startsWith('/payroll/') ||
-    rest === '/inventory' ||
-    rest.startsWith('/inventory/') ||
-    rest === '/time' ||
-    rest.startsWith('/time/') ||
+    rest === '/customers' ||
+    rest.startsWith('/customers/') ||
+    rest === '/vehicles' ||
+    rest.startsWith('/vehicles/') ||
+    rest === '/drivers' ||
+    rest.startsWith('/drivers/') ||
+    rest === '/orders' ||
+    rest.startsWith('/orders/') ||
+    rest === '/trips' ||
+    rest.startsWith('/trips/') ||
+    rest === '/invoices' ||
+    rest.startsWith('/invoices/') ||
+    rest === '/reports' ||
+    rest.startsWith('/reports/') ||
     rest === '/settings' ||
     rest.startsWith('/settings/')
   )
@@ -55,7 +58,7 @@ const isAuthPath = (pathname: string) => {
   if (!maybeLocale || !locales.includes(maybeLocale as any)) return false
 
   const rest = `/${parts.slice(1).join('/')}`
-  return rest === '/login' || rest.startsWith('/login/')
+  return rest === '/login' || rest.startsWith('/login/') || rest === '/signup' || rest.startsWith('/signup/')
 }
 
 export async function middleware(req: NextRequest) {
@@ -81,17 +84,18 @@ export async function middleware(req: NextRequest) {
   const parts = pathname.split('/').filter(Boolean)
   const locale = locales.includes(parts[0] as any) ? parts[0] : defaultLocale
 
-  let allowedModules: AppModule[] | null = null
+  let role: CompanyRole | null = null
   if (user) {
     const { data: membership } = await supabase
-      .from('org_members')
-      .select('org_id, role, allowed_modules')
+      .from('company_users')
+      .select('company_id, role, is_active')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .limit(1)
       .maybeSingle()
 
     if (membership) {
-      allowedModules = computeAllowedModules(membership.role as string, (membership as any).allowed_modules)
+      role = membership.role as CompanyRole
     }
   }
 
@@ -104,15 +108,16 @@ export async function middleware(req: NextRequest) {
 
   if (isAuthPath(pathname) && isAuthed) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = `/${locale}/${defaultModuleFor(allowedModules ?? ['dashboard'])}`
+    redirectUrl.pathname = `/${locale}/dashboard`
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (isProtectedPath(pathname) && isAuthed && allowedModules) {
+  if (isProtectedPath(pathname) && isAuthed && role) {
     const mod = pathModule(pathname)
-    if (mod && !allowedModules.includes(mod)) {
+    if (mod && !canAccessModule(role, mod)) {
       const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = `/${locale}/${defaultModuleFor(allowedModules)}`
+      const fallback = getAllowedModules(role)[0] ?? 'dashboard'
+      redirectUrl.pathname = `/${locale}/${fallback}`
       return NextResponse.redirect(redirectUrl)
     }
   }
