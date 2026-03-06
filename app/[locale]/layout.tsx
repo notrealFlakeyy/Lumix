@@ -4,7 +4,6 @@ import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
 import { locales, type AppLocale } from '@/i18n/routing'
-import { TimezoneSync } from '@/components/time/timezone-sync'
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))
@@ -25,7 +24,6 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body>
-        <TimezoneSync />
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>

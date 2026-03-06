@@ -2,7 +2,7 @@ import 'server-only'
 
 import { createClient } from '@supabase/supabase-js'
 
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/types/database'
 import { getServiceRoleEnv } from '@/lib/env/service-role'
 
 let adminClient: ReturnType<typeof createClient<Database>> | null = null
@@ -21,4 +21,3 @@ export function createSupabaseAdminClient() {
 
   return adminClient
 }
-

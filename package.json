@@ -1,5 +1,5 @@
 {
-  "name": "lumix-landing",
+  "name": "lumix-transport-erp",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,7 @@
     "type-check": "rimraf tsconfig.tsbuildinfo .next/types && tsc --noEmit",
     "test": "vitest run",
     "test:ui": "vitest",
-    "test:e2e": "playwright test",
-    "seed:demo": "node scripts/seed-demo.js",
-    "job:mark-overdue": "node scripts/jobs/mark-overdue.js"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",

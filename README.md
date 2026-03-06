@@ -1,130 +1,133 @@
-# Lumix MVP - Financial Back Office (Next.js + Supabase)
+# Project Overview
+This repository is now a transportation ERP MVP adapted directly from an existing production-linked Next.js project. The original app/router structure, Supabase wiring, deployment/security configuration, and reusable UI primitives were preserved where they were useful, then the finance-specific product surface was replaced with a transportation-focused SaaS for client presentations.
 
-Netvisor-like finance back-office MVP with:
-- Next.js **App Router** + TypeScript
-- Tailwind CSS + **shadcn/ui**-style components
-- Supabase Postgres (Auth + RLS) + SQL migrations
-- i18n via `next-intl` (default language: **fi**, also `sv`, `en`)
+The MVP is built for small transportation and logistics companies that need:
+- better reporting
+- less manual data entry
+- connected dispatch, trip, and invoicing workflows
+- revenue visibility by customer, vehicle, and driver
+- a foundation for driver and document reporting
 
-## Local development
+# Features
+- Dashboard
+- Customers
+- Vehicles
+- Drivers
+- Transport Orders
+- Trips
+- Invoices
+- Payments
+- Reports
+- Settings
+- Document upload foundation
 
-### 1) Environment variables
+# Tech Stack
+- Next.js 15
+- TypeScript
+- Tailwind CSS
+- Supabase Auth + SSR helpers
+- PostgreSQL via Supabase
+- Zod
+- `next-intl` for the existing locale-aware routing shell
+- `lucide-react` for admin UI iconography
 
-Create `.env.local` (see `.env.example`):
+# Reused vs Replaced
+Reused:
+- existing Next.js App Router project and deployment wiring
+- existing Supabase browser/server/service-role helper pattern
+- existing environment validation structure
+- existing middleware + locale-aware routing foundation
+- existing Tailwind/shadcn-style UI primitives such as cards, buttons, tables, inputs, badges, and dialogs
+- existing `next.config.js` security headers and overall domain-linked project setup
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL="https://<your-project-ref>.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="<your-anon-key>"
-```
+Replaced:
+- finance/back-office schema direction with transportation ERP schema and migrations
+- old finance dashboard content with transport operations KPIs and revenue breakdowns
+- old sales/purchases/accounting navigation with customers, vehicles, drivers, orders, trips, invoices, reports, and settings
+- old finance-facing pages/routes with transport ERP pages or redirects to the new routes
+- old README and product positioning
+- old seed direction with realistic logistics demo seed data in `supabase/seed.sql`
 
-Do not commit `.env.local` or any secret keys. If you accidentally committed a key, rotate it in the Supabase dashboard immediately.
+Remaining legacy cleanup tasks:
+- old locale alias routes such as `/fi/sales` and `/fi/reporting` still exist only as redirects for compatibility
+- old Pages Router redirect files remain to preserve historical entry points and avoid broken links
+- RLS is a solid starter foundation, but still needs production hardening for strict driver-scoped updates and storage access rules
 
-### Authentication (no public signup)
-This app intentionally has **no public registration flow**. Users must be created manually in Supabase Auth and assigned to an organization via `org_members`.
+# Environment Variables
+Required environment variables:
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-### 2) Apply database migrations
+Example values are in `.env.example`.
 
-Run the migration in Supabase:
-- via CLI (recommended) or SQL editor
-- migration file: `supabase/migrations/20260224000000_init.sql`
+# Supabase Setup
+1. Create or use the existing Supabase project connected to this deployment.
+2. Add the environment variables listed above to `.env.local` and the deployment platform.
+3. Run the migrations in `supabase/migrations/`, including `20260306000000_transport_erp_mvp.sql`.
+4. Run the seed in `supabase/seed.sql`.
+5. Configure a Storage bucket for transport documents if you want real uploads.
+6. Create at least one Auth user in Supabase Auth.
+7. Link that user to a company through `company_users` if the seed did not auto-attach the first available user.
 
-#### Supabase CLI (recommended)
+Important notes:
+- `supabase/seed.sql` seeds the transport demo data and will attach the first existing `auth.users` record as the owner if one exists.
+- Storage upload UI is intentionally left as a documented placeholder until bucket policies and signed uploads are finalized.
+- PDF export is intentionally left as a placeholder button and printable invoice layout rather than a full document generator.
 
-Prereqs:
-- Supabase CLI installed (`supabase --version`)
-- You know your **Project Ref** and **Database password** (Supabase Dashboard → Project Settings)
-
-Commands:
-
-```bash
-supabase login
-supabase init
-supabase link --project-ref <your_project_ref>
-supabase db push
-```
-
-### 3) Install and run
+# Local Development
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Run the dev server:
+
+```bash
 npm run dev
 ```
 
-Open:
-- `http://localhost:3000/fi`
-
-## Demo seed (optional)
-
-Creates:
-- a demo user
-- an org + membership
-- default Finnish chart of accounts
-- a sample AR invoice + AP invoice (draft)
-
-Requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` to create the demo user.
+Run migrations locally and apply the seed in one reset:
 
 ```bash
-npm run seed:demo -- --email demo@example.com --password "demo-demo-demo" --org "Demo Oy"
+npx supabase db reset
 ```
 
-Then log in at `http://localhost:3000/fi/login`.
-
-## Background jobs (MVP)
-
-Mark overdue invoices (run via cron / Supabase Scheduled Functions):
+Push migrations to a linked remote Supabase project:
 
 ```bash
-npm run job:mark-overdue
+npx supabase db push
 ```
 
-## Modules (MVP slices)
+If you need to seed a remote environment after pushing migrations, run the contents of `supabase/seed.sql` in the Supabase SQL editor.
 
-- Sales (AR): customers, invoices, post (send), record payment + allocation + audit + GL posting
-- Purchases (AP): vendors, purchase invoices, approve (post), mark paid + audit + GL posting
-- Accounting (GL): chart of accounts, journal entries (read-only UI for MVP)
-- Reporting/Payroll/Inventory/Settings: UI stubs (expand iteratively)
+# Running the App
+Primary entry points:
+- Login page: `http://localhost:3000/fi/login`
+- Dashboard: `http://localhost:3000/fi/dashboard`
+- Customers: `http://localhost:3000/fi/customers`
+- Vehicles: `http://localhost:3000/fi/vehicles`
+- Drivers: `http://localhost:3000/fi/drivers`
+- Orders: `http://localhost:3000/fi/orders`
+- Trips: `http://localhost:3000/fi/trips`
+- Invoices: `http://localhost:3000/fi/invoices`
+- Reports: `http://localhost:3000/fi/reports`
+- Settings: `http://localhost:3000/fi/settings`
 
-## Accounting rules (explicit postings)
+The project still uses the existing locale-prefixed shell. Legacy entry points like `/login`, `/dashboard`, and older finance URLs redirect into the active ERP routes.
 
-AR invoice posting (`post_ar_invoice`):
-- **Debit** `1700` Accounts receivable = invoice total
-- **Credit** `3000` Revenue = subtotal
-- **Credit** `2930` VAT payable = VAT
+# Production / Existing Domain Notes
+This project is already linked to the intended domain and deployment. The transportation ERP MVP was adapted inside the current codebase and should continue using the existing deployment wiring, domain configuration, environment management, and Next.js project setup rather than creating a second app or second deployment.
 
-AR payment (`record_ar_payment`):
-- **Debit** `1910` Bank
-- **Credit** `1700` Accounts receivable
-
-AP invoice posting (`post_ap_invoice`):
-- **Credit** `2400` Accounts payable = invoice total
-- **Debit** `4000` Expense = subtotal
-- **Debit** `1570` VAT receivable = VAT
-
-AP payment (`record_ap_payment`):
-- **Debit** `2400` Accounts payable
-- **Credit** `1910` Bank
-
-## Tests
-
-### Unit tests (Vitest)
-```bash
-npm test
-```
-
-### E2E smoke tests (Playwright)
-
-Requires a real running app + Supabase env (test user must exist):
-
-```bash
-PLAYWRIGHT_BASE_URL=http://localhost:3000 PLAYWRIGHT_EMAIL=demo@example.com PLAYWRIGHT_PASSWORD=demo-demo-demo npm run test:e2e
-```
-
-Flows:
-1) Customer → invoice → send → record payment → invoice becomes paid
-2) Vendor → purchase invoice → approve → mark paid → invoice becomes paid
-
-## Extending integrations
-
-MVP avoids paid integrations. Add adapters behind module services (e.g. invoice delivery) and keep route handlers thin:
-- `app/api/**/route.ts` = validation + auth + call domain services
-- `modules/**` = domain logic and algorithms (testable)
+# Next Steps
+- Replace demo data with real customers, fleet, drivers, orders, trips, invoices, and payments
+- Configure real users and company memberships in Supabase Auth + `company_users`
+- Harden RLS policies, especially around driver-scoped actions and write permissions
+- Complete invoice PDF generation
+- Finish Supabase Storage bucket rules and signed upload flow
+- Remove any remaining legacy content and compatibility redirects that are no longer needed
+- Verify metadata, locale behavior, and final domain config in production
+- Test with real transportation workflows and user feedback
+- Add a more focused mobile driver workflow later

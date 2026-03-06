@@ -3,14 +3,13 @@
 @tailwind utilities;
 
 :root {
-  /* Light palette roles */
-  --app-bg: 255 255 255; /* #FFFFFF */
-  --app-surface: 255 255 255; /* cards/surfaces */
-  --app-contrast: 20 33 61; /* #14213D */
-  --app-fg: 0 0 0; /* #000000 */
-  --app-muted: 167 167 169; /* #A7A7A9 */
-  --app-accent: 68 255 210; /* #44FFD2 */
-  --app-accent-2: 248 228 140; /* #F8E48C */
+  --app-bg: 241 245 249;
+  --app-surface: 255 255 255;
+  --app-contrast: 15 23 42;
+  --app-fg: 15 23 42;
+  --app-muted: 100 116 139;
+  --app-accent: 14 165 233;
+  --app-accent-2: 34 197 94;
 
   --radius: 16px;
 
@@ -36,7 +35,9 @@
 }
 
 body {
-  background-color: rgb(var(--app-bg));
+  background:
+    radial-gradient(circle at top left, rgba(var(--app-accent), 0.12), transparent 24%),
+    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(226 232 240) 100%);
   color: rgb(var(--app-fg));
 }
 

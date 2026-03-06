@@ -1,9 +1,6 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { Sidebar } from '@/components/shell/sidebar'
-import { LanguageSwitcher } from '@/components/i18n/language-switcher'
-import { LogoutButton } from '@/components/auth/logout-button'
-import { redirect } from 'next/navigation'
-import { computeAllowedModules } from '@/lib/auth/member-access'
+import { AppShell } from '@/components/layout/app-shell'
+import { requireCompany } from '@/lib/auth/require-company'
+import { getAllowedModules } from '@/lib/auth/permissions'
 
 export default async function AppLayout({
   children,
@@ -13,56 +10,7 @@ export default async function AppLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const supabase = await createSupabaseServerClient()
+  const { user, membership } = await requireCompany(locale)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const userId = user?.id
-  if (!userId) {
-    redirect(`/${locale}/login`)
-  }
-
-  const { data: membership } = await supabase
-    .from('org_members')
-    .select('org_id, role, allowed_modules')
-    .eq('user_id', userId)
-    .limit(1)
-    .maybeSingle()
-
-  if (!membership?.org_id) {
-    redirect(`/${locale}/onboarding`)
-  }
-
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('name')
-    .eq('id', membership.org_id)
-    .maybeSingle()
-
-  const orgName = org?.name ?? ''
-  const allowedModules = computeAllowedModules(membership.role as string, (membership as any).allowed_modules)
-
-  return (
-    <div className="min-h-screen bg-app bg-app-ambient text-foreground">
-      <div className="flex min-h-screen">
-        <Sidebar className="hidden md:block" allowedModules={allowedModules} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-10 border-b border-border/25 bg-background/90 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-foreground">{orgName}</div>
-              </div>
-              <div className="flex items-center gap-3">
-                <LanguageSwitcher />
-                <LogoutButton locale={locale} />
-              </div>
-            </div>
-          </header>
-          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10 lg:px-10">{children}</main>
-        </div>
-      </div>
-    </div>
-  )
+  return <AppShell locale={locale} membership={membership} allowedModules={getAllowedModules(membership.role)} userEmail={user.email}>{children}</AppShell>
 }

@@ -1,13 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
 
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
 export function LogoutButton({ locale }: { locale: string }) {
-  const t = useTranslations()
   const supabase = createSupabaseBrowserClient()
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -23,8 +21,7 @@ export function LogoutButton({ locale }: { locale: string }) {
         window.location.href = `/${locale}/login`
       }}
     >
-      {t('nav.logout')}
+      Sign out
     </Button>
   )
 }
-
