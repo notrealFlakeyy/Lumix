@@ -82,12 +82,13 @@ begin
     next_service_km = excluded.next_service_km,
     is_active = excluded.is_active;
 
-  insert into public.drivers (id, company_id, full_name, phone, email, license_type, employment_type, is_active)
+  insert into public.drivers (id, public_id, company_id, full_name, phone, email, license_type, employment_type, is_active)
   values
-    (driver_1, demo_company, 'Mika Lehtinen', '+358401009900', 'mika.lehtinen@northernroute.fi', 'CE', 'Full-time', true),
-    (driver_2, demo_company, 'Jari Koskela', '+358401009901', 'jari.koskela@northernroute.fi', 'CE', 'Full-time', true),
-    (driver_3, demo_company, 'Antti Niemi', '+358401009902', 'antti.niemi@northernroute.fi', 'CE', 'Contract', true)
+    (driver_1, 'Mk7Lp2Qa9X', demo_company, 'Mika Lehtinen', '+358401009900', 'mika.lehtinen@northernroute.fi', 'CE', 'Full-time', true),
+    (driver_2, 'Jr4Ns8Wd1K', demo_company, 'Jari Koskela', '+358401009901', 'jari.koskela@northernroute.fi', 'CE', 'Full-time', true),
+    (driver_3, 'An6Rb3Ty5M', demo_company, 'Antti Niemi', '+358401009902', 'antti.niemi@northernroute.fi', 'CE', 'Contract', true)
   on conflict (id) do update set
+    public_id = excluded.public_id,
     full_name = excluded.full_name,
     phone = excluded.phone,
     email = excluded.email,
@@ -113,14 +114,15 @@ begin
     status = excluded.status,
     notes = excluded.notes;
 
-  insert into public.trips (id, company_id, transport_order_id, customer_id, vehicle_id, driver_id, start_time, end_time, start_km, end_km, distance_km, waiting_time_minutes, notes, delivery_confirmation, status)
+  insert into public.trips (id, public_id, company_id, transport_order_id, customer_id, vehicle_id, driver_id, start_time, end_time, start_km, end_km, distance_km, waiting_time_minutes, notes, delivery_confirmation, status)
   values
-    (trip_1, demo_company, order_1, customer_1, vehicle_1, driver_1, now() - interval '8 days', now() - interval '8 days' + interval '4 hours', 181920, 182340, 420, 35, 'Delivered on schedule with terminal queue.', 'Signed by H. Virtanen', 'completed'),
-    (trip_2, demo_company, order_2, customer_2, vehicle_2, driver_2, now() - interval '5 days', now() - interval '5 days' + interval '8 hours', 244610, 245180, 570, 50, 'Long-haul replenishment completed overnight.', 'Dock receipt confirmed', 'invoiced'),
-    (trip_3, demo_company, order_3, customer_3, vehicle_3, driver_3, now() - interval '4 hours', null, 98210, null, null, 20, 'Driver reported crane-site congestion.', null, 'started'),
-    (trip_4, demo_company, order_4, customer_2, vehicle_1, driver_1, now() + interval '1 day', null, null, null, null, 0, 'Pre-dispatched for morning departure.', null, 'planned'),
-    (trip_5, demo_company, order_5, customer_1, null, null, now() + interval '3 days', null, null, null, null, 15, 'Placeholder trip created before final assignment.', null, 'planned')
+    (trip_1, 'Tp9Xk2Lm4Q', demo_company, order_1, customer_1, vehicle_1, driver_1, now() - interval '8 days', now() - interval '8 days' + interval '4 hours', 181920, 182340, 420, 35, 'Delivered on schedule with terminal queue.', 'Signed by H. Virtanen', 'completed'),
+    (trip_2, 'Tr7Pd5Ns8V', demo_company, order_2, customer_2, vehicle_2, driver_2, now() - interval '5 days', now() - interval '5 days' + interval '8 hours', 244610, 245180, 570, 50, 'Long-haul replenishment completed overnight.', 'Dock receipt confirmed', 'invoiced'),
+    (trip_3, 'Tx4Qw9Er2L', demo_company, order_3, customer_3, vehicle_3, driver_3, now() - interval '4 hours', null, 98210, null, null, 20, 'Driver reported crane-site congestion.', null, 'started'),
+    (trip_4, 'Ty6Mn3Kp8R', demo_company, order_4, customer_2, vehicle_1, driver_1, now() + interval '1 day', null, null, null, null, 0, 'Pre-dispatched for morning departure.', null, 'planned'),
+    (trip_5, 'Tz2Hv7Lc5B', demo_company, order_5, customer_1, null, null, now() + interval '3 days', null, null, null, null, 15, 'Placeholder trip created before final assignment.', null, 'planned')
   on conflict (id) do update set
+    public_id = excluded.public_id,
     transport_order_id = excluded.transport_order_id,
     customer_id = excluded.customer_id,
     vehicle_id = excluded.vehicle_id,

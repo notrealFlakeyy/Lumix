@@ -6,12 +6,13 @@ import { PageHeader } from '@/components/layout/page-header'
 import { TripStatusBadge } from '@/components/trips/trip-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { canManageInvoices, canManageOrders } from '@/lib/auth/permissions'
+import { canManageInvoices, canManageTripExecution } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createInvoiceFromTrip } from '@/lib/db/mutations/invoices'
 import { completeTrip, startTrip } from '@/lib/db/mutations/trips'
 import { getTripById } from '@/lib/db/queries/trips'
 import { formatDateTime } from '@/lib/utils/dates'
+import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 import { toDisplayNumber, toNumber } from '@/lib/utils/numbers'
 
 export default async function TripDetailPage({
@@ -27,8 +28,8 @@ export default async function TripDetailPage({
   async function startAction() {
     'use server'
     const { user, membership } = await requireCompany(locale)
-    if (!canManageOrders(membership.role)) throw new Error('Insufficient permissions.')
-    await startTrip(membership.company_id, user.id, id)
+    if (!canManageTripExecution(membership.role)) throw new Error('Insufficient permissions.')
+    await startTrip(membership.company_id, user.id, trip.id)
     revalidatePath(`/${locale}/trips/${id}`)
     revalidatePath(`/${locale}/trips`)
   }
@@ -36,8 +37,8 @@ export default async function TripDetailPage({
   async function completeAction() {
     'use server'
     const { user, membership } = await requireCompany(locale)
-    if (!canManageOrders(membership.role)) throw new Error('Insufficient permissions.')
-    await completeTrip(membership.company_id, user.id, id)
+    if (!canManageTripExecution(membership.role)) throw new Error('Insufficient permissions.')
+    await completeTrip(membership.company_id, user.id, trip.id)
     revalidatePath(`/${locale}/trips/${id}`)
     revalidatePath(`/${locale}/trips`)
   }
@@ -46,7 +47,7 @@ export default async function TripDetailPage({
     'use server'
     const { user, membership } = await requireCompany(locale)
     if (!canManageInvoices(membership.role)) throw new Error('Insufficient permissions.')
-    const invoice = await createInvoiceFromTrip(membership.company_id, user.id, id)
+    const invoice = await createInvoiceFromTrip(membership.company_id, user.id, trip.id)
     revalidatePath(`/${locale}/trips/${id}`)
     revalidatePath(`/${locale}/invoices`)
     redirect(`/${locale}/invoices/${invoice.id}`)
@@ -57,11 +58,11 @@ export default async function TripDetailPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Trip ${trip.id.slice(0, 8).toUpperCase()}`}
+        title={`Trip ${getTripDisplayId(trip)}`}
         description="Trip execution details, odometer values, notes, and linked commercial documents."
         actions={
           <Button asChild variant="outline">
-            <Link href={`/trips/${trip.id}/edit`}>Edit trip</Link>
+            <Link href={`/trips/${getTripRouteId(trip)}/edit`}>Edit trip</Link>
           </Button>
         }
       />

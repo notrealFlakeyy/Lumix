@@ -3,12 +3,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDateTime } from '@/lib/utils/dates'
 import { toDisplayNumber } from '@/lib/utils/numbers'
 import { TripStatusBadge } from '@/components/trips/trip-status-badge'
+import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
 export function TripTable({
   trips,
 }: {
   trips: Array<{
     id: string
+    public_id?: string | null
     customer_name: string
     vehicle_name: string
     driver_name: string
@@ -38,8 +40,8 @@ export function TripTable({
         {trips.map((trip) => (
           <TableRow key={trip.id}>
             <TableCell className="font-medium">
-              <Link href={`/trips/${trip.id}`} className="text-slate-950 no-underline hover:text-sky-700">
-                {trip.id.slice(0, 8).toUpperCase()}
+              <Link href={`/trips/${getTripRouteId(trip)}`} className="text-slate-950 no-underline hover:text-sky-700">
+                {getTripDisplayId(trip)}
               </Link>
             </TableCell>
             <TableCell>{trip.customer_name}</TableCell>

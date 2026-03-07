@@ -32,7 +32,7 @@ export async function getOrderById(companyId: string, id: string, client?: DbCli
     supabase.from('drivers').select('id, full_name, phone, email').eq('company_id', companyId),
     supabase
       .from('trips')
-      .select('id, status, start_time, end_time, distance_km')
+      .select('id, public_id, status, start_time, end_time, distance_km')
       .eq('company_id', companyId)
       .eq('transport_order_id', id)
       .limit(1)

@@ -1,12 +1,14 @@
 import { Link } from '@/i18n/navigation'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { getDriverRouteId } from '@/lib/utils/public-ids'
 
 export function DriverTable({
   drivers,
 }: {
   drivers: Array<{
     id: string
+    public_id?: string | null
     full_name: string
     phone: string | null
     email: string | null
@@ -31,7 +33,7 @@ export function DriverTable({
         {drivers.map((driver) => (
           <TableRow key={driver.id}>
             <TableCell className="font-medium">
-              <Link href={`/drivers/${driver.id}`} className="text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/drivers/${getDriverRouteId(driver)}`} className="text-slate-950 no-underline hover:text-sky-700">
                 {driver.full_name}
               </Link>
             </TableCell>

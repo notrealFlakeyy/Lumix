@@ -20,7 +20,7 @@ export async function getCustomerById(companyId: string, id: string, client?: Db
       .order('created_at', { ascending: false }),
     supabase
       .from('trips')
-      .select('id, start_time, end_time, distance_km, status')
+      .select('id, public_id, start_time, end_time, distance_km, status')
       .eq('company_id', companyId)
       .eq('customer_id', id)
       .order('created_at', { ascending: false }),

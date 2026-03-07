@@ -8,6 +8,7 @@ import { getDriverById } from '@/lib/db/queries/drivers'
 import { formatCurrency } from '@/lib/utils/currency'
 import { formatDateTime } from '@/lib/utils/dates'
 import { toNumber } from '@/lib/utils/numbers'
+import { getDriverRouteId, getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
 export default async function DriverDetailPage({
   params,
@@ -23,7 +24,7 @@ export default async function DriverDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={driver.full_name} description="Driver profile, current assignments, and related trip activity." actions={<Button asChild variant="outline"><Link href={`/drivers/${driver.id}/edit`}>Edit driver</Link></Button>} />
+      <PageHeader title={driver.full_name} description="Driver profile, current assignments, and related trip activity." actions={<Button asChild variant="outline"><Link href={`/drivers/${getDriverRouteId(driver)}/edit`}>Edit driver</Link></Button>} />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
         <Card className="border-slate-200/80 bg-white/90">
@@ -86,7 +87,7 @@ export default async function DriverDetailPage({
                 <TableBody>
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
-                      <TableCell><Link href={`/trips/${trip.id}`}>{trip.id.slice(0, 8).toUpperCase()}</Link></TableCell>
+                      <TableCell><Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link></TableCell>
                       <TableCell>{formatDateTime(trip.start_time)}</TableCell>
                       <TableCell>{formatDateTime(trip.end_time)}</TableCell>
                       <TableCell>{trip.distance_km ? `${toNumber(trip.distance_km)} km` : '-'}</TableCell>

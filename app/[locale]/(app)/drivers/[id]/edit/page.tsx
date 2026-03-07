@@ -9,6 +9,7 @@ import { updateDriver } from '@/lib/db/mutations/drivers'
 import { getDriverById } from '@/lib/db/queries/drivers'
 import { driverSchema } from '@/lib/validations/driver'
 import { getCheckboxValue, getOptionalString } from '@/lib/utils/forms'
+import { getDriverRouteId } from '@/lib/utils/public-ids'
 
 export default async function EditDriverPage({
   params,
@@ -19,6 +20,7 @@ export default async function EditDriverPage({
   const { membership } = await requireCompany(locale)
   const result = await getDriverById(membership.company_id, id)
   if (!result) return null
+  const driver = result.driver
 
   async function action(formData: FormData) {
     'use server'
@@ -37,16 +39,16 @@ export default async function EditDriverPage({
       is_active: getCheckboxValue(formData, 'is_active'),
     })
 
-    await updateDriver(membership.company_id, user.id, id, input)
+    await updateDriver(membership.company_id, user.id, driver.id, input)
     revalidatePath(`/${locale}/drivers`)
-    revalidatePath(`/${locale}/drivers/${id}`)
-    redirect(`/${locale}/drivers/${id}`)
+    revalidatePath(`/${locale}/drivers/${getDriverRouteId(driver)}`)
+    redirect(`/${locale}/drivers/${getDriverRouteId(driver)}`)
   }
 
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Driver" description="Update driver profile and assignment readiness details." />
-      <DriverForm action={action} defaults={result.driver} submitLabel="Save driver" />
+      <DriverForm action={action} defaults={driver} submitLabel="Save driver" />
     </div>
   )
 }

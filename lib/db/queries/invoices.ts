@@ -36,7 +36,7 @@ export async function getInvoiceById(companyId: string, id: string, client?: DbC
     supabase.from('customers').select('*').eq('company_id', companyId),
     supabase.from('invoice_items').select('*').eq('invoice_id', id).order('description'),
     supabase.from('payments').select('*').eq('company_id', companyId).eq('invoice_id', id).order('payment_date', { ascending: false }),
-    supabase.from('trips').select('id, status, start_time, end_time, distance_km').eq('company_id', companyId),
+    supabase.from('trips').select('id, public_id, status, start_time, end_time, distance_km').eq('company_id', companyId),
   ])
 
   const typedInvoice = invoice as TableRow<'invoices'> | null

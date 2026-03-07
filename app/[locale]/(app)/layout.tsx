@@ -10,7 +10,11 @@ export default async function AppLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const { user, membership } = await requireCompany(locale)
+  const { user, membership, memberships } = await requireCompany(locale)
 
-  return <AppShell locale={locale} membership={membership} allowedModules={getAllowedModules(membership.role)} userEmail={user.email}>{children}</AppShell>
+  return (
+    <AppShell locale={locale} membership={membership} memberships={memberships} allowedModules={getAllowedModules(membership.role)} userEmail={user.email}>
+      {children}
+    </AppShell>
+  )
 }

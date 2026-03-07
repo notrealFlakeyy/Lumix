@@ -111,5 +111,9 @@ export default async function EntryPage({ params }: { params: Promise<{ locale: 
     redirect(`/${locale}/onboarding`)
   }
 
+  if (membership.role === 'driver') {
+    redirect(`/${locale}/driver`)
+  }
+
   redirect(`/${locale}/dashboard`)
 }

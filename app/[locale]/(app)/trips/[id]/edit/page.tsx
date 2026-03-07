@@ -13,6 +13,7 @@ import { getTripById } from '@/lib/db/queries/trips'
 import { listVehicles } from '@/lib/db/queries/vehicles'
 import { tripSchema } from '@/lib/validations/trip'
 import { datetimeLocalToIso, getOptionalString, getString } from '@/lib/utils/forms'
+import { getTripRouteId } from '@/lib/utils/public-ids'
 
 export default async function EditTripPage({
   params,
@@ -29,6 +30,7 @@ export default async function EditTripPage({
     listDrivers(membership.company_id),
   ])
   if (!result) return null
+  const trip = result.trip
 
   async function action(formData: FormData) {
     'use server'
@@ -52,10 +54,10 @@ export default async function EditTripPage({
       status: getString(formData, 'status'),
     })
 
-    await updateTrip(membership.company_id, user.id, id, input)
+    await updateTrip(membership.company_id, user.id, trip.id, input)
     revalidatePath(`/${locale}/trips`)
-    revalidatePath(`/${locale}/trips/${id}`)
-    redirect(`/${locale}/trips/${id}`)
+    revalidatePath(`/${locale}/trips/${getTripRouteId(trip)}`)
+    redirect(`/${locale}/trips/${getTripRouteId(trip)}`)
   }
 
   return (
@@ -63,7 +65,7 @@ export default async function EditTripPage({
       <PageHeader title="Edit Trip" description="Update trip execution details, odometer readings, and confirmation notes." />
       <TripForm
         action={action}
-        defaults={result.trip}
+        defaults={trip}
         orders={orders.map((row) => ({ value: row.id, label: row.order_number }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
         vehicles={vehicles.map((row) => ({ value: row.id, label: row.registration_number }))}

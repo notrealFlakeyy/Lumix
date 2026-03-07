@@ -18,5 +18,6 @@ export async function requireCompany(locale: string) {
     supabase: context.supabase,
     user: context.user,
     membership: context.membership as Membership,
+    memberships: context.memberships,
   }
 }

@@ -1,41 +1,52 @@
 import type { Membership } from '@/types/app'
 
+import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { activeCompanyCookieName } from '@/lib/auth/constants'
 
 export async function getCurrentMembership() {
   const supabase = await createSupabaseServerClient()
+  const cookieStore = await cookies()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { supabase, user: null, membership: null as Membership | null }
+    return { supabase, user: null, membership: null as Membership | null, memberships: [] as Membership[] }
   }
 
-  const { data: membershipRow } = await supabase
+  const { data: membershipRows } = await supabase
     .from('company_users')
     .select('id, company_id, user_id, role, is_active, created_at')
     .eq('user_id', user.id)
     .eq('is_active', true)
-    .limit(1)
-    .maybeSingle()
+    .order('created_at', { ascending: true })
 
-  if (!membershipRow) {
-    return { supabase, user, membership: null as Membership | null }
+  if (!membershipRows?.length) {
+    return { supabase, user, membership: null as Membership | null, memberships: [] as Membership[] }
   }
 
-  const { data: company } = await supabase
+  const companyIds = membershipRows.map((membership) => membership.company_id)
+  const { data: companies } = await supabase
     .from('companies')
     .select('id, name, timezone, country')
-    .eq('id', membershipRow.company_id)
-    .maybeSingle()
+    .in('id', companyIds)
 
-  const membership: Membership | null = company
-    ? {
-        ...membershipRow,
-        company,
-      }
-    : null
+  const companyMap = new Map((companies ?? []).map((company) => [company.id, company]))
+  const memberships = membershipRows
+    .map((membershipRow) => {
+      const company = companyMap.get(membershipRow.company_id)
+      return company
+        ? {
+            ...membershipRow,
+            company,
+          }
+        : null
+    })
+    .filter(Boolean) as Membership[]
 
-  return { supabase, user, membership }
+  const activeCompanyId = cookieStore.get(activeCompanyCookieName)?.value
+  const membership = memberships.find((item) => item.company_id === activeCompanyId) ?? memberships[0] ?? null
+
+  return { supabase, user, membership, memberships }
 }

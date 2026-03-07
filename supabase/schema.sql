@@ -9,6 +9,67 @@
 
 create extension if not exists "pgcrypto";
 
+create or replace function public.generate_public_id(target_length integer default 10)
+returns text
+language plpgsql
+as $$
+declare
+  chars constant text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  output text := '';
+  index_value integer;
+begin
+  if target_length is null or target_length < 8 then
+    target_length := 8;
+  end if;
+
+  while length(output) < target_length loop
+    index_value := floor(random() * length(chars) + 1)::integer;
+    output := output || substr(chars, index_value, 1);
+  end loop;
+
+  return output;
+end;
+$$;
+
+create or replace function public.assign_public_id()
+returns trigger
+language plpgsql
+as $$
+declare
+  candidate text;
+  exists_match boolean;
+  attempt_count integer := 0;
+  target_length integer := greatest(coalesce(nullif(TG_ARGV[0], '')::integer, 10), 8);
+begin
+  if new.public_id is not null and btrim(new.public_id) <> '' then
+    return new;
+  end if;
+
+  loop
+    attempt_count := attempt_count + 1;
+
+    if attempt_count > 25 then
+      raise exception 'Unable to generate unique public_id for %.%', TG_TABLE_SCHEMA, TG_TABLE_NAME;
+    end if;
+
+    candidate := public.generate_public_id(target_length);
+
+    execute format(
+      'select exists (select 1 from %I.%I where public_id = $1)',
+      TG_TABLE_SCHEMA,
+      TG_TABLE_NAME
+    )
+      into exists_match
+      using candidate;
+
+    if not exists_match then
+      new.public_id := candidate;
+      return new;
+    end if;
+  end loop;
+end;
+$$;
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -93,6 +154,7 @@ create index if not exists idx_vehicles_company_id on public.vehicles(company_id
 
 create table if not exists public.drivers (
   id uuid primary key default gen_random_uuid(),
+  public_id text not null,
   company_id uuid not null references public.companies(id) on delete cascade,
   full_name text not null,
   phone text,
@@ -105,6 +167,7 @@ create table if not exists public.drivers (
 );
 
 create index if not exists idx_drivers_company_id on public.drivers(company_id);
+create unique index if not exists idx_drivers_public_id on public.drivers(public_id);
 
 create table if not exists public.transport_orders (
   id uuid primary key default gen_random_uuid(),
@@ -130,6 +193,7 @@ create index if not exists idx_transport_orders_customer_id on public.transport_
 
 create table if not exists public.trips (
   id uuid primary key default gen_random_uuid(),
+  public_id text not null,
   company_id uuid not null references public.companies(id) on delete cascade,
   transport_order_id uuid references public.transport_orders(id) on delete set null,
   customer_id uuid not null references public.customers(id) on delete restrict,
@@ -151,6 +215,7 @@ create table if not exists public.trips (
 
 create index if not exists idx_trips_company_id on public.trips(company_id);
 create index if not exists idx_trips_transport_order_id on public.trips(transport_order_id);
+create unique index if not exists idx_trips_public_id on public.trips(public_id);
 
 create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
@@ -255,6 +320,11 @@ create trigger set_drivers_updated_at
 before update on public.drivers
 for each row execute function public.set_updated_at();
 
+drop trigger if exists set_drivers_public_id on public.drivers;
+create trigger set_drivers_public_id
+before insert on public.drivers
+for each row execute function public.assign_public_id('10');
+
 drop trigger if exists set_transport_orders_updated_at on public.transport_orders;
 create trigger set_transport_orders_updated_at
 before update on public.transport_orders
@@ -264,6 +334,11 @@ drop trigger if exists set_trips_updated_at on public.trips;
 create trigger set_trips_updated_at
 before update on public.trips
 for each row execute function public.set_updated_at();
+
+drop trigger if exists set_trips_public_id on public.trips;
+create trigger set_trips_public_id
+before insert on public.trips
+for each row execute function public.assign_public_id('10');
 
 drop trigger if exists set_invoices_updated_at on public.invoices;
 create trigger set_invoices_updated_at

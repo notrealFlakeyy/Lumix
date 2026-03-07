@@ -159,7 +159,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-600">
             <p>The `documents` table is ready for metadata and demo preparation.</p>
-            <p>Supabase Storage bucket rules, signed uploads, and object-level access policies still need manual completion before production file handling is finished.</p>
+            <p>The mobile driver workflow expects a Supabase Storage bucket named `transport-documents` for POD and receipt uploads.</p>
+            <p>Signed uploads are now wired for the driver portal, but bucket rules and object-level access policies still need manual completion before production file handling is finished.</p>
           </CardContent>
         </Card>
       </div>

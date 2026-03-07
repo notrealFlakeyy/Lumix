@@ -158,6 +158,7 @@ export type Database = {
       drivers: {
         Row: {
           id: string
+          public_id: string
           company_id: string
           full_name: string
           phone: string | null
@@ -170,6 +171,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          public_id?: string
           company_id: string
           full_name: string
           phone?: string | null
@@ -224,6 +226,7 @@ export type Database = {
       trips: {
         Row: {
           id: string
+          public_id: string
           company_id: string
           transport_order_id: string | null
           customer_id: string
@@ -244,6 +247,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          public_id?: string
           company_id: string
           transport_order_id?: string | null
           customer_id: string

@@ -17,6 +17,7 @@ import { formatDate } from '@/lib/utils/dates'
 import { paymentSchema } from '@/lib/validations/payment'
 import { getOptionalString, getString } from '@/lib/utils/forms'
 import { toNumber } from '@/lib/utils/numbers'
+import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
 export default async function InvoiceDetailPage({
   params,
@@ -81,7 +82,7 @@ export default async function InvoiceDetailPage({
             <div><span className="font-medium text-slate-900">Issue Date:</span> {formatDate(invoice.issue_date)}</div>
             <div><span className="font-medium text-slate-900">Due Date:</span> {formatDate(invoice.due_date)}</div>
             <div><span className="font-medium text-slate-900">Reference Number:</span> {invoice.reference_number ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Linked Trip:</span> {trip ? <Link href={`/trips/${trip.id}`}>{trip.id.slice(0, 8).toUpperCase()}</Link> : 'No linked trip'}</div>
+            <div><span className="font-medium text-slate-900">Linked Trip:</span> {trip ? <Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link> : 'No linked trip'}</div>
           </CardContent>
         </Card>
 
@@ -142,7 +143,7 @@ export default async function InvoiceDetailPage({
                 <div key={payment.id} className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3 text-sm">
                   <div>
                     <div className="font-medium text-slate-900">{formatDate(payment.payment_date)}</div>
-                    <div className="text-slate-500">{payment.payment_method ?? 'Payment'} {payment.reference ? `• ${payment.reference}` : ''}</div>
+                    <div className="text-slate-500">{payment.payment_method ?? 'Payment'} {payment.reference ? ` | ${payment.reference}` : ''}</div>
                   </div>
                   <div className="font-medium text-slate-900">{formatCurrency(toNumber(payment.amount))}</div>
                 </div>

@@ -32,6 +32,14 @@ export function canManageInvoices(role: string | null | undefined) {
   return role === 'owner' || role === 'admin' || role === 'accountant'
 }
 
+export function canManageTripExecution(role: string | null | undefined) {
+  return role === 'owner' || role === 'admin' || role === 'dispatcher' || role === 'driver'
+}
+
+export function canUseDriverWorkflow(role: string | null | undefined) {
+  return role === 'owner' || role === 'admin' || role === 'dispatcher' || role === 'driver'
+}
+
 export function canViewReports(role: string | null | undefined) {
   return role !== null && role !== undefined && role !== 'driver'
 }

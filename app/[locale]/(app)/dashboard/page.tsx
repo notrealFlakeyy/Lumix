@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+
 import { PageHeader } from '@/components/layout/page-header'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
@@ -16,6 +18,11 @@ import { formatCurrency } from '@/lib/utils/currency'
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
+
+  if (membership.role === 'driver') {
+    redirect(`/${locale}/driver`)
+  }
+
   const companyId = membership.company_id
 
   const [stats, revenueByCustomer, revenueByVehicle, revenueByDriver, recentOrders, recentInvoices] = await Promise.all([

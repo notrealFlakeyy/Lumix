@@ -1,6 +1,7 @@
 import type { TableRow } from '@/types/database'
 
 import { byId, getDbClient, type DbClient } from '@/lib/db/shared'
+import { isUuid } from '@/lib/utils/public-ids'
 
 export async function listTrips(companyId: string, client?: DbClient) {
   const supabase = await getDbClient(client)
@@ -25,18 +26,21 @@ export async function listTrips(companyId: string, client?: DbClient) {
 
 export async function getTripById(companyId: string, id: string, client?: DbClient) {
   const supabase = await getDbClient(client)
-  const [{ data: trip }, { data: customers }, { data: vehicles }, { data: drivers }, { data: orders }, { data: invoices }] =
-    await Promise.all([
-      supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).maybeSingle(),
-      supabase.from('customers').select('id, name, business_id, email, phone').eq('company_id', companyId),
-      supabase.from('vehicles').select('id, registration_number, make, model').eq('company_id', companyId),
-      supabase.from('drivers').select('id, full_name, phone, email').eq('company_id', companyId),
-      supabase.from('transport_orders').select('id, order_number, status').eq('company_id', companyId),
-      supabase.from('invoices').select('id, invoice_number, status, total, due_date, trip_id').eq('company_id', companyId),
-    ])
+  const { data: tripByPublicId } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('public_id', id).maybeSingle()
+  const trip =
+    tripByPublicId ??
+    (isUuid(id) ? (await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).maybeSingle()).data ?? null : null)
 
   const typedTrip = trip as TableRow<'trips'> | null
   if (!typedTrip) return null
+
+  const [{ data: customers }, { data: vehicles }, { data: drivers }, { data: orders }, { data: invoices }] = await Promise.all([
+    supabase.from('customers').select('id, name, business_id, email, phone').eq('company_id', companyId),
+    supabase.from('vehicles').select('id, registration_number, make, model').eq('company_id', companyId),
+    supabase.from('drivers').select('id, public_id, full_name, phone, email').eq('company_id', companyId),
+    supabase.from('transport_orders').select('id, order_number, status').eq('company_id', companyId),
+    supabase.from('invoices').select('id, invoice_number, status, total, due_date, trip_id').eq('company_id', companyId),
+  ])
 
   const customerMap = byId(customers ?? [])
   const vehicleMap = byId(vehicles ?? [])

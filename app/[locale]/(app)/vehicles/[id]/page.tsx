@@ -8,6 +8,7 @@ import { getVehicleById } from '@/lib/db/queries/vehicles'
 import { formatCurrency } from '@/lib/utils/currency'
 import { formatDateTime } from '@/lib/utils/dates'
 import { toDisplayNumber, toNumber } from '@/lib/utils/numbers'
+import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
 export default async function VehicleDetailPage({
   params,
@@ -87,7 +88,7 @@ export default async function VehicleDetailPage({
                 <TableBody>
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
-                      <TableCell><Link href={`/trips/${trip.id}`}>{trip.id.slice(0, 8).toUpperCase()}</Link></TableCell>
+                      <TableCell><Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link></TableCell>
                       <TableCell>{formatDateTime(trip.start_time)}</TableCell>
                       <TableCell>{formatDateTime(trip.end_time)}</TableCell>
                       <TableCell>{trip.distance_km ? `${toNumber(trip.distance_km)} km` : '-'}</TableCell>

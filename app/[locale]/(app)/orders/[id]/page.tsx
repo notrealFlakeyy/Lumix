@@ -12,6 +12,7 @@ import { updateOrderStatus } from '@/lib/db/mutations/orders'
 import { createTripFromOrder } from '@/lib/db/mutations/trips'
 import { getOrderById } from '@/lib/db/queries/orders'
 import { formatDateTime } from '@/lib/utils/dates'
+import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
 export default async function OrderDetailPage({
   params,
@@ -39,7 +40,7 @@ export default async function OrderDetailPage({
     const trip = await createTripFromOrder(membership.company_id, user.id, id)
     revalidatePath(`/${locale}/orders/${id}`)
     revalidatePath(`/${locale}/trips`)
-    redirect(`/${locale}/trips/${trip.id}`)
+    redirect(`/${locale}/trips/${getTripRouteId(trip)}`)
   }
 
   const { order, customer, vehicle, driver, trip } = result
@@ -86,7 +87,7 @@ export default async function OrderDetailPage({
             <div><span className="font-medium text-slate-900">Vehicle:</span> {vehicle ? `${vehicle.registration_number} ${[vehicle.make, vehicle.model].filter(Boolean).join(' ')}` : 'Unassigned'}</div>
             <div><span className="font-medium text-slate-900">Driver:</span> {driver?.full_name ?? 'Unassigned'}</div>
             <div><span className="font-medium text-slate-900">Driver contact:</span> {driver?.phone ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Linked Trip:</span> {trip ? <Link href={`/trips/${trip.id}`}>{trip.id.slice(0, 8).toUpperCase()}</Link> : 'No trip yet'}</div>
+            <div><span className="font-medium text-slate-900">Linked Trip:</span> {trip ? <Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link> : 'No trip yet'}</div>
           </CardContent>
         </Card>
       </div>

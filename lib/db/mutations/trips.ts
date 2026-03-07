@@ -75,7 +75,7 @@ export async function createTripFromOrder(companyId: string, userId: string, ord
 
   const { data: existingTrip } = await supabase
     .from('trips')
-    .select('id')
+    .select('id, public_id')
     .eq('company_id', companyId)
     .eq('transport_order_id', orderId)
     .limit(1)
@@ -117,12 +117,32 @@ export async function createTripFromOrder(companyId: string, userId: string, ord
   return createdTrip
 }
 
-export async function startTrip(companyId: string, userId: string, id: string, client?: DbClient) {
+export async function startTrip(
+  companyId: string,
+  userId: string,
+  id: string,
+  input?: {
+    start_km?: number | string | null
+    notes?: string | null
+    start_time?: string | null
+  },
+  client?: DbClient,
+) {
   const supabase = await getDbClient(client)
-  const now = new Date().toISOString()
+  const now = input?.start_time ?? new Date().toISOString()
+  const { data: currentTrip, error: currentTripError } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).single()
+
+  if (currentTripError) throw currentTripError
+  const previousTrip = currentTrip as TableRow<'trips'>
+
   const { data, error } = await supabase
     .from('trips')
-    .update({ status: 'started', start_time: now })
+    .update({
+      status: 'started',
+      start_time: now,
+      start_km: input?.start_km ?? previousTrip.start_km,
+      notes: input?.notes ?? previousTrip.notes,
+    })
     .eq('company_id', companyId)
     .eq('id', id)
     .select('*')
@@ -145,21 +165,39 @@ export async function startTrip(companyId: string, userId: string, id: string, c
     entity_type: 'trip',
     entity_id: id,
     action: 'start',
+    old_values: previousTrip,
     new_values: trip,
   })
 
   return trip
 }
 
-export async function completeTrip(companyId: string, userId: string, id: string, client?: DbClient) {
+export async function completeTrip(
+  companyId: string,
+  userId: string,
+  id: string,
+  input?: {
+    end_km?: number | string | null
+    waiting_time_minutes?: number
+    notes?: string | null
+    delivery_confirmation?: string | null
+    end_time?: string | null
+  },
+  client?: DbClient,
+) {
   const supabase = await getDbClient(client)
   const { data: trip, error: tripError } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).single()
   if (tripError) throw tripError
   const currentTrip = trip as TableRow<'trips'>
 
+  const endKm = input?.end_km ?? currentTrip.end_km
+  const waitingTime = input?.waiting_time_minutes ?? currentTrip.waiting_time_minutes
+  const notes = input?.notes ?? currentTrip.notes
+  const deliveryConfirmation = input?.delivery_confirmation ?? currentTrip.delivery_confirmation
+
   let distance = currentTrip.distance_km ? Number(currentTrip.distance_km) : null
-  if (currentTrip.start_km !== null && currentTrip.end_km !== null) {
-    distance = Number(currentTrip.end_km) - Number(currentTrip.start_km)
+  if (currentTrip.start_km !== null && endKm !== null) {
+    distance = Number(endKm) - Number(currentTrip.start_km)
     if (distance < 0) {
       throw new Error('Trip distance cannot be negative.')
     }
@@ -169,7 +207,11 @@ export async function completeTrip(companyId: string, userId: string, id: string
     .from('trips')
     .update({
       status: 'completed',
-      end_time: currentTrip.end_time ?? new Date().toISOString(),
+      end_time: input?.end_time ?? currentTrip.end_time ?? new Date().toISOString(),
+      end_km: endKm,
+      waiting_time_minutes: waitingTime,
+      notes,
+      delivery_confirmation: deliveryConfirmation,
       distance_km: distance,
     })
     .eq('company_id', companyId)

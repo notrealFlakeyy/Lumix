@@ -20,6 +20,8 @@ The MVP is built for small transportation and logistics companies that need:
 - Reports
 - Settings
 - Document upload foundation
+- Mobile driver workflow
+- Multi-company switching
 
 # Tech Stack
 - Next.js 15
@@ -52,6 +54,7 @@ Remaining legacy cleanup tasks:
 - old locale alias routes such as `/fi/sales` and `/fi/reporting` still exist only as redirects for compatibility
 - old Pages Router redirect files remain to preserve historical entry points and avoid broken links
 - RLS is a solid starter foundation, but still needs production hardening for strict driver-scoped updates and storage access rules
+- the mobile driver portal currently resolves drivers by matching the signed-in user email or profile full name to an active `drivers` row
 
 # Environment Variables
 Required environment variables:
@@ -65,15 +68,17 @@ Example values are in `.env.example`.
 # Supabase Setup
 1. Create or use the existing Supabase project connected to this deployment.
 2. Add the environment variables listed above to `.env.local` and the deployment platform.
-3. Run the migrations in `supabase/migrations/`, including `20260306000000_transport_erp_mvp.sql`.
+3. Run the migrations in `supabase/migrations/`, including `20260306000000_transport_erp_mvp.sql` and `20260307000000_driver_trip_public_ids.sql`.
 4. Run the seed in `supabase/seed.sql`.
-5. Configure a Storage bucket for transport documents if you want real uploads.
+5. Configure a Storage bucket named `transport-documents` if you want real driver uploads.
 6. Create at least one Auth user in Supabase Auth.
 7. Link that user to a company through `company_users` if the seed did not auto-attach the first available user.
 
 Important notes:
 - `supabase/seed.sql` seeds the transport demo data and will attach the first existing `auth.users` record as the owner if one exists.
-- Storage upload UI is intentionally left as a documented placeholder until bucket policies and signed uploads are finalized.
+- If you are updating an existing remote Supabase project manually in SQL Editor, you can run `supabase/driver-trip-public-ids.sql` to add short public route IDs for drivers and trips without exposing UUIDs in URLs.
+- Driver and trip public IDs are now assigned by a retrying database trigger rather than a one-shot default, which reduces collision risk on insert.
+- The driver portal now includes trip document upload UI, but production bucket policies and object access rules still need to be finalized.
 - PDF export is intentionally left as a placeholder button and printable invoice layout rather than a full document generator.
 
 # Local Development
@@ -115,8 +120,12 @@ Primary entry points:
 - Invoices: `http://localhost:3000/fi/invoices`
 - Reports: `http://localhost:3000/fi/reports`
 - Settings: `http://localhost:3000/fi/settings`
+- Driver mobile home: `http://localhost:3000/fi/driver`
+- Driver mobile trips: `http://localhost:3000/fi/driver/trips`
+- Driver mobile documents: `http://localhost:3000/fi/driver/documents`
 
 The project still uses the existing locale-prefixed shell. Legacy entry points like `/login`, `/dashboard`, and older finance URLs redirect into the active ERP routes.
+Driver and trip detail URLs now use short public IDs while UUIDs remain internal database keys.
 
 # Production / Existing Domain Notes
 This project is already linked to the intended domain and deployment. The transportation ERP MVP was adapted inside the current codebase and should continue using the existing deployment wiring, domain configuration, environment management, and Next.js project setup rather than creating a second app or second deployment.
@@ -130,4 +139,4 @@ This project is already linked to the intended domain and deployment. The transp
 - Remove any remaining legacy content and compatibility redirects that are no longer needed
 - Verify metadata, locale behavior, and final domain config in production
 - Test with real transportation workflows and user feedback
-- Add a more focused mobile driver workflow later
+- Extend the mobile driver workflow with offline capture or PWA behavior if field usage becomes daily-critical
