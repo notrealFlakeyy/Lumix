@@ -13,7 +13,7 @@ export async function getCurrentDriver(companyId: string, userId: string, userEm
     supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
     supabase
       .from('drivers')
-      .select('id, company_id, full_name, phone, email, license_type, employment_type, is_active, created_at, updated_at')
+      .select('id, public_id, company_id, auth_user_id, full_name, phone, email, license_type, employment_type, is_active, created_at, updated_at')
       .eq('company_id', companyId)
       .eq('is_active', true),
   ])
@@ -23,6 +23,7 @@ export async function getCurrentDriver(companyId: string, userId: string, userEm
   const fullName = normalize(profile?.full_name ?? null)
 
   return (
+    typedDrivers.find((driver) => driver.auth_user_id === userId) ??
     typedDrivers.find((driver) => email && normalize(driver.email) === email) ??
     typedDrivers.find((driver) => fullName && normalize(driver.full_name) === fullName) ??
     null

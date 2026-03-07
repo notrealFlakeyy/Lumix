@@ -195,4 +195,36 @@ begin
       role = excluded.role,
       is_active = excluded.is_active;
   end if;
+
+  update public.drivers d
+  set auth_user_id = matched.user_id
+  from (
+    select distinct on (driver_row.id)
+      driver_row.id,
+      cu.user_id
+    from public.drivers driver_row
+    join public.company_users cu
+      on cu.company_id = driver_row.company_id
+     and cu.is_active = true
+     and cu.role = 'driver'
+    left join public.profiles p
+      on p.id = cu.user_id
+    left join auth.users u
+      on u.id = cu.user_id
+    where driver_row.company_id = demo_company
+      and driver_row.auth_user_id is null
+      and (
+        lower(coalesce(driver_row.email, '')) = lower(coalesce(u.email, ''))
+        or lower(coalesce(driver_row.full_name, '')) = lower(coalesce(p.full_name, ''))
+      )
+    order by
+      driver_row.id,
+      case
+        when lower(coalesce(driver_row.email, '')) = lower(coalesce(u.email, '')) then 0
+        else 1
+      end,
+      cu.created_at asc
+  ) as matched
+  where d.id = matched.id
+    and d.auth_user_id is null;
 end $$;

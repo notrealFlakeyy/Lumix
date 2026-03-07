@@ -63,7 +63,7 @@ export default async function DriverHomePage({
           ) : (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
               {membership.role === 'driver'
-                ? 'Create a drivers row with the same email as this login, or set the profile full name to match an existing driver.'
+                ? 'Link this login to a driver row through drivers.auth_user_id, or use matching email/full name as a temporary fallback.'
                 : 'Choose one of the active drivers below to open the mobile workflow with real trip data.'}
             </div>
           )}

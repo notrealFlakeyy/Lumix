@@ -160,6 +160,7 @@ export type Database = {
           id: string
           public_id: string
           company_id: string
+          auth_user_id: string | null
           full_name: string
           phone: string | null
           email: string | null
@@ -173,6 +174,7 @@ export type Database = {
           id?: string
           public_id?: string
           company_id: string
+          auth_user_id?: string | null
           full_name: string
           phone?: string | null
           email?: string | null
