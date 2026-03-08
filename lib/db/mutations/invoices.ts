@@ -4,8 +4,13 @@ import type { TableRow } from '@/types/database'
 import type { InvoiceStatus } from '@/types/app'
 import type { InvoiceInput } from '@/lib/validations/invoice'
 
-import { computeInvoiceTotals, createTripInvoiceItems, deriveInvoiceStatus } from '@/lib/utils/invoice'
+import { computeInvoiceTotals, createTripInvoiceItems, deriveInvoiceStatus, buildInvoicePdfFileName, buildInvoicePdfPath } from '@/lib/utils/invoice'
 import { getDbClient, getNextDocumentNumber, insertAuditLog, type DbClient } from '@/lib/db/shared'
+import { getCompanyAppSettings } from '@/lib/db/queries/company-settings'
+import { getInvoiceById } from '@/lib/db/queries/invoices'
+import { buildInvoicePdf } from '@/lib/invoices/pdf'
+import { sendInvoiceEmail } from '@/lib/invoices/email'
+import { getServiceRoleEnv } from '@/lib/env/service-role'
 import { toNumber } from '@/lib/utils/numbers'
 
 export async function createInvoice(companyId: string, userId: string, input: InvoiceInput, client?: DbClient) {
@@ -89,10 +94,13 @@ export async function createInvoiceFromTrip(companyId: string, userId: string, t
   const { data: trip, error } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', tripId).single()
   if (error) throw error
   const tripRow = trip as TableRow<'trips'>
+  const companySettings = await getCompanyAppSettings(companyId, supabase)
+  const paymentTermsDays = companySettings?.default_payment_terms_days ?? 14
+  const defaultVatRate = Number(companySettings?.default_vat_rate ?? 25.5)
 
   const issueDate = new Date().toISOString().slice(0, 10)
-  const dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  const itemBlueprints = createTripInvoiceItems(toNumber(tripRow.distance_km), tripRow.waiting_time_minutes)
+  const dueDate = new Date(Date.now() + paymentTermsDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const itemBlueprints = createTripInvoiceItems(toNumber(tripRow.distance_km), tripRow.waiting_time_minutes, defaultVatRate)
 
   return createInvoice(
     companyId,
@@ -157,4 +165,56 @@ export async function refreshInvoicePaymentStatus(companyId: string, userId: str
   const status = deriveInvoiceStatus(invoiceRow.status as InvoiceStatus, toNumber(invoiceRow.total), paidAmount, invoiceRow.due_date)
 
   return updateInvoiceStatus(companyId, userId, id, status, supabase)
+}
+
+export async function sendInvoiceToCustomer(companyId: string, userId: string, invoiceId: string, locale: string, client?: DbClient) {
+  const supabase = await getDbClient(client)
+  const bundle = await getInvoiceById(companyId, invoiceId, supabase)
+  if (!bundle) {
+    throw new Error('Invoice not found.')
+  }
+
+  if (!bundle.customer?.email) {
+    throw new Error('The selected customer does not have a billing email address.')
+  }
+
+  const pdfBuffer = await buildInvoicePdf(bundle)
+  const pdfFileName = buildInvoicePdfFileName(bundle.invoice.invoice_number)
+  await sendInvoiceEmail(bundle, pdfBuffer, pdfFileName)
+
+  const siteUrl = (getServiceRoleEnv().NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+  const pdfPath = buildInvoicePdfPath(locale, bundle.invoice.id)
+  const [{ data: previousInvoice }, { data: payments }] = await Promise.all([
+    supabase.from('invoices').select('*').eq('company_id', companyId).eq('id', invoiceId).maybeSingle(),
+    supabase.from('payments').select('amount').eq('company_id', companyId).eq('invoice_id', invoiceId),
+  ])
+
+  const paidAmount = (payments ?? []).reduce((sum, payment) => sum + toNumber(payment.amount), 0)
+  const nextStatus = deriveInvoiceStatus('sent', toNumber(bundle.invoice.total), paidAmount, bundle.invoice.due_date)
+  const { data: updatedInvoice, error } = await supabase
+    .from('invoices')
+    .update({
+      status: nextStatus,
+      pdf_url: `${siteUrl}${pdfPath}`,
+    })
+    .eq('company_id', companyId)
+    .eq('id', invoiceId)
+    .select('*')
+    .single()
+
+  if (error || !updatedInvoice) {
+    throw error ?? new Error('Unable to update invoice after email delivery.')
+  }
+
+  await insertAuditLog(supabase, {
+    company_id: companyId,
+    user_id: userId,
+    entity_type: 'invoice',
+    entity_id: invoiceId,
+    action: 'send_email',
+    old_values: previousInvoice,
+    new_values: updatedInvoice,
+  })
+
+  return updatedInvoice as TableRow<'invoices'>
 }

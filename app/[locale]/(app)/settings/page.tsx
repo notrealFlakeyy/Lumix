@@ -1,22 +1,46 @@
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 
 import { PageHeader } from '@/components/layout/page-header'
+import { InviteLinkPanel } from '@/components/settings/invite-link-panel'
+import { MonitoringTestPanel } from '@/components/settings/monitoring-test-panel'
+import { CsvOnboardingPanel } from '@/components/settings/csv-onboarding-panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { billingPlans, isBillablePlanKey } from '@/lib/billing/plans'
+import { createBillingCheckoutSession, createBillingPortalSession } from '@/lib/billing/stripe'
 import { canManageSettings } from '@/lib/auth/permissions'
+import { getBillingOverview } from '@/lib/db/queries/billing'
+import { defaultCompanyAppSettings, getCompanyAppSettings } from '@/lib/db/queries/company-settings'
+import { createCustomer, updateCustomer } from '@/lib/db/mutations/customers'
+import { createDriver, updateDriver } from '@/lib/db/mutations/drivers'
+import { createVehicle, updateVehicle } from '@/lib/db/mutations/vehicles'
 import { requireCompany } from '@/lib/auth/require-company'
+import { listRecentAuditLogs } from '@/lib/db/queries/audit'
+import { getCompanyDiagnostics } from '@/lib/db/queries/support'
 import { insertAuditLog } from '@/lib/db/shared'
+import { getBillingEnv, hasStripeBillingConfig, hasStripeWebhookConfig } from '@/lib/env/billing'
+import { hasEmailDeliveryConfig } from '@/lib/env/email'
+import { getMonitoringEnv, hasSentryConfig, hasSentrySourceMapConfig } from '@/lib/env/monitoring'
 import { getServiceRoleEnv } from '@/lib/env/service-role'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+import { parseCsvRecords } from '@/lib/utils/csv'
 import type { TableRow as DbTableRow } from '@/types/database'
 import { companyRoles, type CompanyRole } from '@/types/app'
 import { getCheckboxValue, getOptionalString, getString } from '@/lib/utils/forms'
+import { formatDateTime } from '@/lib/utils/dates'
+import { companyAppSettingsSchema } from '@/lib/validations/company-settings'
+import { customerSchema } from '@/lib/validations/customer'
+import { driverSchema } from '@/lib/validations/driver'
+import { vehicleSchema } from '@/lib/validations/vehicle'
+import * as Sentry from '@sentry/nextjs'
 
 type MembershipRow = {
   user_id: string
@@ -24,6 +48,21 @@ type MembershipRow = {
   is_active: boolean
   created_at: string
 }
+
+type AuthLifecycle = {
+  label: string
+  variant: 'default' | 'success' | 'warning' | 'destructive'
+  detail: string
+  canResendInvite: boolean
+}
+
+type InviteLinkPayload = {
+  email: string
+  actionLink: string
+  generatedAt: string
+}
+
+const INVITE_LINK_COOKIE = 'lumix_invite_link'
 
 function buildSettingsHref(locale: string, extras?: Record<string, string>) {
   const params = new URLSearchParams(extras)
@@ -35,12 +74,134 @@ function normalizeEmail(value: string | null | undefined) {
   return value?.trim().toLowerCase() ?? ''
 }
 
+function normalizeText(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ''
+}
+
 function parseRole(value: string): CompanyRole {
   if (companyRoles.includes(value as CompanyRole)) {
     return value as CompanyRole
   }
 
   throw new Error('Invalid company role.')
+}
+
+function formatTimestamp(value: string | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
+
+function parseCsvBoolean(value: string | null | undefined, fallback = true) {
+  const normalized = normalizeText(value)
+  if (!normalized) {
+    return fallback
+  }
+
+  if (['true', '1', 'yes', 'y', 'active'].includes(normalized)) {
+    return true
+  }
+
+  if (['false', '0', 'no', 'n', 'inactive'].includes(normalized)) {
+    return false
+  }
+
+  return fallback
+}
+
+function getSubscriptionBadgeVariant(status: string | null | undefined): 'default' | 'success' | 'warning' | 'destructive' {
+  if (!status) return 'default'
+  if (status === 'active' || status === 'trialing') return 'success'
+  if (status === 'past_due' || status === 'incomplete') return 'warning'
+  if (status === 'canceled' || status === 'unpaid' || status === 'incomplete_expired') return 'destructive'
+  return 'default'
+}
+
+function parseInviteLinkCookie(value: string | undefined): InviteLinkPayload | null {
+  if (!value) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(value)) as Partial<InviteLinkPayload>
+    if (!parsed.email || !parsed.actionLink || !parsed.generatedAt) {
+      return null
+    }
+
+    return {
+      email: parsed.email,
+      actionLink: parsed.actionLink,
+      generatedAt: parsed.generatedAt,
+    }
+  } catch {
+    return null
+  }
+}
+
+async function setInviteLinkCookie(payload: InviteLinkPayload) {
+  const cookieStore = await cookies()
+  cookieStore.set(INVITE_LINK_COOKIE, encodeURIComponent(JSON.stringify(payload)), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 30,
+  })
+}
+
+async function clearInviteLinkCookie() {
+  const cookieStore = await cookies()
+  cookieStore.delete(INVITE_LINK_COOKIE)
+}
+
+function getAuthLifecycle(user: SupabaseUser | null | undefined): AuthLifecycle {
+  if (!user) {
+    return {
+      label: 'Unavailable',
+      variant: 'default',
+      detail: 'Auth account details could not be loaded.',
+      canResendInvite: false,
+    }
+  }
+
+  if (user.last_sign_in_at) {
+    return {
+      label: 'Active login',
+      variant: 'success',
+      detail: `Last sign-in ${formatTimestamp(user.last_sign_in_at) ?? 'recorded'}.`,
+      canResendInvite: false,
+    }
+  }
+
+  if (user.email_confirmed_at) {
+    return {
+      label: 'Confirmed',
+      variant: 'success',
+      detail: `Email confirmed ${formatTimestamp(user.email_confirmed_at) ?? 'recently'}.`,
+      canResendInvite: false,
+    }
+  }
+
+  if (user.invited_at || user.confirmation_sent_at) {
+    return {
+      label: 'Invite pending',
+      variant: 'warning',
+      detail: `Invite last sent ${formatTimestamp(user.invited_at ?? user.confirmation_sent_at) ?? 'recently'}.`,
+      canResendInvite: true,
+    }
+  }
+
+  return {
+    label: 'Provisioned',
+    variant: 'default',
+    detail: 'Account exists but has not completed access setup.',
+    canResendInvite: true,
+  }
 }
 
 async function listAuthUsers() {
@@ -74,13 +235,16 @@ export default async function SettingsPage({
 }) {
   const { locale } = await params
   const { success, error } = await searchParams
+  const inviteLinkData = parseInviteLinkCookie((await cookies()).get(INVITE_LINK_COOKIE)?.value)
   const { supabase, membership, user } = await requireCompany(locale)
 
-  const [company, memberships, profiles, drivers] = await Promise.all([
+  const [company, memberships, profiles, drivers, customers, vehicles] = await Promise.all([
     supabase.from('companies').select('*').eq('id', membership.company_id).single(),
     supabase.from('company_users').select('user_id, role, is_active, created_at').eq('company_id', membership.company_id).order('created_at'),
     supabase.from('profiles').select('id, full_name, phone'),
     supabase.from('drivers').select('*').eq('company_id', membership.company_id).order('full_name'),
+    supabase.from('customers').select('name, business_id, email').eq('company_id', membership.company_id).order('name'),
+    supabase.from('vehicles').select('registration_number').eq('company_id', membership.company_id).order('registration_number'),
   ])
   const companyData = company.data as DbTableRow<'companies'> | null
   if (!companyData) return null
@@ -88,6 +252,19 @@ export default async function SettingsPage({
   const membershipRows = (memberships.data ?? []) as MembershipRow[]
   const profileMap = new Map((profiles.data ?? []).map((profile) => [profile.id, profile]))
   const driverRows = (drivers.data ?? []) as DbTableRow<'drivers'>[]
+  const customerRows = (customers.data ?? []) as Pick<DbTableRow<'customers'>, 'name' | 'business_id' | 'email'>[]
+  const vehicleRows = (vehicles.data ?? []) as Pick<DbTableRow<'vehicles'>, 'registration_number'>[]
+  const [recentAuditLogs, diagnostics, billingOverview, companyAppSettings] = await Promise.all([
+    listRecentAuditLogs(membership.company_id, 10, supabase),
+    getCompanyDiagnostics(membership.company_id, supabase),
+    getBillingOverview(membership.company_id, supabase),
+    getCompanyAppSettings(membership.company_id, supabase),
+  ])
+  const { billingAccount, subscription } = billingOverview
+  const resolvedCompanyAppSettings = {
+    ...defaultCompanyAppSettings,
+    ...(companyAppSettings ?? {}),
+  }
   const authUserMap = await getAuthUserMap([...new Set(membershipRows.map((member) => member.user_id))])
   const linkedUserIds = new Set(driverRows.map((driver) => driver.auth_user_id).filter(Boolean))
   const driverMemberOptions = membershipRows
@@ -101,6 +278,24 @@ export default async function SettingsPage({
         email: authUser?.email ?? null,
       }
     })
+  const invitePendingCount = membershipRows.filter((member) => {
+    const authLifecycle = getAuthLifecycle(authUserMap.get(member.user_id))
+    return member.is_active && authLifecycle.label === 'Invite pending'
+  }).length
+  const explicitDriverLinkCount = driverRows.filter((driver) => Boolean(driver.auth_user_id)).length
+  const billingEnv = getBillingEnv()
+  const siteUrlConfigured = Boolean(getServiceRoleEnv().NEXT_PUBLIC_SITE_URL)
+  const emailDeliveryConfigured = hasEmailDeliveryConfig()
+  const stripeBillingConfigured = hasStripeBillingConfig()
+  const stripeWebhookConfigured = hasStripeWebhookConfig()
+  const starterPriceConfigured = Boolean(billingEnv.STRIPE_PRICE_STARTER)
+  const growthPriceConfigured = Boolean(billingEnv.STRIPE_PRICE_GROWTH)
+  const monitoringEnv = getMonitoringEnv()
+  const monitoringConfigured = hasSentryConfig()
+  const sentrySourceMapsConfigured = hasSentrySourceMapConfig()
+  const sentryRelease = monitoringEnv.SENTRY_RELEASE ?? null
+  const sentryEnvironment = monitoringEnv.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development'
+  const driverLinkCoverage = driverRows.length > 0 ? `${explicitDriverLinkCount}/${driverRows.length}` : '0/0'
 
   async function updateCompanyAction(formData: FormData) {
     'use server'
@@ -143,6 +338,9 @@ export default async function SettingsPage({
     const fullName = getOptionalString(formData, 'full_name') ?? email
     const role = parseRole(getString(formData, 'role'))
     const createDriverProfile = getCheckboxValue(formData, 'create_driver_profile')
+    const createAccountWithoutEmail = getCheckboxValue(formData, 'create_account_without_email')
+    const generateInviteLink = getCheckboxValue(formData, 'generate_invite_link')
+    const temporaryPassword = getOptionalString(formData, 'temporary_password')
     const phone = getOptionalString(formData, 'driver_phone')
     const licenseType = getOptionalString(formData, 'driver_license_type')
     const employmentType = getOptionalString(formData, 'driver_employment_type')
@@ -158,24 +356,73 @@ export default async function SettingsPage({
     const admin = createSupabaseAdminClient()
     const env = getServiceRoleEnv()
     const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+    const redirectTo = `${siteUrl.replace(/\/$/, '')}/${locale}/login`
     const existingUser = await findAuthUserByEmail(email)
     let targetUser: SupabaseUser | null = existingUser
     let wasInvited = false
+    let wasCreatedManually = false
+    let inviteLinkPayload: InviteLinkPayload | null = null
 
     if (!targetUser) {
-      const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${siteUrl.replace(/\/$/, '')}/${locale}/login`,
-        data: {
-          full_name: fullName,
-        },
-      })
+      if (createAccountWithoutEmail) {
+        if (!temporaryPassword || temporaryPassword.length < 8) {
+          redirect(buildSettingsHref(locale, { error: 'Temporary password must be at least 8 characters for manual account creation.' }))
+        }
 
-      if (error || !data.user) {
-        redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to invite user.' }))
+        const { data, error } = await admin.auth.admin.createUser({
+          email,
+          password: temporaryPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+          },
+        })
+
+        if (error || !data.user) {
+          redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to create user account.' }))
+        }
+
+        targetUser = data.user
+        wasCreatedManually = true
+      } else {
+        if (generateInviteLink) {
+          const { data, error } = await admin.auth.admin.generateLink({
+            type: 'invite',
+            email,
+            options: {
+              redirectTo,
+              data: {
+                full_name: fullName,
+              },
+            },
+          })
+
+          if (error || !data.user || !data.properties?.action_link) {
+            redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+          }
+
+          targetUser = data.user
+          inviteLinkPayload = {
+            email,
+            actionLink: data.properties.action_link,
+            generatedAt: new Date().toISOString(),
+          }
+        } else {
+          const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+            redirectTo,
+            data: {
+              full_name: fullName,
+            },
+          })
+
+          if (error || !data.user) {
+            redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to invite user.' }))
+          }
+
+          targetUser = data.user
+          wasInvited = true
+        }
       }
-
-      targetUser = data.user
-      wasInvited = true
     }
 
     const { error: profileError } = await admin.from('profiles').upsert(
@@ -281,7 +528,7 @@ export default async function SettingsPage({
       user_id: user.id,
       entity_type: 'company_user',
       entity_id: membershipRow.id,
-      action: wasInvited ? 'invite_team_member' : 'upsert_team_membership',
+      action: wasCreatedManually ? 'create_team_user' : wasInvited ? 'invite_team_member' : 'upsert_team_membership',
       new_values: membershipRow,
     })
 
@@ -296,9 +543,57 @@ export default async function SettingsPage({
       })
     }
 
+    if (generateInviteLink && targetUser?.email && !inviteLinkPayload && !targetUser.last_sign_in_at && !targetUser.email_confirmed_at) {
+      const { data, error } = await admin.auth.admin.generateLink({
+        type: 'invite',
+        email: targetUser.email,
+        options: {
+          redirectTo,
+          data: {
+            full_name: fullName,
+          },
+        },
+      })
+
+      if (error || !data.properties?.action_link) {
+        redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+      }
+
+      inviteLinkPayload = {
+        email: targetUser.email,
+        actionLink: data.properties.action_link,
+        generatedAt: new Date().toISOString(),
+      }
+
+      await insertAuditLog(admin, {
+        company_id: membership.company_id,
+        user_id: user.id,
+        entity_type: 'company_user',
+        entity_id: membershipRow.id,
+        action: 'generate_team_invite_link',
+        new_values: membershipRow,
+      })
+    }
+
+    if (inviteLinkPayload) {
+      await setInviteLinkCookie(inviteLinkPayload)
+    } else {
+      await clearInviteLinkCookie()
+    }
+
     revalidatePath(`/${locale}/settings`)
     revalidatePath(`/${locale}/drivers`)
-    redirect(buildSettingsHref(locale, { success: wasInvited ? 'Invitation sent and membership created.' : 'Membership created or updated.' }))
+    redirect(
+      buildSettingsHref(locale, {
+        success: wasCreatedManually
+          ? 'User created and membership assigned. Share the temporary password securely.'
+          : inviteLinkPayload
+            ? 'Invite link generated and membership created.'
+          : wasInvited
+            ? 'Invitation sent and membership created.'
+            : 'Membership created or updated.',
+      }),
+    )
   }
 
   async function updateMembershipAction(formData: FormData) {
@@ -439,12 +734,602 @@ export default async function SettingsPage({
     redirect(buildSettingsHref(locale, { success: authUserId ? 'Driver login linked.' : 'Driver login link cleared.' }))
   }
 
+  async function resendInviteAction(formData: FormData) {
+    'use server'
+
+    const { membership, user } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const targetUserId = getString(formData, 'target_user_id')
+    const admin = createSupabaseAdminClient()
+    const env = getServiceRoleEnv()
+    const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+    const redirectTo = `${siteUrl.replace(/\/$/, '')}/${locale}/login`
+
+    const [{ data: currentMembership }, authUserResponse, profileResponse] = await Promise.all([
+      admin.from('company_users').select('*').eq('company_id', membership.company_id).eq('user_id', targetUserId).maybeSingle(),
+      admin.auth.admin.getUserById(targetUserId),
+      admin.from('profiles').select('full_name').eq('id', targetUserId).maybeSingle(),
+    ])
+
+    const typedMembership = currentMembership as DbTableRow<'company_users'> | null
+    const authUser = authUserResponse.data.user
+    const profile = profileResponse.data as Pick<DbTableRow<'profiles'>, 'full_name'> | null
+
+    if (!typedMembership || !typedMembership.is_active) {
+      redirect(buildSettingsHref(locale, { error: 'Only active memberships can receive invite emails.' }))
+    }
+
+    if (!authUser?.email) {
+      redirect(buildSettingsHref(locale, { error: 'Auth user email could not be resolved.' }))
+    }
+
+    if (authUser.last_sign_in_at || authUser.email_confirmed_at) {
+      redirect(buildSettingsHref(locale, { error: 'This user already completed account setup. No invite resend is needed.' }))
+    }
+
+    const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(authUser.email, {
+      redirectTo,
+      data: {
+        full_name: profile?.full_name ?? authUser.email,
+      },
+    })
+
+    if (inviteError) {
+      redirect(buildSettingsHref(locale, { error: inviteError.message }))
+    }
+
+    await insertAuditLog(admin, {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_user',
+      entity_id: typedMembership.id,
+      action: 'resend_team_invite',
+      new_values: typedMembership,
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: `Invite resent to ${authUser.email}.` }))
+  }
+
+  async function revokeMembershipAction(formData: FormData) {
+    'use server'
+
+    const { membership, user } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const targetUserId = getString(formData, 'target_user_id')
+    const admin = createSupabaseAdminClient()
+    const currentMembershipResponse = await admin
+      .from('company_users')
+      .select('*')
+      .eq('company_id', membership.company_id)
+      .eq('user_id', targetUserId)
+      .maybeSingle()
+    const currentMembership = currentMembershipResponse.data as DbTableRow<'company_users'> | null
+
+    if (!currentMembership) {
+      redirect(buildSettingsHref(locale, { error: 'Membership not found.' }))
+    }
+
+    if (membership.role !== 'owner' && currentMembership.role === 'owner') {
+      redirect(buildSettingsHref(locale, { error: 'Only an owner can revoke another owner.' }))
+    }
+
+    if (targetUserId === user.id) {
+      redirect(buildSettingsHref(locale, { error: 'You cannot revoke your own active membership.' }))
+    }
+
+    if (currentMembership.role === 'owner' && currentMembership.is_active) {
+      const { count } = await admin
+        .from('company_users')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', membership.company_id)
+        .eq('role', 'owner')
+        .eq('is_active', true)
+        .neq('user_id', targetUserId)
+
+      if (!count || count < 1) {
+        redirect(buildSettingsHref(locale, { error: 'At least one active owner must remain in the company.' }))
+      }
+    }
+
+    const updatedMembershipResponse = await admin
+      .from('company_users')
+      .update({
+        is_active: false,
+      })
+      .eq('company_id', membership.company_id)
+      .eq('user_id', targetUserId)
+      .select('*')
+      .single()
+    const updatedMembership = updatedMembershipResponse.data as DbTableRow<'company_users'> | null
+
+    if (updatedMembershipResponse.error || !updatedMembership) {
+      redirect(buildSettingsHref(locale, { error: updatedMembershipResponse.error?.message ?? 'Unable to revoke membership.' }))
+    }
+
+    const linkedDriversResponse = await admin
+      .from('drivers')
+      .select('*')
+      .eq('company_id', membership.company_id)
+      .eq('auth_user_id', targetUserId)
+    const linkedDrivers = (linkedDriversResponse.data ?? []) as DbTableRow<'drivers'>[]
+
+    if (linkedDrivers.length > 0) {
+      await admin.from('drivers').update({ auth_user_id: null }).eq('company_id', membership.company_id).eq('auth_user_id', targetUserId)
+    }
+
+    await insertAuditLog(admin, {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_user',
+      entity_id: updatedMembership.id,
+      action: 'revoke_membership_access',
+      old_values: currentMembership,
+      new_values: updatedMembership,
+    })
+
+    for (const linkedDriver of linkedDrivers) {
+      await insertAuditLog(admin, {
+        company_id: membership.company_id,
+        user_id: user.id,
+        entity_type: 'driver',
+        entity_id: linkedDriver.id,
+        action: 'clear_auth_user_link',
+        old_values: linkedDriver,
+        new_values: {
+          ...linkedDriver,
+          auth_user_id: null,
+        },
+      })
+    }
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/drivers`)
+    redirect(buildSettingsHref(locale, { success: 'Membership access revoked.' }))
+  }
+
+  async function generateInviteLinkAction(formData: FormData) {
+    'use server'
+
+    const { membership, user } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const targetUserId = getString(formData, 'target_user_id')
+    const admin = createSupabaseAdminClient()
+    const env = getServiceRoleEnv()
+    const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+    const redirectTo = `${siteUrl.replace(/\/$/, '')}/${locale}/login`
+
+    const [{ data: currentMembership }, authUserResponse, profileResponse] = await Promise.all([
+      admin.from('company_users').select('*').eq('company_id', membership.company_id).eq('user_id', targetUserId).maybeSingle(),
+      admin.auth.admin.getUserById(targetUserId),
+      admin.from('profiles').select('full_name').eq('id', targetUserId).maybeSingle(),
+    ])
+
+    const typedMembership = currentMembership as DbTableRow<'company_users'> | null
+    const authUser = authUserResponse.data.user
+    const profile = profileResponse.data as Pick<DbTableRow<'profiles'>, 'full_name'> | null
+
+    if (!typedMembership || !typedMembership.is_active) {
+      redirect(buildSettingsHref(locale, { error: 'Only active memberships can receive invite links.' }))
+    }
+
+    if (!authUser?.email) {
+      redirect(buildSettingsHref(locale, { error: 'Auth user email could not be resolved.' }))
+    }
+
+    if (authUser.last_sign_in_at || authUser.email_confirmed_at) {
+      redirect(buildSettingsHref(locale, { error: 'This user already completed account setup. No invite link is needed.' }))
+    }
+
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: 'invite',
+      email: authUser.email,
+      options: {
+        redirectTo,
+        data: {
+          full_name: profile?.full_name ?? authUser.email,
+        },
+      },
+    })
+
+    if (error || !data.properties?.action_link) {
+      redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+    }
+
+    await setInviteLinkCookie({
+      email: authUser.email,
+      actionLink: data.properties.action_link,
+      generatedAt: new Date().toISOString(),
+    })
+
+    await insertAuditLog(admin, {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_user',
+      entity_id: typedMembership.id,
+      action: 'generate_team_invite_link',
+      new_values: typedMembership,
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: `Invite link generated for ${authUser.email}.` }))
+  }
+
+  async function clearInviteLinkAction() {
+    'use server'
+
+    await clearInviteLinkCookie()
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale))
+  }
+
+  async function sendMonitoringTestAction() {
+    'use server'
+
+    const { membership, user } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    if (!hasSentryConfig()) {
+      redirect(buildSettingsHref(locale, { error: 'NEXT_PUBLIC_SENTRY_DSN is not configured.' }))
+    }
+
+    Sentry.withScope((scope) => {
+      scope.setTag('manual_test', 'server')
+      scope.setTag('company_id', membership.company_id)
+      scope.setUser({ id: user.id, email: user.email ?? undefined })
+      Sentry.captureException(new Error('Manual server-side monitoring test from Settings'))
+    })
+
+    await Sentry.flush(2000)
+
+    redirect(buildSettingsHref(locale, { success: 'Server monitoring test event sent.' }))
+  }
+
+  async function startBillingCheckoutAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const planKey = getString(formData, 'plan_key')
+    if (!isBillablePlanKey(planKey)) {
+      redirect(buildSettingsHref(locale, { error: 'Unsupported billing plan.' }))
+    }
+
+    const { data: companyRecord, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', membership.company_id)
+      .single()
+
+    if (companyError || !companyRecord) {
+      redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
+    }
+
+    try {
+      const checkoutUrl = await createBillingCheckoutSession({
+        company: companyRecord as DbTableRow<'companies'>,
+        userEmail: user.email ?? null,
+        locale,
+        planKey,
+      })
+
+      await insertAuditLog(createSupabaseAdminClient(), {
+        company_id: membership.company_id,
+        user_id: user.id,
+        entity_type: 'company_subscription',
+        entity_id: null,
+        action: 'start_billing_checkout',
+        new_values: { plan_key: planKey },
+      })
+
+      redirect(checkoutUrl)
+    } catch (error) {
+      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe checkout could not be created.' }))
+    }
+  }
+
+  async function openBillingPortalAction() {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const { data: companyRecord, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', membership.company_id)
+      .single()
+
+    if (companyError || !companyRecord) {
+      redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
+    }
+
+    try {
+      const portalUrl = await createBillingPortalSession({
+        company: companyRecord as DbTableRow<'companies'>,
+        locale,
+      })
+
+      await insertAuditLog(createSupabaseAdminClient(), {
+        company_id: membership.company_id,
+        user_id: user.id,
+        entity_type: 'company_subscription',
+        entity_id: null,
+        action: 'open_billing_portal',
+      })
+
+      redirect(portalUrl)
+    } catch (error) {
+      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe billing portal could not be opened.' }))
+    }
+  }
+
+  async function updateCompanyAppSettingsAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const parsed = companyAppSettingsSchema.safeParse({
+      order_prefix: getString(formData, 'order_prefix').toUpperCase(),
+      order_next_number: getString(formData, 'order_next_number'),
+      invoice_prefix: getString(formData, 'invoice_prefix').toUpperCase(),
+      invoice_next_number: getString(formData, 'invoice_next_number'),
+      default_payment_terms_days: getString(formData, 'default_payment_terms_days'),
+      default_vat_rate: getString(formData, 'default_vat_rate'),
+      fuel_cost_per_km: getString(formData, 'fuel_cost_per_km'),
+      maintenance_cost_per_km: getString(formData, 'maintenance_cost_per_km'),
+      driver_cost_per_hour: getString(formData, 'driver_cost_per_hour'),
+      waiting_cost_per_hour: getString(formData, 'waiting_cost_per_hour'),
+      default_currency: getString(formData, 'default_currency').toUpperCase(),
+      invoice_footer: getOptionalString(formData, 'invoice_footer'),
+      brand_accent: getString(formData, 'brand_accent'),
+    })
+
+    if (!parsed.success) {
+      redirect(buildSettingsHref(locale, { error: parsed.error.issues[0]?.message ?? 'Invalid company settings.' }))
+    }
+
+    const previous = await getCompanyAppSettings(membership.company_id, supabase)
+    const { data, error } = await supabase
+      .from('company_app_settings')
+      .upsert(
+        {
+          company_id: membership.company_id,
+          ...parsed.data,
+        },
+        { onConflict: 'company_id' },
+      )
+      .select('*')
+      .single()
+
+    if (error || !data) {
+      redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to save company configuration.' }))
+    }
+
+    await insertAuditLog(supabase, {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_app_settings',
+      entity_id: membership.company_id,
+      action: 'update',
+      old_values: previous,
+      new_values: data,
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: 'Company configuration saved.' }))
+  }
+
+  async function importCustomersCsvAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const file = formData.get('file')
+    if (!(file instanceof File) || file.size === 0) {
+      redirect(buildSettingsHref(locale, { error: 'Select a customer CSV file first.' }))
+    }
+
+    const rows = parseCsvRecords(await file.text())
+    if (rows.length === 0) {
+      redirect(buildSettingsHref(locale, { error: 'The customer CSV file was empty.' }))
+    }
+
+    const { data: existingRows, error: existingError } = await supabase.from('customers').select('*').eq('company_id', membership.company_id)
+    if (existingError) {
+      redirect(buildSettingsHref(locale, { error: existingError.message }))
+    }
+
+    const existingCustomers = [...((existingRows as DbTableRow<'customers'>[] | null) ?? [])]
+    let created = 0
+    let updated = 0
+    for (const row of rows) {
+      const parsed = customerSchema.safeParse({
+        name: row.name,
+        email: row.email,
+        business_id: row.business_id,
+        vat_number: row.vat_number,
+        phone: row.phone,
+        billing_address_line1: row.billing_address_line1,
+        billing_address_line2: row.billing_address_line2,
+        billing_postal_code: row.billing_postal_code,
+        billing_city: row.billing_city,
+        billing_country: row.billing_country,
+        notes: row.notes,
+      })
+
+      if (!parsed.success) {
+        redirect(buildSettingsHref(locale, { error: `Customer import failed for "${row.name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+      }
+
+      const match =
+        existingCustomers.find((customer) => parsed.data.business_id && customer.business_id === parsed.data.business_id) ??
+        existingCustomers.find((customer) => normalizeText(customer.name) === normalizeText(parsed.data.name))
+
+      if (match) {
+        await updateCustomer(membership.company_id, user.id, match.id, parsed.data, supabase)
+        updated += 1
+      } else {
+        const createdRow = await createCustomer(membership.company_id, user.id, parsed.data, supabase)
+        existingCustomers.push(createdRow)
+        created += 1
+      }
+    }
+
+    revalidatePath(`/${locale}/customers`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: `Customer import completed. ${created} created, ${updated} updated.` }))
+  }
+
+  async function importVehiclesCsvAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const file = formData.get('file')
+    if (!(file instanceof File) || file.size === 0) {
+      redirect(buildSettingsHref(locale, { error: 'Select a vehicle CSV file first.' }))
+    }
+
+    const rows = parseCsvRecords(await file.text())
+    if (rows.length === 0) {
+      redirect(buildSettingsHref(locale, { error: 'The vehicle CSV file was empty.' }))
+    }
+
+    const { data: existingRows, error: existingError } = await supabase.from('vehicles').select('*').eq('company_id', membership.company_id)
+    if (existingError) {
+      redirect(buildSettingsHref(locale, { error: existingError.message }))
+    }
+
+    const existingVehicles = [...((existingRows as DbTableRow<'vehicles'>[] | null) ?? [])]
+    let created = 0
+    let updated = 0
+    for (const row of rows) {
+      const parsed = vehicleSchema.safeParse({
+        registration_number: row.registration_number,
+        make: row.make,
+        model: row.model,
+        year: row.year,
+        fuel_type: row.fuel_type,
+        current_km: row.current_km,
+        next_service_km: row.next_service_km,
+        is_active: parseCsvBoolean(row.is_active, true),
+      })
+
+      if (!parsed.success) {
+        redirect(buildSettingsHref(locale, { error: `Vehicle import failed for "${row.registration_number || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+      }
+
+      const match = existingVehicles.find(
+        (vehicle) => normalizeText(vehicle.registration_number) === normalizeText(parsed.data.registration_number),
+      )
+
+      if (match) {
+        await updateVehicle(membership.company_id, user.id, match.id, parsed.data, supabase)
+        updated += 1
+      } else {
+        const createdRow = await createVehicle(membership.company_id, user.id, parsed.data, supabase)
+        existingVehicles.push(createdRow)
+        created += 1
+      }
+    }
+
+    revalidatePath(`/${locale}/vehicles`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: `Vehicle import completed. ${created} created, ${updated} updated.` }))
+  }
+
+  async function importDriversCsvAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const file = formData.get('file')
+    if (!(file instanceof File) || file.size === 0) {
+      redirect(buildSettingsHref(locale, { error: 'Select a driver CSV file first.' }))
+    }
+
+    const rows = parseCsvRecords(await file.text())
+    if (rows.length === 0) {
+      redirect(buildSettingsHref(locale, { error: 'The driver CSV file was empty.' }))
+    }
+
+    const { data: existingRows, error: existingError } = await supabase.from('drivers').select('*').eq('company_id', membership.company_id)
+    if (existingError) {
+      redirect(buildSettingsHref(locale, { error: existingError.message }))
+    }
+
+    const existingDrivers = [...((existingRows as DbTableRow<'drivers'>[] | null) ?? [])]
+    let created = 0
+    let updated = 0
+    for (const row of rows) {
+      const parsed = driverSchema.safeParse({
+        full_name: row.full_name,
+        phone: row.phone,
+        email: row.email,
+        license_type: row.license_type,
+        employment_type: row.employment_type,
+        is_active: parseCsvBoolean(row.is_active, true),
+      })
+
+      if (!parsed.success) {
+        redirect(buildSettingsHref(locale, { error: `Driver import failed for "${row.full_name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+      }
+
+      const match =
+        existingDrivers.find((driver) => parsed.data.email && normalizeEmail(driver.email) === normalizeEmail(parsed.data.email)) ??
+        existingDrivers.find((driver) => normalizeText(driver.full_name) === normalizeText(parsed.data.full_name))
+
+      if (match) {
+        await updateDriver(membership.company_id, user.id, match.id, parsed.data, supabase)
+        updated += 1
+      } else {
+        const createdRow = await createDriver(membership.company_id, user.id, parsed.data, supabase)
+        existingDrivers.push(createdRow)
+        created += 1
+      }
+    }
+
+    revalidatePath(`/${locale}/drivers`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: `Driver import completed. ${created} created, ${updated} updated.` }))
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader title="Settings" description="Company configuration, team administration, and implementation notes for secure rollout." />
 
       {success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">{success}</div> : null}
       {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-950">{error}</div> : null}
+      {inviteLinkData ? <InviteLinkPanel email={inviteLinkData.email} inviteLink={inviteLinkData.actionLink} generatedAt={inviteLinkData.generatedAt} clearAction={clearInviteLinkAction} /> : null}
 
       <form action={updateCompanyAction}>
         <Card className="border-slate-200/80 bg-white/90">
@@ -503,6 +1388,137 @@ export default async function SettingsPage({
         </Card>
       </form>
 
+      <form action={updateCompanyAppSettingsAction}>
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Company Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="order_prefix">Order Prefix</Label>
+              <Input id="order_prefix" name="order_prefix" defaultValue={resolvedCompanyAppSettings.order_prefix} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="order_next_number">Next Order Number</Label>
+              <Input id="order_next_number" name="order_next_number" type="number" min={1} defaultValue={resolvedCompanyAppSettings.order_next_number} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice_prefix">Invoice Prefix</Label>
+              <Input id="invoice_prefix" name="invoice_prefix" defaultValue={resolvedCompanyAppSettings.invoice_prefix} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice_next_number">Next Invoice Number</Label>
+              <Input id="invoice_next_number" name="invoice_next_number" type="number" min={1} defaultValue={resolvedCompanyAppSettings.invoice_next_number} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="default_payment_terms_days">Default Payment Terms (days)</Label>
+              <Input
+                id="default_payment_terms_days"
+                name="default_payment_terms_days"
+                type="number"
+                min={0}
+                defaultValue={resolvedCompanyAppSettings.default_payment_terms_days}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="default_vat_rate">Default VAT Rate</Label>
+              <Input id="default_vat_rate" name="default_vat_rate" type="number" step="0.01" min={0} defaultValue={resolvedCompanyAppSettings.default_vat_rate} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="default_currency">Currency</Label>
+              <Input id="default_currency" name="default_currency" maxLength={3} defaultValue={resolvedCompanyAppSettings.default_currency} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fuel_cost_per_km">Fuel Cost per KM</Label>
+              <Input
+                id="fuel_cost_per_km"
+                name="fuel_cost_per_km"
+                type="number"
+                step="0.01"
+                min={0}
+                defaultValue={resolvedCompanyAppSettings.fuel_cost_per_km}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maintenance_cost_per_km">Maintenance Cost per KM</Label>
+              <Input
+                id="maintenance_cost_per_km"
+                name="maintenance_cost_per_km"
+                type="number"
+                step="0.01"
+                min={0}
+                defaultValue={resolvedCompanyAppSettings.maintenance_cost_per_km}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="driver_cost_per_hour">Driver Cost per Hour</Label>
+              <Input
+                id="driver_cost_per_hour"
+                name="driver_cost_per_hour"
+                type="number"
+                step="0.01"
+                min={0}
+                defaultValue={resolvedCompanyAppSettings.driver_cost_per_hour}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="waiting_cost_per_hour">Waiting Cost per Hour</Label>
+              <Input
+                id="waiting_cost_per_hour"
+                name="waiting_cost_per_hour"
+                type="number"
+                step="0.01"
+                min={0}
+                defaultValue={resolvedCompanyAppSettings.waiting_cost_per_hour}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brand_accent">Brand Accent</Label>
+              <div className="flex gap-3">
+                <Input id="brand_accent" name="brand_accent" type="color" defaultValue={resolvedCompanyAppSettings.brand_accent} className="h-11 w-24 p-1" />
+                <Input defaultValue={resolvedCompanyAppSettings.brand_accent} readOnly className="font-mono text-xs" />
+              </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="invoice_footer">Invoice Footer</Label>
+              <textarea
+                id="invoice_footer"
+                name="invoice_footer"
+                defaultValue={resolvedCompanyAppSettings.invoice_footer ?? ''}
+                className="min-h-28 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900"
+                placeholder="Payment instructions, legal note, or dispatch contact details."
+              />
+            </div>
+            <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              Profitability reporting uses the cost assumptions above to estimate trip, vehicle, driver, and customer margin. Keep them directional and review them before using the reports for pricing decisions.
+            </div>
+            <div className="md:col-span-2 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              <span>Order numbering, invoice terms, and estimated profitability reports all use these company defaults automatically.</span>
+              <Button type="submit">Save company configuration</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
+
+      <CsvOnboardingPanel
+        customerAction={importCustomersCsvAction}
+        vehicleAction={importVehiclesCsvAction}
+        driverAction={importDriversCsvAction}
+        existingCustomers={customerRows.map((customer) => ({
+          primary: customer.name,
+          secondary: customer.business_id,
+          tertiary: customer.email,
+        }))}
+        existingVehicles={vehicleRows.map((vehicle) => ({
+          primary: vehicle.registration_number,
+        }))}
+        existingDrivers={driverRows.map((driver) => ({
+          primary: driver.full_name,
+          secondary: driver.email,
+          tertiary: driver.phone,
+        }))}
+      />
+
       <form action={inviteTeamMemberAction}>
         <Card className="border-slate-200/80 bg-white/90">
           <CardHeader>
@@ -546,6 +1562,29 @@ export default async function SettingsPage({
                 <p className="text-sm text-slate-500">Use this when inviting a user with the <code>driver</code> role so mobile access works without SQL.</p>
               </div>
             </div>
+            <div className="flex items-start gap-3 md:col-span-2">
+              <input id="create_account_without_email" name="create_account_without_email" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
+              <div className="space-y-1">
+                <Label htmlFor="create_account_without_email">Create account without sending an email invite</Label>
+                <p className="text-sm text-slate-500">
+                  Use this fallback if SMTP or Supabase Auth invite delivery is not configured yet. The user will be created immediately.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 md:col-span-2">
+              <input id="generate_invite_link" name="generate_invite_link" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
+              <div className="space-y-1">
+                <Label htmlFor="generate_invite_link">Generate a manual invite link instead of sending an email</Label>
+                <p className="text-sm text-slate-500">
+                  Use this when you want to copy the secure invite URL and deliver it yourself through WhatsApp, SMS, or your own email channel.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="temporary_password">Temporary Password</Label>
+              <Input id="temporary_password" name="temporary_password" type="password" placeholder="Required only for manual account creation" />
+              <p className="text-sm text-slate-500">Minimum 8 characters. Share it through a secure channel and ask the user to change it after first sign-in.</p>
+            </div>
             <div className="md:col-span-2">
               <Button type="submit">Invite team member</Button>
             </div>
@@ -564,6 +1603,7 @@ export default async function SettingsPage({
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Auth</TableHead>
                 <TableHead>Manage</TableHead>
               </TableRow>
             </TableHeader>
@@ -571,7 +1611,11 @@ export default async function SettingsPage({
               {membershipRows.map((member) => {
                 const profile = profileMap.get(member.user_id)
                 const authUser = authUserMap.get(member.user_id)
+                const authLifecycle = getAuthLifecycle(authUser)
                 const ownerProtected = membership.role !== 'owner' && member.role === 'owner'
+                const revokeProtected = member.user_id === user.id
+                const showResend = member.is_active && authLifecycle.canResendInvite && !ownerProtected
+                const showRevoke = member.is_active && !ownerProtected && !revokeProtected
 
                 return (
                   <TableRow key={member.user_id}>
@@ -582,26 +1626,60 @@ export default async function SettingsPage({
                       </div>
                     </TableCell>
                     <TableCell>{member.role}</TableCell>
-                    <TableCell>{member.is_active ? 'Active' : 'Inactive'}</TableCell>
+                    <TableCell>
+                      <Badge variant={member.is_active ? 'success' : 'default'}>{member.is_active ? 'Active' : 'Inactive'}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Badge variant={authLifecycle.variant}>{authLifecycle.label}</Badge>
+                        <div className="text-xs text-slate-500">{authLifecycle.detail}</div>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {ownerProtected ? (
                         <Badge variant="warning">Owner-only change</Badge>
                       ) : (
-                        <form action={updateMembershipAction} className="flex min-w-[20rem] flex-col gap-2 md:flex-row">
-                          <input type="hidden" name="target_user_id" value={member.user_id} />
-                          <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
-                            {companyRoles.map((role) => (
-                              <option key={role} value={role}>
-                                {role}
-                              </option>
-                            ))}
-                          </select>
-                          <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
-                          <Button type="submit" variant="outline">Save</Button>
-                        </form>
+                        <div className="space-y-3">
+                          <form action={updateMembershipAction} className="flex min-w-[20rem] flex-col gap-2 md:flex-row">
+                            <input type="hidden" name="target_user_id" value={member.user_id} />
+                            <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
+                              {companyRoles.map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+                            <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
+                              <option value="active">Active</option>
+                              <option value="inactive">Inactive</option>
+                            </select>
+                            <Button type="submit" variant="outline">Save</Button>
+                          </form>
+                          <div className="flex flex-wrap gap-2">
+                            {showResend ? (
+                              <form action={resendInviteAction}>
+                                <input type="hidden" name="target_user_id" value={member.user_id} />
+                                <Button type="submit" variant="outline">Resend invite</Button>
+                              </form>
+                            ) : null}
+                            {showResend ? (
+                              <form action={generateInviteLinkAction}>
+                                <input type="hidden" name="target_user_id" value={member.user_id} />
+                                <Button type="submit" variant="outline">Generate link</Button>
+                              </form>
+                            ) : null}
+                            {showRevoke ? (
+                              <form action={revokeMembershipAction}>
+                                <input type="hidden" name="target_user_id" value={member.user_id} />
+                                <Button type="submit" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800">
+                                  Revoke access
+                                </Button>
+                              </form>
+                            ) : revokeProtected ? (
+                              <Badge variant="default">Current session</Badge>
+                            ) : null}
+                          </div>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -710,7 +1788,164 @@ export default async function SettingsPage({
         </CardContent>
       </Card>
 
+      <Card className="border-slate-200/80 bg-white/90">
+        <CardHeader>
+          <CardTitle>Billing & Subscription</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-0">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Current plan</div>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-lg font-semibold text-slate-950">{subscription?.plan_key ?? 'No plan yet'}</span>
+                <Badge variant={getSubscriptionBadgeVariant(subscription?.status)}>{subscription?.status ?? 'unconfigured'}</Badge>
+              </div>
+            </div>
+            <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Renewal window</div>
+              <div className="mt-1 text-sm font-medium text-slate-950">{formatDateTime(subscription?.current_period_end ?? null)}</div>
+            </div>
+            <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Stripe customer</div>
+              <div className="mt-1 text-sm font-medium text-slate-950">
+                {billingAccount?.stripe_customer_id ? `${billingAccount.stripe_customer_id.slice(0, 16)}...` : 'Not linked'}
+              </div>
+            </div>
+            <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Seats</div>
+              <div className="mt-1 text-lg font-semibold text-slate-950">{subscription?.seats ?? 0}</div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <form action={openBillingPortalAction}>
+              <Button type="submit" variant="outline" disabled={!stripeBillingConfigured || !billingAccount}>
+                Open Stripe billing portal
+              </Button>
+            </form>
+            {!stripeBillingConfigured ? (
+              <Badge variant="warning">Add Stripe env vars before checkout or portal access.</Badge>
+            ) : null}
+            {stripeBillingConfigured && !stripeWebhookConfigured ? (
+              <Badge variant="warning">Webhook secret missing, subscription sync is incomplete.</Badge>
+            ) : null}
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-3">
+            {billingPlans.map((plan) => {
+              const isCurrent = subscription?.plan_key === plan.key
+              const canLaunchCheckout =
+                !plan.requiresContact &&
+                stripeBillingConfigured &&
+                stripeWebhookConfigured &&
+                ((plan.key === 'starter' && starterPriceConfigured) || (plan.key === 'growth' && growthPriceConfigured))
+
+              return (
+                <div key={plan.key} className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-lg font-semibold text-slate-950">{plan.name}</div>
+                      <div className="text-sm text-slate-500">{plan.monthlyPriceLabel}</div>
+                    </div>
+                    {isCurrent ? <Badge variant="success">Current</Badge> : null}
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-600">{plan.description}</p>
+                  <div className="mt-4 space-y-2 text-sm text-slate-600">
+                    {plan.highlights.map((highlight) => (
+                      <div key={highlight}>• {highlight}</div>
+                    ))}
+                  </div>
+                  {plan.requiresContact ? (
+                    <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                      Use this tier as a founder-led sales motion after the first live pilots.
+                    </div>
+                  ) : (
+                    <form action={startBillingCheckoutAction} className="mt-5">
+                      <input type="hidden" name="plan_key" value={plan.key} />
+                      <Button type="submit" className="w-full" disabled={!canLaunchCheckout || isCurrent}>
+                        {isCurrent ? 'Current plan' : plan.ctaLabel}
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            <div className="font-medium text-slate-900">Billing sync notes</div>
+            <div className="mt-2 space-y-2">
+              <p>Stripe checkout launches from this page, then the webhook at <code>/api/stripe/webhook</code> syncs the live subscription state back into Supabase.</p>
+              <p>Starter and Growth need valid recurring Stripe prices. Enterprise stays founder-led for now and should be sold manually until plan controls are fully productized.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Operational Readiness</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Site URL configured</span>
+              <Badge variant={siteUrlConfigured ? 'success' : 'warning'}>{siteUrlConfigured ? 'Ready' : 'Missing'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>SMTP invoice delivery</span>
+              <Badge variant={emailDeliveryConfigured ? 'success' : 'warning'}>{emailDeliveryConfigured ? 'Ready' : 'Manual fallback only'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Stripe billing</span>
+              <Badge variant={stripeBillingConfigured ? 'success' : 'warning'}>{stripeBillingConfigured ? 'Ready' : 'Missing secret key'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Stripe webhook sync</span>
+              <Badge variant={stripeWebhookConfigured ? 'success' : 'warning'}>{stripeWebhookConfigured ? 'Ready' : 'Missing webhook secret'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Sentry monitoring</span>
+              <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Ready' : 'Missing DSN'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Sentry release tag</span>
+              <Badge variant={sentryRelease ? 'success' : 'warning'}>{sentryRelease ?? 'Missing'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Sentry source maps</span>
+              <Badge variant={sentrySourceMapsConfigured ? 'success' : 'default'}>{sentrySourceMapsConfigured ? 'Ready' : 'Optional'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Active pending invites</span>
+              <Badge variant={invitePendingCount === 0 ? 'success' : 'warning'}>{invitePendingCount}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Driver auth links</span>
+              <Badge variant={driverRows.length === 0 || explicitDriverLinkCount === driverRows.length ? 'success' : 'warning'}>{driverLinkCoverage}</Badge>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="font-medium text-slate-900">Health endpoint</div>
+              <div className="mt-1 text-slate-600">
+                Use <a href="/api/health" target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-4">/api/health</a> for deployment checks and basic database/email readiness visibility.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Release Workflow</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-slate-600">
+            <p>1. Run `npm run type-check` and `npm test` locally before every release.</p>
+            <p>2. Run `npm run build` to confirm the production bundle and route generation are clean.</p>
+            <p>3. Run `npm run test:e2e` with `PLAYWRIGHT_EMAIL` and `PLAYWRIGHT_PASSWORD` against the target Supabase project.</p>
+            <p>4. Verify `/api/health`, invoice email delivery, Stripe checkout/webhook sync, and a driver mobile trip update in the staging or production-like environment.</p>
+            <p>5. Push schema changes via `npx supabase db push` and keep manual SQL editor use limited to one-off recovery tasks.</p>
+          </CardContent>
+        </Card>
+
         <Card className="border-slate-200/80 bg-white/90">
           <CardHeader>
             <CardTitle>App Configuration Notes</CardTitle>
@@ -718,6 +1953,40 @@ export default async function SettingsPage({
           <CardContent className="space-y-2 text-sm text-slate-600">
             <p>This MVP enforces authenticated dashboard access, company-aware data filtering, and starter role checks.</p>
             <p>Driver access now prefers an explicit auth link on the driver row. Email and full-name matching are fallback only for existing data migration.</p>
+            <p>Settings now supports team invite status, invite resends, access revocation, and manual account creation fallback when invite email delivery is not ready.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Monitoring Setup</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span><code>NEXT_PUBLIC_SENTRY_DSN</code></span>
+              <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Configured' : 'Missing'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span><code>SENTRY_ENVIRONMENT</code></span>
+              <Badge variant="default">{sentryEnvironment}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span><code>SENTRY_RELEASE</code></span>
+              <Badge variant={sentryRelease ? 'success' : 'warning'}>{sentryRelease ?? 'Missing'}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+              <span>Source map upload envs</span>
+              <Badge variant={sentrySourceMapsConfigured ? 'success' : 'default'}>{sentrySourceMapsConfigured ? 'Configured' : 'Optional'}</Badge>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="font-medium text-slate-900">Deployment checklist</div>
+              <div className="mt-2 space-y-2">
+                <p>1. Create a Sentry Next.js project and add <code>NEXT_PUBLIC_SENTRY_DSN</code> on the host.</p>
+                <p>2. Set <code>SENTRY_ENVIRONMENT</code> and a stable <code>SENTRY_RELEASE</code> for each deploy.</p>
+                <p>3. Add <code>SENTRY_ORG</code>, <code>SENTRY_PROJECT</code>, and <code>SENTRY_AUTH_TOKEN</code> if you want source maps uploaded during build.</p>
+                <p>4. Deploy, then use the monitoring test controls below to confirm server and browser event delivery.</p>
+                <p>5. Create issue alert rules in Sentry. Event ingestion alone does not notify anyone.</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card className="border-slate-200/80 bg-white/90">
@@ -731,6 +2000,126 @@ export default async function SettingsPage({
           </CardContent>
         </Card>
       </div>
+
+      <MonitoringTestPanel serverAction={sendMonitoringTestAction} enabled={monitoringConfigured} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Tenant Diagnostics</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-slate-600">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Customers</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.customers}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Orders</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.orders}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Trips</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.trips}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Invoices</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.invoices}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Payments</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.payments}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Documents</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.documents}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Drivers</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.drivers}</div>
+              </div>
+              <div className="rounded-xl border border-slate-100 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Vehicles</div>
+                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.vehicles}</div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="font-medium text-slate-900">Latest activity</div>
+              <div className="mt-3 space-y-2">
+                <div>Last order: {formatDateTime(diagnostics.recency.lastOrderCreatedAt)}</div>
+                <div>Last trip: {formatDateTime(diagnostics.recency.lastTripCreatedAt)}</div>
+                <div>Last invoice: {formatDateTime(diagnostics.recency.lastInvoiceCreatedAt)}</div>
+                <div>Last payment: {formatDateTime(diagnostics.recency.lastPaymentCreatedAt)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Data Quality Warnings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Customers missing billing email</span>
+              <Badge variant={diagnostics.quality.customersMissingEmail === 0 ? 'success' : 'warning'}>{diagnostics.quality.customersMissingEmail}</Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Active drivers without explicit auth link</span>
+              <Badge variant={diagnostics.quality.activeDriversUnlinked === 0 ? 'success' : 'warning'}>{diagnostics.quality.activeDriversUnlinked}</Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Active drivers missing email</span>
+              <Badge variant={diagnostics.quality.activeDriversMissingEmail === 0 ? 'success' : 'warning'}>{diagnostics.quality.activeDriversMissingEmail}</Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Overdue invoices</span>
+              <Badge variant={diagnostics.quality.overdueInvoices === 0 ? 'success' : 'warning'}>{diagnostics.quality.overdueInvoices}</Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Started trips without assigned driver</span>
+              <Badge variant={diagnostics.quality.startedTripsWithoutDriver === 0 ? 'success' : 'warning'}>{diagnostics.quality.startedTripsWithoutDriver}</Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+              <span>Sent invoices missing stored PDF URL</span>
+              <Badge variant={diagnostics.quality.sentInvoicesWithoutPdfUrl === 0 ? 'success' : 'warning'}>{diagnostics.quality.sentInvoicesWithoutPdfUrl}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-slate-200/80 bg-white/90">
+        <CardHeader>
+          <CardTitle>Recent Audit Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {recentAuditLogs.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Actor</TableHead>
+                  <TableHead>Entity</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentAuditLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{formatDateTime(log.created_at)}</TableCell>
+                    <TableCell>{log.actor_name ?? authUserMap.get(log.user_id ?? '')?.email ?? 'System'}</TableCell>
+                    <TableCell>{log.entity_type}</TableCell>
+                    <TableCell>{log.action}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No audit events have been recorded yet.</div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

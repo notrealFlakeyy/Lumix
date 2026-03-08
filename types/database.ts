@@ -359,6 +359,104 @@ export type Database = {
         Update: Partial<Omit<Database['public']['Tables']['payments']['Insert'], 'company_id' | 'invoice_id'>>
         Relationships: Relationship[]
       }
+      company_billing_accounts: {
+        Row: {
+          company_id: string
+          stripe_customer_id: string
+          billing_email: string | null
+          billing_name: string | null
+          stripe_default_payment_method_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          stripe_customer_id: string
+          billing_email?: string | null
+          billing_name?: string | null
+          stripe_default_payment_method_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['company_billing_accounts']['Insert'], 'company_id' | 'stripe_customer_id'>>
+        Relationships: Relationship[]
+      }
+      company_subscriptions: {
+        Row: {
+          id: string
+          company_id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          plan_key: string
+          status: string
+          stripe_price_id: string | null
+          seats: number
+          cancel_at_period_end: boolean
+          current_period_start: string | null
+          current_period_end: string | null
+          trial_ends_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          plan_key: string
+          status: string
+          stripe_price_id?: string | null
+          seats?: number
+          cancel_at_period_end?: boolean
+          current_period_start?: string | null
+          current_period_end?: string | null
+          trial_ends_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['company_subscriptions']['Insert'], 'company_id' | 'stripe_customer_id' | 'stripe_subscription_id'>>
+        Relationships: Relationship[]
+      }
+      company_app_settings: {
+        Row: {
+          company_id: string
+          order_prefix: string
+          order_next_number: number
+          invoice_prefix: string
+          invoice_next_number: number
+          default_payment_terms_days: number
+          default_vat_rate: string
+          fuel_cost_per_km: string
+          maintenance_cost_per_km: string
+          driver_cost_per_hour: string
+          waiting_cost_per_hour: string
+          default_currency: string
+          invoice_footer: string | null
+          brand_accent: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          order_prefix?: string
+          order_next_number?: number
+          invoice_prefix?: string
+          invoice_next_number?: number
+          default_payment_terms_days?: number
+          default_vat_rate?: number | string
+          fuel_cost_per_km?: number | string
+          maintenance_cost_per_km?: number | string
+          driver_cost_per_hour?: number | string
+          waiting_cost_per_hour?: number | string
+          default_currency?: string
+          invoice_footer?: string | null
+          brand_accent?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['company_app_settings']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
       documents: {
         Row: {
           id: string

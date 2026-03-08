@@ -3,6 +3,15 @@ import type { TableRow } from '@/types/database'
 import { byId, getDbClient, type DbClient } from '@/lib/db/shared'
 import { toNumber } from '@/lib/utils/numbers'
 
+export type InvoiceDetailBundle = {
+  company: TableRow<'companies'>
+  invoice: TableRow<'invoices'>
+  customer: TableRow<'customers'> | null
+  items: TableRow<'invoice_items'>[]
+  payments: TableRow<'payments'>[]
+  trip: Pick<TableRow<'trips'>, 'id' | 'public_id' | 'status' | 'start_time' | 'end_time' | 'distance_km'> | null
+}
+
 export async function listInvoices(companyId: string, client?: DbClient) {
   const supabase = await getDbClient(client)
   const [{ data: invoices }, { data: customers }, { data: payments }] = await Promise.all([
@@ -31,7 +40,8 @@ export async function listInvoices(companyId: string, client?: DbClient) {
 
 export async function getInvoiceById(companyId: string, id: string, client?: DbClient) {
   const supabase = await getDbClient(client)
-  const [{ data: invoice }, { data: customers }, { data: items }, { data: payments }, { data: trips }] = await Promise.all([
+  const [{ data: company }, { data: invoice }, { data: customers }, { data: items }, { data: payments }, { data: trips }] = await Promise.all([
+    supabase.from('companies').select('*').eq('id', companyId).maybeSingle(),
     supabase.from('invoices').select('*').eq('company_id', companyId).eq('id', id).maybeSingle(),
     supabase.from('customers').select('*').eq('company_id', companyId),
     supabase.from('invoice_items').select('*').eq('invoice_id', id).order('description'),
@@ -39,19 +49,21 @@ export async function getInvoiceById(companyId: string, id: string, client?: DbC
     supabase.from('trips').select('id, public_id, status, start_time, end_time, distance_km').eq('company_id', companyId),
   ])
 
+  const typedCompany = company as TableRow<'companies'> | null
   const typedInvoice = invoice as TableRow<'invoices'> | null
-  if (!typedInvoice) return null
+  if (!typedCompany || !typedInvoice) return null
 
   const customerMap = byId((customers ?? []) as TableRow<'customers'>[])
   const tripMap = byId((trips ?? []) as Array<TableRow<'trips'> & { id: string }>)
 
   return {
+    company: typedCompany,
     invoice: typedInvoice,
     customer: customerMap.get(typedInvoice.customer_id) ?? null,
     items: (items ?? []) as TableRow<'invoice_items'>[],
     payments: (payments ?? []) as TableRow<'payments'>[],
     trip: typedInvoice.trip_id ? tripMap.get(typedInvoice.trip_id) ?? null : null,
-  }
+  } satisfies InvoiceDetailBundle
 }
 
 export async function getInvoicePayments(invoiceId: string, client?: DbClient) {

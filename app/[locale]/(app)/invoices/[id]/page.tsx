@@ -1,4 +1,5 @@
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 import { Link } from '@/i18n/navigation'
 import { InvoiceStatusBadge } from '@/components/invoices/invoice-status-badge'
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { canManageInvoices } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
-import { updateInvoiceStatus } from '@/lib/db/mutations/invoices'
+import { sendInvoiceToCustomer, updateInvoiceStatus } from '@/lib/db/mutations/invoices'
 import { registerPayment } from '@/lib/db/mutations/payments'
 import { getInvoiceById } from '@/lib/db/queries/invoices'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -18,13 +19,24 @@ import { paymentSchema } from '@/lib/validations/payment'
 import { getOptionalString, getString } from '@/lib/utils/forms'
 import { toNumber } from '@/lib/utils/numbers'
 import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
+import { buildInvoicePdfPath } from '@/lib/utils/invoice'
+import { hasEmailDeliveryConfig } from '@/lib/env/email'
+
+function buildInvoiceDetailHref(locale: string, id: string, extras?: Record<string, string>) {
+  const params = new URLSearchParams(extras)
+  const query = params.toString()
+  return `/${locale}/invoices/${id}${query ? `?${query}` : ''}`
+}
 
 export default async function InvoiceDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>
+  searchParams: Promise<{ success?: string; error?: string }>
 }) {
   const { locale, id } = await params
+  const { success, error } = await searchParams
   const { membership } = await requireCompany(locale)
   const result = await getInvoiceById(membership.company_id, id)
   if (!result) return null
@@ -56,23 +68,67 @@ export default async function InvoiceDetailPage({
     revalidatePath(`/${locale}/invoices`)
   }
 
-  const { invoice, customer, items, payments, trip } = result
+  async function sendInvoiceAction() {
+    'use server'
+    const { user, membership } = await requireCompany(locale)
+    if (!canManageInvoices(membership.role)) {
+      redirect(buildInvoiceDetailHref(locale, id, { error: 'Insufficient permissions.' }))
+    }
+
+    try {
+      await sendInvoiceToCustomer(membership.company_id, user.id, id, locale)
+    } catch (sendError) {
+      const message = sendError instanceof Error ? sendError.message : 'Unable to send invoice email.'
+      redirect(buildInvoiceDetailHref(locale, id, { error: message }))
+    }
+
+    revalidatePath(`/${locale}/invoices/${id}`)
+    revalidatePath(`/${locale}/invoices`)
+    redirect(buildInvoiceDetailHref(locale, id, { success: 'Invoice email sent successfully.' }))
+  }
+
+  const { company, invoice, customer, items, payments, trip } = result
   const paidAmount = payments.reduce((sum, payment) => sum + toNumber(payment.amount), 0)
   const balanceDue = Math.max(0, toNumber(invoice.total) - paidAmount)
+  const pdfPath = buildInvoicePdfPath(locale, invoice.id)
+  const canEmailInvoice = canManageInvoices(membership.role) && Boolean(customer?.email) && hasEmailDeliveryConfig()
 
   return (
     <div className="space-y-6">
+      {success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">{success}</div> : null}
+      {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-950">{error}</div> : null}
+
       <PageHeader
         title={invoice.invoice_number}
-        description="Invoice details, items, payments, and export preparation."
+        description="Invoice details, PDF output, outbound delivery, and payment follow-up."
         actions={
-          <Button type="button" variant="outline" disabled>
-            PDF export placeholder
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="outline" asChild>
+              <a href={`${pdfPath}?download=1`}>Download PDF</a>
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <a href={pdfPath} target="_blank" rel="noreferrer">
+                Open printable PDF
+              </a>
+            </Button>
+          </div>
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_1fr]">
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Issuer</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div><span className="font-medium text-slate-900">Company:</span> {company.name}</div>
+            <div><span className="font-medium text-slate-900">Email:</span> {company.email ?? '-'}</div>
+            <div><span className="font-medium text-slate-900">Phone:</span> {company.phone ?? '-'}</div>
+            <div><span className="font-medium text-slate-900">Business ID:</span> {company.business_id ?? '-'}</div>
+            <div><span className="font-medium text-slate-900">VAT Number:</span> {company.vat_number ?? '-'}</div>
+          </CardContent>
+        </Card>
+
         <Card className="border-slate-200/80 bg-white/90">
           <CardHeader>
             <CardTitle>Invoice Header</CardTitle>
@@ -96,6 +152,27 @@ export default async function InvoiceDetailPage({
             <div><span className="font-medium text-slate-900">Email:</span> {customer?.email ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Phone:</span> {customer?.phone ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Billing City:</span> {customer?.billing_city ?? '-'}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Delivery</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div><span className="font-medium text-slate-900">Recipient:</span> {customer?.email ?? 'Missing customer email'}</div>
+            <div><span className="font-medium text-slate-900">PDF URL:</span> {invoice.pdf_url ? <a href={invoice.pdf_url} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-4">Stored PDF link</a> : 'Generated on demand from this page'}</div>
+            <div><span className="font-medium text-slate-900">SMTP delivery:</span> {hasEmailDeliveryConfig() ? 'Configured' : 'Not configured'}</div>
+            {!customer?.email ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-950">
+                Add a billing email on the customer record before sending this invoice.
+              </div>
+            ) : null}
+            {!hasEmailDeliveryConfig() ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-950">
+                Configure SMTP env vars before using invoice email delivery. PDF download is already available.
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -172,13 +249,18 @@ export default async function InvoiceDetailPage({
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-slate-600">
           <p>{invoice.notes ?? 'No invoice notes provided.'}</p>
-          <p>PDF generation is intentionally left as a placeholder. The detail page is structured to be printable and production PDF logic can be added later.</p>
+          <p>PDF output is now generated from the live invoice payload. Sent invoices attach the same PDF that is available from this page.</p>
         </CardContent>
       </Card>
 
       <PaymentForm invoiceId={invoice.id} action={paymentAction} />
 
       <div className="flex flex-wrap gap-3">
+        <form action={sendInvoiceAction}>
+          <Button type="submit" disabled={!canEmailInvoice}>
+            Send invoice email
+          </Button>
+        </form>
         <form action={markStatus.bind(null, 'sent')}>
           <Button type="submit" variant="outline">Mark as sent</Button>
         </form>

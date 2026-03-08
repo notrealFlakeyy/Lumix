@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs'
+
 import type { Membership } from '@/types/app'
 
 import { cookies } from 'next/headers'
@@ -14,6 +16,11 @@ export async function getCurrentMembership() {
   if (!user) {
     return { supabase, user: null, membership: null as Membership | null, memberships: [] as Membership[] }
   }
+
+  Sentry.setUser({
+    id: user.id,
+    email: user.email ?? undefined,
+  })
 
   const { data: membershipRows } = await supabase
     .from('company_users')
@@ -47,6 +54,17 @@ export async function getCurrentMembership() {
 
   const activeCompanyId = cookieStore.get(activeCompanyCookieName)?.value
   const membership = memberships.find((item) => item.company_id === activeCompanyId) ?? memberships[0] ?? null
+
+  if (membership) {
+    Sentry.setTag('company_id', membership.company_id)
+    Sentry.setTag('company_role', membership.role)
+    Sentry.setContext('company', {
+      id: membership.company.id,
+      name: membership.company.name,
+      timezone: membership.company.timezone,
+      country: membership.company.country,
+    })
+  }
 
   return { supabase, user, membership, memberships }
 }

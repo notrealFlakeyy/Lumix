@@ -1,6 +1,7 @@
 import type { DashboardStats, RecentInvoice, RecentOrder, RevenueBreakdown } from '@/types/app'
 
 import { getDbClient, type DbClient } from '@/lib/db/shared'
+import { getDashboardProfitabilityStats } from '@/lib/db/queries/reports'
 import { toNumber } from '@/lib/utils/numbers'
 
 export async function getDashboardStats(companyId: string, client?: DbClient): Promise<DashboardStats> {
@@ -9,7 +10,7 @@ export async function getDashboardStats(companyId: string, client?: DbClient): P
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10)
   const today = now.toISOString().slice(0, 10)
 
-  const [{ data: invoices }, { count: activeOrders }, { count: completedTrips }] = await Promise.all([
+  const [{ data: invoices }, { count: activeOrders }, { count: completedTrips }, profitabilityStats] = await Promise.all([
     supabase
       .from('invoices')
       .select('total, issue_date, status, due_date')
@@ -26,6 +27,7 @@ export async function getDashboardStats(companyId: string, client?: DbClient): P
       .eq('company_id', companyId)
       .in('status', ['completed', 'invoiced'])
       .gte('updated_at', `${monthStart}T00:00:00.000Z`),
+    getDashboardProfitabilityStats(companyId, supabase),
   ])
 
   const revenueThisMonth = (invoices ?? [])
@@ -36,6 +38,8 @@ export async function getDashboardStats(companyId: string, client?: DbClient): P
 
   return {
     revenueThisMonth,
+    estimatedCostThisMonth: profitabilityStats.estimatedCostThisMonth,
+    estimatedMarginThisMonth: profitabilityStats.estimatedMarginThisMonth,
     activeOrders: activeOrders ?? 0,
     completedTripsThisMonth: completedTrips ?? 0,
     overdueInvoices,

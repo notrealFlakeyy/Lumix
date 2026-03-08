@@ -4,9 +4,16 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
   expect: { timeout: 10_000 },
+  workers: 1,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
+  },
+  webServer: {
+    command: 'npm run dev',
+    url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    reuseExistingServer: true,
+    timeout: 120_000,
   },
   projects: [
     {
@@ -15,4 +22,3 @@ export default defineConfig({
     },
   ],
 })
-

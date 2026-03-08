@@ -170,6 +170,53 @@ begin
     (demo_company, invoice_1, current_date - 1, 1317.75, 'Bank transfer', 'NRL-AR-0001'),
     (demo_company, invoice_2, current_date - 2, 540.00, 'Bank transfer', 'NRL-AR-0002');
 
+  insert into public.company_app_settings (
+    company_id,
+    order_prefix,
+    order_next_number,
+    invoice_prefix,
+    invoice_next_number,
+    default_payment_terms_days,
+    default_vat_rate,
+    fuel_cost_per_km,
+    maintenance_cost_per_km,
+    driver_cost_per_hour,
+    waiting_cost_per_hour,
+    default_currency,
+    invoice_footer,
+    brand_accent
+  )
+  values (
+    demo_company,
+    'ORD',
+    6,
+    'INV',
+    4,
+    14,
+    25.50,
+    0.42,
+    0.18,
+    32.00,
+    24.00,
+    'EUR',
+    'Payment by due date. Reference number required on all bank transfers.',
+    '#0f172a'
+  )
+  on conflict (company_id) do update set
+    order_prefix = excluded.order_prefix,
+    order_next_number = excluded.order_next_number,
+    invoice_prefix = excluded.invoice_prefix,
+    invoice_next_number = excluded.invoice_next_number,
+    default_payment_terms_days = excluded.default_payment_terms_days,
+    default_vat_rate = excluded.default_vat_rate,
+    fuel_cost_per_km = excluded.fuel_cost_per_km,
+    maintenance_cost_per_km = excluded.maintenance_cost_per_km,
+    driver_cost_per_hour = excluded.driver_cost_per_hour,
+    waiting_cost_per_hour = excluded.waiting_cost_per_hour,
+    default_currency = excluded.default_currency,
+    invoice_footer = excluded.invoice_footer,
+    brand_accent = excluded.brand_accent;
+
   insert into public.documents (company_id, related_type, related_id, file_name, file_path, mime_type)
   values
     (demo_company, 'trip', trip_1, 'delivery-note-trip-1.pdf', 'demo/trips/delivery-note-trip-1.pdf', 'application/pdf')

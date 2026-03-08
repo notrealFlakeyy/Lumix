@@ -39,14 +39,14 @@ export function deriveInvoiceStatus(currentStatus: InvoiceStatus, total: number,
   return 'sent'
 }
 
-export function createTripInvoiceItems(distanceKm: number, waitingTimeMinutes: number) {
+export function createTripInvoiceItems(distanceKm: number, waitingTimeMinutes: number, vatRate = 25.5) {
   const baseRate = distanceKm > 0 ? Number((distanceKm * 1.85).toFixed(2)) : 420
   const items: InvoiceLineInput[] = [
     {
       description: 'Transport service',
       quantity: 1,
       unitPrice: baseRate,
-      vatRate: 25.5,
+      vatRate,
     },
   ]
 
@@ -55,9 +55,17 @@ export function createTripInvoiceItems(distanceKm: number, waitingTimeMinutes: n
       description: 'Waiting time',
       quantity: Number((waitingTimeMinutes / 60).toFixed(2)),
       unitPrice: 68,
-      vatRate: 25.5,
+      vatRate,
     })
   }
 
   return items
+}
+
+export function buildInvoicePdfPath(locale: string, invoiceId: string) {
+  return `/${locale}/invoices/${invoiceId}/pdf`
+}
+
+export function buildInvoicePdfFileName(invoiceNumber: string) {
+  return `${invoiceNumber.replace(/[^A-Za-z0-9_-]/g, '_')}.pdf`
 }

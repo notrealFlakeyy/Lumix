@@ -274,6 +274,57 @@ create table if not exists public.payments (
 create index if not exists idx_payments_company_id on public.payments(company_id);
 create index if not exists idx_payments_invoice_id on public.payments(invoice_id);
 
+create table if not exists public.company_billing_accounts (
+  company_id uuid primary key references public.companies(id) on delete cascade,
+  stripe_customer_id text not null unique,
+  billing_email text,
+  billing_name text,
+  stripe_default_payment_method_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_company_billing_accounts_customer_id on public.company_billing_accounts(stripe_customer_id);
+
+create table if not exists public.company_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null unique references public.companies(id) on delete cascade,
+  stripe_customer_id text not null,
+  stripe_subscription_id text not null unique,
+  plan_key text not null check (plan_key in ('starter','growth','enterprise')),
+  status text not null check (status in ('trialing','active','past_due','canceled','unpaid','incomplete','incomplete_expired','paused')),
+  stripe_price_id text,
+  seats integer not null default 1 check (seats > 0),
+  cancel_at_period_end boolean not null default false,
+  current_period_start timestamptz,
+  current_period_end timestamptz,
+  trial_ends_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_company_subscriptions_company_id on public.company_subscriptions(company_id);
+create index if not exists idx_company_subscriptions_customer_id on public.company_subscriptions(stripe_customer_id);
+
+create table if not exists public.company_app_settings (
+  company_id uuid primary key references public.companies(id) on delete cascade,
+  order_prefix text not null default 'ORD',
+  order_next_number integer not null default 1 check (order_next_number > 0),
+  invoice_prefix text not null default 'INV',
+  invoice_next_number integer not null default 1 check (invoice_next_number > 0),
+  default_payment_terms_days integer not null default 14 check (default_payment_terms_days >= 0),
+  default_vat_rate numeric(5,2) not null default 25.50 check (default_vat_rate >= 0),
+  fuel_cost_per_km numeric(8,2) not null default 0.42,
+  maintenance_cost_per_km numeric(8,2) not null default 0.18,
+  driver_cost_per_hour numeric(8,2) not null default 32.00,
+  waiting_cost_per_hour numeric(8,2) not null default 24.00,
+  default_currency text not null default 'EUR',
+  invoice_footer text,
+  brand_accent text not null default '#0f172a',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.documents (
   id uuid primary key default gen_random_uuid(),
   company_id uuid not null references public.companies(id) on delete cascade,
@@ -352,6 +403,21 @@ create trigger set_invoices_updated_at
 before update on public.invoices
 for each row execute function public.set_updated_at();
 
+drop trigger if exists set_company_billing_accounts_updated_at on public.company_billing_accounts;
+create trigger set_company_billing_accounts_updated_at
+before update on public.company_billing_accounts
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_company_subscriptions_updated_at on public.company_subscriptions;
+create trigger set_company_subscriptions_updated_at
+before update on public.company_subscriptions
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_company_app_settings_updated_at on public.company_app_settings;
+create trigger set_company_app_settings_updated_at
+before update on public.company_app_settings
+for each row execute function public.set_updated_at();
+
 create or replace function public.is_company_member(target_company_id uuid)
 returns boolean
 language sql
@@ -417,6 +483,9 @@ alter table public.trips enable row level security;
 alter table public.invoices enable row level security;
 alter table public.invoice_items enable row level security;
 alter table public.payments enable row level security;
+alter table public.company_billing_accounts enable row level security;
+alter table public.company_subscriptions enable row level security;
+alter table public.company_app_settings enable row level security;
 alter table public.documents enable row level security;
 alter table public.audit_logs enable row level security;
 
@@ -575,6 +644,31 @@ on public.payments
 for all
 using (public.has_company_role(company_id, array['owner','admin','accountant']))
 with check (public.has_company_role(company_id, array['owner','admin','accountant']));
+
+drop policy if exists company_billing_accounts_admin_select on public.company_billing_accounts;
+create policy company_billing_accounts_admin_select
+on public.company_billing_accounts
+for select
+using (public.has_company_role(company_id, array['owner','admin']));
+
+drop policy if exists company_subscriptions_admin_select on public.company_subscriptions;
+create policy company_subscriptions_admin_select
+on public.company_subscriptions
+for select
+using (public.has_company_role(company_id, array['owner','admin']));
+
+drop policy if exists company_app_settings_select on public.company_app_settings;
+create policy company_app_settings_select
+on public.company_app_settings
+for select
+using (public.has_company_role(company_id, array['owner','admin','dispatcher','accountant']));
+
+drop policy if exists company_app_settings_manage on public.company_app_settings;
+create policy company_app_settings_manage
+on public.company_app_settings
+for all
+using (public.has_company_role(company_id, array['owner','admin','dispatcher','accountant']))
+with check (public.has_company_role(company_id, array['owner','admin','dispatcher','accountant']));
 
 drop policy if exists documents_member_select on public.documents;
 create policy documents_member_select
@@ -1158,6 +1252,41 @@ begin
   values
     (demo_company, invoice_1, current_date - 1, 1317.75, 'Bank transfer', 'NRL-AR-0001'),
     (demo_company, invoice_2, current_date - 2, 540.00, 'Bank transfer', 'NRL-AR-0002');
+
+  insert into public.company_app_settings (
+    company_id,
+    order_prefix,
+    order_next_number,
+    invoice_prefix,
+    invoice_next_number,
+    default_payment_terms_days,
+    default_vat_rate,
+    default_currency,
+    invoice_footer,
+    brand_accent
+  )
+  values (
+    demo_company,
+    'ORD',
+    6,
+    'INV',
+    4,
+    14,
+    25.50,
+    'EUR',
+    'Payment by due date. Reference number required on all bank transfers.',
+    '#0f172a'
+  )
+  on conflict (company_id) do update set
+    order_prefix = excluded.order_prefix,
+    order_next_number = excluded.order_next_number,
+    invoice_prefix = excluded.invoice_prefix,
+    invoice_next_number = excluded.invoice_next_number,
+    default_payment_terms_days = excluded.default_payment_terms_days,
+    default_vat_rate = excluded.default_vat_rate,
+    default_currency = excluded.default_currency,
+    invoice_footer = excluded.invoice_footer,
+    brand_accent = excluded.brand_accent;
 
   insert into public.documents (company_id, related_type, related_id, file_name, file_path, mime_type)
   values
