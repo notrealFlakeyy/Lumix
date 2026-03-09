@@ -1,26 +1,40 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+import { DocumentList } from '@/components/documents/document-list'
 import { Link } from '@/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
 import { TripStatusBadge } from '@/components/trips/trip-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { canManageInvoices, canManageTripExecution } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createInvoiceFromTrip } from '@/lib/db/mutations/invoices'
 import { completeTrip, startTrip } from '@/lib/db/mutations/trips'
+import { listTripDocuments } from '@/lib/db/queries/documents'
 import { getTripById } from '@/lib/db/queries/trips'
+import { getSignedDocumentUrl, transportDocumentsBucket, uploadTripDocument } from '@/lib/documents/storage'
 import { formatDateTime } from '@/lib/utils/dates'
 import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 import { toDisplayNumber, toNumber } from '@/lib/utils/numbers'
 
+function buildTripDetailHref(locale: string, id: string, extras?: Record<string, string>) {
+  const params = new URLSearchParams(extras)
+  const query = params.toString()
+  return `/${locale}/trips/${id}${query ? `?${query}` : ''}`
+}
+
 export default async function TripDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>
+  searchParams: Promise<{ success?: string; error?: string }>
 }) {
   const { locale, id } = await params
+  const { success, error } = await searchParams
   const { membership } = await requireCompany(locale)
   const result = await getTripById(membership.company_id, id)
   if (!result) return null
@@ -54,9 +68,48 @@ export default async function TripDetailPage({
   }
 
   const { trip, customer, vehicle, driver, order, invoice } = result
+  const tripDocuments = await listTripDocuments(membership.company_id, trip.id)
+  const documentFeed = await Promise.all(
+    tripDocuments.map(async (document) => ({
+      ...document,
+      access_url: await getSignedDocumentUrl(document.file_path),
+    })),
+  )
+
+  async function uploadAction(formData: FormData) {
+    'use server'
+
+    const { user, membership } = await requireCompany(locale)
+    if (!canManageTripExecution(membership.role)) {
+      redirect(buildTripDetailHref(locale, id, { error: 'Insufficient permissions.' }))
+    }
+
+    const file = formData.get('file')
+    if (!(file instanceof File)) {
+      redirect(buildTripDetailHref(locale, id, { error: 'Choose a document before uploading.' }))
+    }
+
+    try {
+      await uploadTripDocument({
+        companyId: membership.company_id,
+        tripId: trip.id,
+        userId: user.id,
+        file,
+      })
+    } catch (uploadError) {
+      redirect(buildTripDetailHref(locale, id, { error: uploadError instanceof Error ? uploadError.message : 'Unable to upload document.' }))
+    }
+
+    revalidatePath(`/${locale}/trips/${id}`)
+    revalidatePath(`/${locale}/driver/documents`)
+    redirect(buildTripDetailHref(locale, id, { success: 'Trip document uploaded successfully.' }))
+  }
 
   return (
     <div className="space-y-6">
+      {success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">{success}</div> : null}
+      {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-950">{error}</div> : null}
+
       <PageHeader
         title={`Trip ${getTripDisplayId(trip)}`}
         description="Trip execution details, odometer values, notes, and linked commercial documents."
@@ -115,11 +168,20 @@ export default async function TripDetailPage({
 
       <Card className="border-slate-200/80 bg-white/90">
         <CardHeader>
-          <CardTitle>Document Upload Preparation</CardTitle>
+          <CardTitle>Trip Documents</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-slate-600">
-          <p>Supabase Storage document metadata is ready via the `documents` table.</p>
-          <p>Direct upload UI is intentionally left as a placeholder until storage bucket rules and signed upload flow are finalized.</p>
+        <CardContent className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Upload proof of delivery, receipts, or dispatch attachments for this trip. Files use signed URLs from the `{transportDocumentsBucket}` bucket when storage is configured.
+          </div>
+          <form action={uploadAction} className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+            <div className="space-y-2">
+              <Label htmlFor="trip_document_file">Choose file</Label>
+              <Input id="trip_document_file" name="file" type="file" accept="image/*,.pdf" />
+            </div>
+            <Button type="submit" variant="outline">Upload document</Button>
+          </form>
+          <DocumentList documents={documentFeed} emptyState="No trip documents uploaded yet. Use this panel to keep PODs, receipts, and dispatch attachments attached to the live trip record." />
         </CardContent>
       </Card>
 

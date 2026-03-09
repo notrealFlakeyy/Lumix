@@ -1,6 +1,6 @@
 import 'server-only'
 
-import PDFDocument from 'pdfkit'
+import PDFDocument from 'pdfkit/js/pdfkit.standalone'
 
 import type { InvoiceDetailBundle } from '@/lib/db/queries/invoices'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -36,7 +36,7 @@ export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
     })
 
     const chunks: Buffer[] = []
-    doc.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
+    doc.on('data', (chunk: Buffer | Uint8Array | string) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
 

@@ -20,6 +20,7 @@ import { canManageSettings } from '@/lib/auth/permissions'
 import { getBillingOverview } from '@/lib/db/queries/billing'
 import { defaultCompanyAppSettings, getCompanyAppSettings } from '@/lib/db/queries/company-settings'
 import { createCustomer, updateCustomer } from '@/lib/db/mutations/customers'
+import { mergeCustomerDuplicate, mergeDriverDuplicate, mergeVehicleDuplicate } from '@/lib/db/mutations/data-hygiene'
 import { createDriver, updateDriver } from '@/lib/db/mutations/drivers'
 import { createVehicle, updateVehicle } from '@/lib/db/mutations/vehicles'
 import { requireCompany } from '@/lib/auth/require-company'
@@ -296,6 +297,17 @@ export default async function SettingsPage({
   const sentryRelease = monitoringEnv.SENTRY_RELEASE ?? null
   const sentryEnvironment = monitoringEnv.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development'
   const driverLinkCoverage = driverRows.length > 0 ? `${explicitDriverLinkCount}/${driverRows.length}` : '0/0'
+  const entityPathMap = {
+    customer: 'customers',
+    vehicle: 'vehicles',
+    driver: 'drivers',
+  } as const
+
+  const duplicateMergeActionMap = {
+    customers: mergeCustomerDuplicateAction,
+    vehicles: mergeVehicleDuplicateAction,
+    drivers: mergeDriverDuplicateAction,
+  } as const
 
   async function updateCompanyAction(formData: FormData) {
     'use server'
@@ -734,6 +746,103 @@ export default async function SettingsPage({
     redirect(buildSettingsHref(locale, { success: authUserId ? 'Driver login linked.' : 'Driver login link cleared.' }))
   }
 
+  async function autoLinkDriversAction() {
+    'use server'
+
+    const { membership, user } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    const admin = createSupabaseAdminClient()
+    const [membershipResponse, profileResponse, driverResponse] = await Promise.all([
+      admin
+        .from('company_users')
+        .select('user_id, role, is_active')
+        .eq('company_id', membership.company_id)
+        .eq('role', 'driver')
+        .eq('is_active', true),
+      admin.from('profiles').select('id, full_name'),
+      admin.from('drivers').select('*').eq('company_id', membership.company_id).eq('is_active', true).order('full_name'),
+    ])
+
+    const driverMemberships = (membershipResponse.data ?? []) as Array<Pick<DbTableRow<'company_users'>, 'user_id' | 'role' | 'is_active'>>
+    const profiles = new Map((profileResponse.data ?? []).map((profile) => [profile.id, profile.full_name?.trim().toLowerCase() ?? null]))
+    const authUserMap = await getAuthUserMap(driverMemberships.map((member) => member.user_id))
+    const drivers = (driverResponse.data ?? []) as DbTableRow<'drivers'>[]
+    const linkedUserIds = new Set(drivers.map((driver) => driver.auth_user_id).filter(Boolean))
+    let linked = 0
+    let ambiguous = 0
+    let skipped = 0
+
+    for (const driver of drivers) {
+      if (driver.auth_user_id) {
+        continue
+      }
+
+      const emailMatches = driver.email
+        ? driverMemberships.filter((member) => {
+            if (linkedUserIds.has(member.user_id)) return false
+            const authUser = authUserMap.get(member.user_id)
+            return normalizeEmail(authUser?.email) === normalizeEmail(driver.email)
+          })
+        : []
+
+      const nameMatches =
+        emailMatches.length === 0 && driver.full_name
+          ? driverMemberships.filter((member) => {
+              if (linkedUserIds.has(member.user_id)) return false
+              return profiles.get(member.user_id) === normalizeText(driver.full_name)
+            })
+          : []
+
+      const candidate = emailMatches.length === 1 ? emailMatches[0] : emailMatches.length === 0 && nameMatches.length === 1 ? nameMatches[0] : null
+
+      if (candidate) {
+        const { data: updatedDriver, error: updateError } = await admin
+          .from('drivers')
+          .update({ auth_user_id: candidate.user_id })
+          .eq('company_id', membership.company_id)
+          .eq('id', driver.id)
+          .select('*')
+          .single()
+
+        if (updateError || !updatedDriver) {
+          redirect(buildSettingsHref(locale, { error: updateError?.message ?? `Auto-link failed for ${driver.full_name}.` }))
+        }
+
+        linkedUserIds.add(candidate.user_id)
+        linked += 1
+
+        await insertAuditLog(admin, {
+          company_id: membership.company_id,
+          user_id: user.id,
+          entity_type: 'driver',
+          entity_id: driver.id,
+          action: 'auto_link_auth_user',
+          old_values: driver,
+          new_values: updatedDriver,
+        })
+
+        continue
+      }
+
+      if (emailMatches.length > 1 || nameMatches.length > 1) {
+        ambiguous += 1
+      } else {
+        skipped += 1
+      }
+    }
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/drivers`)
+    redirect(
+      buildSettingsHref(locale, {
+        success: `Driver auto-link completed. ${linked} linked, ${ambiguous} ambiguous, ${skipped} unchanged.`,
+      }),
+    )
+  }
+
   async function resendInviteAction(formData: FormData) {
     'use server'
 
@@ -972,30 +1081,6 @@ export default async function SettingsPage({
     redirect(buildSettingsHref(locale))
   }
 
-  async function sendMonitoringTestAction() {
-    'use server'
-
-    const { membership, user } = await requireCompany(locale)
-    if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
-    }
-
-    if (!hasSentryConfig()) {
-      redirect(buildSettingsHref(locale, { error: 'NEXT_PUBLIC_SENTRY_DSN is not configured.' }))
-    }
-
-    Sentry.withScope((scope) => {
-      scope.setTag('manual_test', 'server')
-      scope.setTag('company_id', membership.company_id)
-      scope.setUser({ id: user.id, email: user.email ?? undefined })
-      Sentry.captureException(new Error('Manual server-side monitoring test from Settings'))
-    })
-
-    await Sentry.flush(2000)
-
-    redirect(buildSettingsHref(locale, { success: 'Server monitoring test event sent.' }))
-  }
-
   async function startBillingCheckoutAction(formData: FormData) {
     'use server'
 
@@ -1019,8 +1104,10 @@ export default async function SettingsPage({
       redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
     }
 
+    let checkoutUrl: string
+
     try {
-      const checkoutUrl = await createBillingCheckoutSession({
+      checkoutUrl = await createBillingCheckoutSession({
         company: companyRecord as DbTableRow<'companies'>,
         userEmail: user.email ?? null,
         locale,
@@ -1035,11 +1122,11 @@ export default async function SettingsPage({
         action: 'start_billing_checkout',
         new_values: { plan_key: planKey },
       })
-
-      redirect(checkoutUrl)
     } catch (error) {
       redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe checkout could not be created.' }))
     }
+
+    redirect(checkoutUrl)
   }
 
   async function openBillingPortalAction() {
@@ -1060,8 +1147,10 @@ export default async function SettingsPage({
       redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
     }
 
+    let portalUrl: string
+
     try {
-      const portalUrl = await createBillingPortalSession({
+      portalUrl = await createBillingPortalSession({
         company: companyRecord as DbTableRow<'companies'>,
         locale,
       })
@@ -1073,11 +1162,11 @@ export default async function SettingsPage({
         entity_id: null,
         action: 'open_billing_portal',
       })
-
-      redirect(portalUrl)
     } catch (error) {
       redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe billing portal could not be opened.' }))
     }
+
+    redirect(portalUrl)
   }
 
   async function updateCompanyAppSettingsAction(formData: FormData) {
@@ -1321,6 +1410,88 @@ export default async function SettingsPage({
     revalidatePath(`/${locale}/drivers`)
     revalidatePath(`/${locale}/settings`)
     redirect(buildSettingsHref(locale, { success: `Driver import completed. ${created} created, ${updated} updated.` }))
+  }
+
+  async function mergeCustomerDuplicateAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    try {
+      await mergeCustomerDuplicate(
+        membership.company_id,
+        user.id,
+        getString(formData, 'target_id'),
+        getString(formData, 'source_id'),
+        supabase,
+      )
+    } catch (error) {
+      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Customer merge failed.' }))
+    }
+
+    revalidatePath(`/${locale}/customers`)
+    revalidatePath(`/${locale}/orders`)
+    revalidatePath(`/${locale}/trips`)
+    revalidatePath(`/${locale}/invoices`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: 'Customer duplicate merged.' }))
+  }
+
+  async function mergeVehicleDuplicateAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    try {
+      await mergeVehicleDuplicate(
+        membership.company_id,
+        user.id,
+        getString(formData, 'target_id'),
+        getString(formData, 'source_id'),
+        supabase,
+      )
+    } catch (error) {
+      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Vehicle merge failed.' }))
+    }
+
+    revalidatePath(`/${locale}/vehicles`)
+    revalidatePath(`/${locale}/orders`)
+    revalidatePath(`/${locale}/trips`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: 'Vehicle duplicate merged.' }))
+  }
+
+  async function mergeDriverDuplicateAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+    }
+
+    try {
+      await mergeDriverDuplicate(
+        membership.company_id,
+        user.id,
+        getString(formData, 'target_id'),
+        getString(formData, 'source_id'),
+        supabase,
+      )
+    } catch (error) {
+      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Driver merge failed.' }))
+    }
+
+    revalidatePath(`/${locale}/drivers`)
+    revalidatePath(`/${locale}/orders`)
+    revalidatePath(`/${locale}/trips`)
+    revalidatePath(`/${locale}/settings`)
+    redirect(buildSettingsHref(locale, { success: 'Driver duplicate merged.' }))
   }
 
   return (
@@ -1700,6 +1871,16 @@ export default async function SettingsPage({
             <code> drivers.auth_user_id </code>
             link for mobile access and driver-scoped RLS.
           </p>
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <span>
+              Use auto-link to match unlinked active drivers to active company users with the <code>driver</code> role by exact email first, then unique full-name fallback.
+            </span>
+            <form action={autoLinkDriversAction}>
+              <Button type="submit" variant="outline" disabled={driverMemberOptions.length === 0}>
+                Auto-link drivers
+              </Button>
+            </form>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -2001,7 +2182,7 @@ export default async function SettingsPage({
         </Card>
       </div>
 
-      <MonitoringTestPanel serverAction={sendMonitoringTestAction} enabled={monitoringConfigured} />
+      <MonitoringTestPanel enabled={monitoringConfigured} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="border-slate-200/80 bg-white/90">
@@ -2085,6 +2266,118 @@ export default async function SettingsPage({
               <span>Sent invoices missing stored PDF URL</span>
               <Badge variant={diagnostics.quality.sentInvoicesWithoutPdfUrl === 0 ? 'success' : 'warning'}>{diagnostics.quality.sentInvoicesWithoutPdfUrl}</Badge>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Duplicate Review</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 text-sm text-slate-600">
+            {([
+              { title: 'Customers', rows: diagnostics.duplicates.customers, path: 'customers' },
+              { title: 'Vehicles', rows: diagnostics.duplicates.vehicles, path: 'vehicles' },
+              { title: 'Drivers', rows: diagnostics.duplicates.drivers, path: 'drivers' },
+            ] as const).map((section) => (
+              <div key={section.title} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-medium text-slate-900">{section.title}</div>
+                  <Badge variant={section.rows.length === 0 ? 'success' : 'warning'}>{section.rows.length === 0 ? 'Clear' : `${section.rows.length} review groups`}</Badge>
+                </div>
+                {section.rows.length > 0 ? (
+                  <div className="space-y-3">
+                    {section.rows.map((group, index) => {
+                      const canonical = group.entries[0]
+                      const mergeAction = duplicateMergeActionMap[section.path]
+
+                      return (
+                        <div key={`${section.title}-${group.reason}-${group.key}-${index}`} className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="font-medium text-slate-900">{group.reason}</div>
+                            <div className="text-xs text-slate-500">{group.key}</div>
+                          </div>
+                          <Badge variant="warning">{group.entries.length} records</Badge>
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          {group.entries.map((entry, entryIndex) => (
+                            <div key={entry.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
+                              <div className="min-w-0">
+                                <div className="truncate font-medium text-slate-900">{entry.label}</div>
+                                {entry.secondaryLabel ? <div className="truncate text-xs text-slate-500">{entry.secondaryLabel}</div> : null}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {entryIndex === 0 ? (
+                                  <Badge variant="success">Keep this record</Badge>
+                                ) : (
+                                  <form action={mergeAction}>
+                                    <input type="hidden" name="target_id" value={canonical.id} />
+                                    <input type="hidden" name="source_id" value={entry.id} />
+                                    <Button type="submit" variant="outline" size="sm">
+                                      Merge into keep
+                                    </Button>
+                                  </form>
+                                )}
+                                <Button asChild variant="outline" size="sm">
+                                  <Link href={`/${locale}/${section.path}/${entry.id}/edit`}>Open record</Link>
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-slate-500">No likely duplicate groups detected for this section.</div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Cleanup Queue</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              Prioritize these records before go-live so onboarding, driver access, and invoice delivery do not degrade into manual cleanup later.
+            </div>
+            {diagnostics.cleanupQueue.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Entity</TableHead>
+                    <TableHead>Record</TableHead>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {diagnostics.cleanupQueue.map((item) => (
+                    <TableRow key={`${item.entityType}-${item.id}-${item.issue}`}>
+                      <TableCell className="capitalize">{item.entityType}</TableCell>
+                      <TableCell>
+                        <div className="font-medium text-slate-900">{item.label}</div>
+                        {item.detail ? <div className="text-xs text-slate-500">{item.detail}</div> : null}
+                      </TableCell>
+                      <TableCell>{item.issue}</TableCell>
+                      <TableCell>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/${locale}/${entityPathMap[item.entityType]}/${item.id}/edit`}>Fix record</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-slate-500">No cleanup items are currently queued for the core customer, vehicle, and driver datasets.</div>
+            )}
           </CardContent>
         </Card>
       </div>

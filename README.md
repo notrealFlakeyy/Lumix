@@ -21,6 +21,7 @@ The MVP is built for small transportation and logistics companies that need:
 - Settings
 - Document upload foundation
 - Mobile driver workflow
+- PWA/installation foundation for the driver workflow
 - Multi-company switching
 - In-app team invites, access revocation, and driver login linking
 - Manual invite-link generation when Auth email delivery is not configured
@@ -28,6 +29,7 @@ The MVP is built for small transportation and logistics companies that need:
 - Company configuration for numbering, VAT defaults, payment terms, and branding hints
 - Estimated profitability reporting by customer, vehicle, driver, and trip using editable cost assumptions
 - CSV import preview, downloadable templates, and import/export for customers, vehicles, drivers, and invoice exports
+- Duplicate review, in-app merge remediation, and cleanup queue for customer, vehicle, and driver master data
 - Health endpoint, audit visibility, and release-readiness checks in Settings
 
 # Tech Stack
@@ -176,6 +178,7 @@ Primary entry points:
 - Driver mobile home: `http://localhost:3000/fi/driver`
 - Driver mobile trips: `http://localhost:3000/fi/driver/trips`
 - Driver mobile documents: `http://localhost:3000/fi/driver/documents`
+- Web manifest: `http://localhost:3000/manifest.webmanifest`
 - CSV export endpoints: `http://localhost:3000/api/exports/customers`, `http://localhost:3000/api/exports/vehicles`, `http://localhost:3000/api/exports/drivers`, `http://localhost:3000/api/exports/invoices`
 - CSV template endpoints: `http://localhost:3000/api/templates/customers`, `http://localhost:3000/api/templates/vehicles`, `http://localhost:3000/api/templates/drivers`
 
@@ -193,8 +196,12 @@ Operational visibility now includes:
 - tenant diagnostics in Settings for data quality, latest activity, and company-level support triage
 - Sentry monitoring readiness and manual server/client test triggers in Settings
 - Stripe billing readiness and current subscription state in Settings
+- driver install prompt and web-manifest foundation for mobile home-screen installation
 - In-app CSV onboarding tools and company defaults in Settings
 - CSV file preview and duplicate/update signals before customer, vehicle, and driver imports are committed
+- Duplicate review groups and a cleanup queue in Settings with direct links to fix problematic master data
+- In-app duplicate merge actions in Settings for customer, vehicle, and driver records, with dependency reassignment before the duplicate is removed
+- Bulk driver auth auto-linking in Settings using exact email match first and unique full-name fallback for active driver-role users
 - Estimated profitability reporting in Reports and monthly margin visibility on the dashboard
 
 Stripe billing setup:

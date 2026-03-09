@@ -149,6 +149,7 @@ export async function createBillingCheckoutSession({
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: billingAccount.stripe_customer_id,
+    payment_method_types: ['card', 'link'],
     success_url: `${returnUrl}?success=${encodeURIComponent(`${planKey[0].toUpperCase()}${planKey.slice(1)} checkout started.`)}`,
     cancel_url: `${returnUrl}?error=${encodeURIComponent('Stripe checkout was cancelled.')}`,
     line_items: [{ price: priceId, quantity: 1 }],

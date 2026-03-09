@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation'
 import { ArrowRight, CalendarDays } from 'lucide-react'
 
+import { DriverInstallPrompt } from '@/components/driver/install-prompt'
 import { DriverStatCard } from '@/components/driver/driver-stat-card'
 import { DriverTripCard } from '@/components/driver/driver-trip-card'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +35,8 @@ export default async function DriverHomePage({
 
   return (
     <div className="space-y-4">
+      {activeDriver ? <DriverInstallPrompt /> : null}
+
       <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-3">
