@@ -129,11 +129,13 @@ export async function createBillingCheckoutSession({
   userEmail,
   locale,
   planKey,
+  returnPath,
 }: {
   company: TableRow<'companies'>
   userEmail?: string | null
   locale: string
   planKey: Exclude<BillingPlanKey, 'enterprise'>
+  returnPath?: string
 }) {
   const stripe = createStripeClient()
   const billingAccount = await ensureStripeCustomer({ company, fallbackEmail: userEmail })
@@ -144,7 +146,7 @@ export async function createBillingCheckoutSession({
   }
 
   const baseUrl = getAppBaseUrl()
-  const returnUrl = `${baseUrl}/${locale}/settings`
+  const returnUrl = returnPath ? `${baseUrl}${returnPath.startsWith('/') ? returnPath : `/${returnPath}`}` : `${baseUrl}/${locale}/settings`
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
@@ -181,9 +183,11 @@ export async function createBillingCheckoutSession({
 export async function createBillingPortalSession({
   company,
   locale,
+  returnPath,
 }: {
   company: TableRow<'companies'>
   locale: string
+  returnPath?: string
 }) {
   const stripe = createStripeClient()
   const billingAccount = await findCompanyBillingAccount(company.id)
@@ -194,7 +198,9 @@ export async function createBillingPortalSession({
 
   const session = await stripe.billingPortal.sessions.create({
     customer: billingAccount.stripe_customer_id,
-    return_url: `${getAppBaseUrl()}/${locale}/settings`,
+    return_url: returnPath
+      ? `${getAppBaseUrl()}${returnPath.startsWith('/') ? returnPath : `/${returnPath}`}`
+      : `${getAppBaseUrl()}/${locale}/settings`,
   })
 
   return session.url
