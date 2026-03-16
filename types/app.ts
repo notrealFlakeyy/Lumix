@@ -54,6 +54,7 @@ export type DashboardStats = {
   activeOrders: number
   completedTripsThisMonth: number
   overdueInvoices: number
+  fleetUtilization: number
 }
 
 export type RevenueBreakdown = {

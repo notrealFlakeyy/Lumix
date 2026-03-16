@@ -11,6 +11,7 @@ export async function getDashboardStats(companyId: string, client?: DbClient, br
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10)
   const today = now.toISOString().slice(0, 10)
+  const sevenDaysAgo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7)).toISOString()
 
   let invoicesQuery = supabase
     .from('invoices')
@@ -28,25 +29,44 @@ export async function getDashboardStats(companyId: string, client?: DbClient, br
     .eq('company_id', companyId)
     .in('status', ['completed', 'invoiced'])
     .gte('updated_at', `${monthStart}T00:00:00.000Z`)
+  let activeVehiclesQuery = supabase
+    .from('vehicles')
+    .select('id', { count: 'exact' })
+    .eq('company_id', companyId)
+    .eq('is_active', true)
+  let recentTripsQuery = supabase
+    .from('trips')
+    .select('vehicle_id')
+    .eq('company_id', companyId)
+    .gte('start_time', sevenDaysAgo)
+    .not('vehicle_id', 'is', null)
 
   if (branchScope) {
     invoicesQuery = invoicesQuery.in('branch_id', branchScope)
     ordersQuery = ordersQuery.in('branch_id', branchScope)
     tripsQuery = tripsQuery.in('branch_id', branchScope)
+    activeVehiclesQuery = activeVehiclesQuery.in('branch_id', branchScope)
+    recentTripsQuery = recentTripsQuery.in('branch_id', branchScope)
   }
 
-  const [{ data: invoices }, { count: activeOrders }, { count: completedTrips }, profitabilityStats] = await Promise.all([
-    invoicesQuery,
-    ordersQuery,
-    tripsQuery,
-    getDashboardProfitabilityStats(companyId, supabase, branchScope),
-  ])
+  const [{ data: invoices }, { count: activeOrders }, { count: completedTrips }, profitabilityStats, { count: activeVehicleCount }, { data: recentTrips }] =
+    await Promise.all([
+      invoicesQuery,
+      ordersQuery,
+      tripsQuery,
+      getDashboardProfitabilityStats(companyId, supabase, branchScope),
+      activeVehiclesQuery,
+      recentTripsQuery,
+    ])
 
   const revenueThisMonth = (invoices ?? [])
     .filter((invoice) => invoice.issue_date >= monthStart)
     .reduce((sum, invoice) => sum + toNumber(invoice.total), 0)
 
   const overdueInvoices = (invoices ?? []).filter((invoice) => invoice.due_date < today && invoice.status !== 'paid').length
+
+  const utilizedVehicleIds = new Set((recentTrips ?? []).map((t) => t.vehicle_id).filter(Boolean))
+  const fleetUtilization = (activeVehicleCount ?? 0) > 0 ? (utilizedVehicleIds.size / (activeVehicleCount ?? 1)) * 100 : 0
 
   return {
     revenueThisMonth,
@@ -55,6 +75,7 @@ export async function getDashboardStats(companyId: string, client?: DbClient, br
     activeOrders: activeOrders ?? 0,
     completedTripsThisMonth: completedTrips ?? 0,
     overdueInvoices,
+    fleetUtilization,
   }
 }
 

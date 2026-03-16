@@ -32,16 +32,18 @@ export function CustomerTable({
       <TableBody>
         {customers.map((customer) => (
           <TableRow key={customer.id}>
-            <TableCell className="font-medium">
-              <Link href={`/customers/${customer.id}`} className="text-slate-950 no-underline hover:text-sky-700">
+            <TableCell className="max-w-[180px] font-medium">
+              <Link href={`/customers/${customer.id}`} className="block truncate text-slate-950 no-underline hover:text-sky-700">
                 {customer.name}
               </Link>
             </TableCell>
-            <TableCell>{customer.branch_name ?? '-'}</TableCell>
-            <TableCell>{customer.business_id ?? '-'}</TableCell>
-            <TableCell>{customer.email ?? '-'}</TableCell>
-            <TableCell>{customer.phone ?? '-'}</TableCell>
-            <TableCell>{customer.billing_city ?? '-'}</TableCell>
+            <TableCell>{customer.branch_name ?? '—'}</TableCell>
+            <TableCell>{customer.business_id ?? '—'}</TableCell>
+            <TableCell className="max-w-[180px]">
+              <span className="block truncate">{customer.email ?? '—'}</span>
+            </TableCell>
+            <TableCell>{customer.phone ?? '—'}</TableCell>
+            <TableCell>{customer.billing_city ?? '—'}</TableCell>
             <TableCell>{formatDate(customer.created_at)}</TableCell>
           </TableRow>
         ))}

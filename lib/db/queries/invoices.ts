@@ -14,19 +14,47 @@ export type InvoiceDetailBundle = {
   trip: Pick<TableRow<'trips'>, 'id' | 'public_id' | 'status' | 'start_time' | 'end_time' | 'distance_km'> | null
 }
 
-export async function listInvoices(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
+export async function listInvoices(
+  companyId: string,
+  client?: DbClient,
+  branchIds?: readonly string[] | null,
+  page = 1,
+  pageSize = 50,
+  search?: string,
+  status?: string,
+) {
   const supabase = await getDbClient(client)
   const branchScope = normalizeBranchScope(branchIds)
-  let invoicesQuery = supabase.from('invoices').select('*').eq('company_id', companyId).order('created_at', { ascending: false })
+  const offset = (page - 1) * pageSize
+  let invoicesQuery = supabase
+    .from('invoices')
+    .select('*', { count: 'exact' })
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1)
   if (branchScope) {
     invoicesQuery = invoicesQuery.in('branch_id', branchScope)
   }
+  if (search) {
+    invoicesQuery = invoicesQuery.ilike('invoice_number', `%${search}%`)
+  }
+  if (status) {
+    invoicesQuery = invoicesQuery.eq('status', status)
+  }
 
-  const [{ data: invoices }, { data: customers }, { data: payments }, { data: branches }] = await Promise.all([
-    invoicesQuery,
-    supabase.from('customers').select('id, name').eq('company_id', companyId),
-    supabase.from('payments').select('invoice_id, amount').eq('company_id', companyId),
-    supabase.from('branches').select('id, name').eq('company_id', companyId),
+  const { data: invoices, count } = await invoicesQuery
+
+  const rawInvoices = (invoices ?? []) as TableRow<'invoices'>[]
+  if (rawInvoices.length === 0) return { data: [], total: count ?? 0 }
+
+  const invoiceIds = rawInvoices.map((i) => i.id)
+  const customerIds = [...new Set(rawInvoices.map((i) => i.customer_id).filter((id): id is string => Boolean(id)))]
+  const usedBranchIds = [...new Set(rawInvoices.map((i) => i.branch_id).filter((id): id is string => Boolean(id)))]
+
+  const [{ data: customers }, { data: payments }, { data: branches }] = await Promise.all([
+    customerIds.length > 0 ? supabase.from('customers').select('id, name').in('id', customerIds) : Promise.resolve({ data: null }),
+    supabase.from('payments').select('invoice_id, amount').in('invoice_id', invoiceIds),
+    usedBranchIds.length > 0 ? supabase.from('branches').select('id, name').in('id', usedBranchIds) : Promise.resolve({ data: null }),
   ])
 
   const customerMap = byId(customers ?? [])
@@ -36,17 +64,19 @@ export async function listInvoices(companyId: string, client?: DbClient, branchI
     paidTotals.set(payment.invoice_id, (paidTotals.get(payment.invoice_id) ?? 0) + toNumber(payment.amount))
   }
 
-  return ((invoices ?? []) as TableRow<'invoices'>[]).map((invoice) => {
+  const data = rawInvoices.map((invoice) => {
     const paidAmount = paidTotals.get(invoice.id) ?? 0
     const total = toNumber(invoice.total)
     return {
       ...invoice,
-      branch_name: invoice.branch_id ? branchMap.get(invoice.branch_id)?.name ?? 'Unknown branch' : 'No branch',
-      customer_name: customerMap.get(invoice.customer_id)?.name ?? 'Unknown customer',
+      branch_name: invoice.branch_id ? (branchMap.get(invoice.branch_id)?.name ?? '—') : '—',
+      customer_name: customerMap.get(invoice.customer_id)?.name ?? '—',
       paid_amount: paidAmount,
       balance_due: Number((total - paidAmount).toFixed(2)),
     }
   })
+
+  return { data, total: count ?? 0 }
 }
 
 export async function getInvoiceById(companyId: string, id: string, client?: DbClient, branchIds?: readonly string[] | null) {

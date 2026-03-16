@@ -1,17 +1,40 @@
 import { Plus } from 'lucide-react'
+import { Suspense } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { InvoiceTable } from '@/components/invoices/invoice-table'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { CsvExportButton } from '@/components/ui/csv-export-button'
+import { StatusFilter } from '@/components/ui/status-filter'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { TableSearch } from '@/components/ui/table-search'
 import { requireCompany } from '@/lib/auth/require-company'
 import { listInvoices } from '@/lib/db/queries/invoices'
 
-export default async function InvoicesPage({ params }: { params: Promise<{ locale: string }> }) {
+const PAGE_SIZE = 50
+
+const STATUS_OPTIONS = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'issued', label: 'Issued' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+export default async function InvoicesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>
+}) {
   const { locale } = await params
+  const { page: pageParam, q, status } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? 1))
   const { membership } = await requireCompany(locale)
-  const invoices = await listInvoices(membership.company_id, undefined, membership.branchIds)
+  const { data: invoices, total } = await listInvoices(membership.company_id, undefined, membership.branchIds, page, PAGE_SIZE, q, status)
 
   return (
     <div className="space-y-6">
@@ -29,7 +52,27 @@ export default async function InvoicesPage({ params }: { params: Promise<{ local
       />
       <Card className="border-slate-200/80 bg-white/90">
         <CardContent className="pt-6">
-          {invoices.length > 0 ? <InvoiceTable invoices={invoices} /> : <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">No invoices yet.</div>}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Suspense>
+                <TableSearch placeholder="Search invoice number..." />
+              </Suspense>
+              <Suspense>
+                <StatusFilter options={STATUS_OPTIONS} />
+              </Suspense>
+            </div>
+            <CsvExportButton resource="invoices" />
+          </div>
+          {invoices.length > 0 ? (
+            <>
+              <InvoiceTable invoices={invoices} />
+              <TablePagination page={page} total={total} pageSize={PAGE_SIZE} href={(p) => `/invoices?page=${p}${q ? `&q=${q}` : ''}${status ? `&status=${status}` : ''}`} />
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
+              {q || status ? 'No invoices match your search.' : 'No invoices yet.'}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

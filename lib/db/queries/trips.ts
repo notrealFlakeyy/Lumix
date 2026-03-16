@@ -4,15 +4,35 @@ import { byId, getDbClient, type DbClient } from '@/lib/db/shared'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 import { isUuid } from '@/lib/utils/public-ids'
 
-export async function listTrips(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
+export async function listTrips(
+  companyId: string,
+  client?: DbClient,
+  branchIds?: readonly string[] | null,
+  page = 1,
+  pageSize = 50,
+  search?: string,
+  status?: string,
+) {
   const supabase = await getDbClient(client)
   const branchScope = normalizeBranchScope(branchIds)
-  let tripsQuery = supabase.from('trips').select('*').eq('company_id', companyId).order('created_at', { ascending: false })
+  const offset = (page - 1) * pageSize
+  let tripsQuery = supabase
+    .from('trips')
+    .select('*', { count: 'exact' })
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1)
   if (branchScope) {
     tripsQuery = tripsQuery.in('branch_id', branchScope)
   }
+  if (search) {
+    tripsQuery = tripsQuery.ilike('public_id', `%${search}%`)
+  }
+  if (status) {
+    tripsQuery = tripsQuery.eq('status', status)
+  }
 
-  const [{ data: trips }, { data: customers }, { data: vehicles }, { data: drivers }, { data: branches }] = await Promise.all([
+  const [{ data: trips, count }, { data: customers }, { data: vehicles }, { data: drivers }, { data: branches }] = await Promise.all([
     tripsQuery,
     supabase.from('customers').select('id, name').eq('company_id', companyId),
     supabase.from('vehicles').select('id, registration_number').eq('company_id', companyId),
@@ -25,13 +45,15 @@ export async function listTrips(companyId: string, client?: DbClient, branchIds?
   const driverMap = byId(drivers ?? [])
   const branchMap = byId(branches ?? [])
 
-  return ((trips ?? []) as TableRow<'trips'>[]).map((trip) => ({
+  const data = ((trips ?? []) as TableRow<'trips'>[]).map((trip) => ({
     ...trip,
-    branch_name: trip.branch_id ? branchMap.get(trip.branch_id)?.name ?? 'Unknown branch' : 'No branch',
-    customer_name: customerMap.get(trip.customer_id)?.name ?? 'Unknown customer',
-    vehicle_name: trip.vehicle_id ? vehicleMap.get(trip.vehicle_id)?.registration_number ?? '-' : '-',
-    driver_name: trip.driver_id ? driverMap.get(trip.driver_id)?.full_name ?? '-' : '-',
+    branch_name: trip.branch_id ? (branchMap.get(trip.branch_id)?.name ?? '—') : '—',
+    customer_name: customerMap.get(trip.customer_id)?.name ?? '—',
+    vehicle_name: trip.vehicle_id ? (vehicleMap.get(trip.vehicle_id)?.registration_number ?? '—') : '—',
+    driver_name: trip.driver_id ? (driverMap.get(trip.driver_id)?.full_name ?? '—') : '—',
   }))
+
+  return { data, total: count ?? 0 }
 }
 
 export async function getTripById(companyId: string, id: string, client?: DbClient, branchIds?: readonly string[] | null) {

@@ -22,6 +22,11 @@ export default async function DriverDetailPage({
 
   const { driver, orders, trips, revenue } = result
 
+  const now = new Date()
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const tripsThisMonth = trips.filter((t) => t.start_time && new Date(t.start_time) >= monthStart)
+  const kmThisMonth = tripsThisMonth.reduce((sum, t) => sum + toNumber(t.distance_km), 0)
+
   return (
     <div className="space-y-6">
       <PageHeader title={driver.full_name} description="Driver profile, current assignments, and related trip activity." actions={<Button asChild variant="outline"><Link href={`/drivers/${getDriverRouteId(driver)}/edit`}>Edit driver</Link></Button>} />
@@ -110,6 +115,22 @@ export default async function DriverDetailPage({
             </CardHeader>
             <CardContent className="text-sm text-slate-600">
               Estimated revenue by driver based on linked trips: <span className="font-semibold text-slate-950">{formatCurrency(revenue)}</span>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200/80 bg-white/90">
+            <CardHeader>
+              <CardTitle>This Month</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm text-slate-600">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Trips</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-950">{tripsThisMonth.length}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Km Driven</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-950">{Math.round(kmThisMonth).toLocaleString()}</p>
+              </div>
             </CardContent>
           </Card>
         </div>

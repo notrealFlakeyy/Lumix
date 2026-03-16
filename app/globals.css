@@ -10,6 +10,7 @@
   --app-muted: 100 116 139;
   --app-accent: 14 165 233;
   --app-accent-2: 34 197 94;
+  --app-bg-end: 226 232 240;
 
   --radius: 16px;
 
@@ -37,7 +38,7 @@
 body {
   background:
     radial-gradient(circle at top left, rgba(var(--app-accent), 0.12), transparent 24%),
-    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(226 232 240) 100%);
+    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-bg-end, 226 232 240)) 100%);
   color: rgb(var(--app-fg));
 }
 

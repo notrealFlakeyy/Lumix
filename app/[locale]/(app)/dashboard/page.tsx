@@ -114,7 +114,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         description="Transportation operations overview focused on dispatch load, monthly revenue, estimated margin, completed trips, and invoice follow-up."
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <StatCard label="Revenue This Month" value={formatCurrency(stats.revenueThisMonth)} hint="Issued invoice total in the current month." />
         <StatCard
           label="Estimated Cost This Month"
@@ -129,6 +129,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         <StatCard label="Active Orders" value={String(stats.activeOrders)} />
         <StatCard label="Completed Trips This Month" value={String(stats.completedTripsThisMonth)} />
         <StatCard label="Overdue Invoices" value={String(stats.overdueInvoices)} />
+        <StatCard label="Fleet Utilization (7d)" value={`${Math.round(stats.fleetUtilization)}%`} hint="Active vehicles with a trip in the last 7 days." />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">

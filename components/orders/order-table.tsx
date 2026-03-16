@@ -42,10 +42,16 @@ export function OrderTable({
                 {order.order_number}
               </Link>
             </TableCell>
-            <TableCell>{order.customer_name}</TableCell>
-            <TableCell>{order.branch_name ?? 'No branch'}</TableCell>
-            <TableCell>{order.pickup_location}</TableCell>
-            <TableCell>{order.delivery_location}</TableCell>
+            <TableCell className="max-w-[160px]">
+              <span className="block truncate">{order.customer_name}</span>
+            </TableCell>
+            <TableCell>{order.branch_name ?? '—'}</TableCell>
+            <TableCell className="max-w-[160px]">
+              <span className="block truncate">{order.pickup_location}</span>
+            </TableCell>
+            <TableCell className="max-w-[160px]">
+              <span className="block truncate">{order.delivery_location}</span>
+            </TableCell>
             <TableCell>{formatDateTime(order.scheduled_at)}</TableCell>
             <TableCell>{order.vehicle_name}</TableCell>
             <TableCell>{order.driver_name}</TableCell>

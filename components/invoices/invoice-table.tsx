@@ -39,8 +39,10 @@ export function InvoiceTable({
                 {invoice.invoice_number}
               </Link>
             </TableCell>
-            <TableCell>{invoice.customer_name}</TableCell>
-            <TableCell>{invoice.branch_name ?? 'No branch'}</TableCell>
+            <TableCell className="max-w-[180px]">
+              <span className="block truncate">{invoice.customer_name}</span>
+            </TableCell>
+            <TableCell>{invoice.branch_name ?? '—'}</TableCell>
             <TableCell>{formatDate(invoice.issue_date)}</TableCell>
             <TableCell>{formatDate(invoice.due_date)}</TableCell>
             <TableCell>{formatCurrency(Number(invoice.total ?? 0))}</TableCell>

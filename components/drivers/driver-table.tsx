@@ -34,16 +34,18 @@ export function DriverTable({
       <TableBody>
         {drivers.map((driver) => (
           <TableRow key={driver.id}>
-            <TableCell className="font-medium">
-              <Link href={`/drivers/${getDriverRouteId(driver)}`} className="text-slate-950 no-underline hover:text-sky-700">
+            <TableCell className="max-w-[180px] font-medium">
+              <Link href={`/drivers/${getDriverRouteId(driver)}`} className="block truncate text-slate-950 no-underline hover:text-sky-700">
                 {driver.full_name}
               </Link>
             </TableCell>
-            <TableCell>{driver.branch_name ?? '-'}</TableCell>
-            <TableCell>{driver.phone ?? '-'}</TableCell>
-            <TableCell>{driver.email ?? '-'}</TableCell>
-            <TableCell>{driver.license_type ?? '-'}</TableCell>
-            <TableCell>{driver.employment_type ?? '-'}</TableCell>
+            <TableCell>{driver.branch_name ?? '—'}</TableCell>
+            <TableCell>{driver.phone ?? '—'}</TableCell>
+            <TableCell className="max-w-[180px]">
+              <span className="block truncate">{driver.email ?? '—'}</span>
+            </TableCell>
+            <TableCell>{driver.license_type ?? '—'}</TableCell>
+            <TableCell>{driver.employment_type ?? '—'}</TableCell>
             <TableCell>
               <Badge variant={driver.is_active ? 'success' : 'warning'}>{driver.is_active ? 'Active' : 'Inactive'}</Badge>
             </TableCell>

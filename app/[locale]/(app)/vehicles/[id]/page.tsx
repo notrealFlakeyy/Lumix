@@ -1,12 +1,15 @@
+import { AlertTriangle } from 'lucide-react'
+
 import { Link } from '@/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { requireCompany } from '@/lib/auth/require-company'
 import { getVehicleById } from '@/lib/db/queries/vehicles'
 import { formatCurrency } from '@/lib/utils/currency'
-import { formatDateTime } from '@/lib/utils/dates'
+import { formatDate, formatDateTime } from '@/lib/utils/dates'
 import { toDisplayNumber, toNumber } from '@/lib/utils/numbers'
 import { getTripDisplayId, getTripRouteId } from '@/lib/utils/public-ids'
 
@@ -20,11 +23,28 @@ export default async function VehicleDetailPage({
   const result = await getVehicleById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
-  const { vehicle, orders, trips, revenue } = result
+  const { vehicle, orders, trips, revenue, maintenanceLogs } = result
+  const serviceDue = vehicle.next_service_km != null && vehicle.current_km != null && vehicle.current_km >= vehicle.next_service_km
 
   return (
     <div className="space-y-6">
-      <PageHeader title={vehicle.registration_number} description="Vehicle details, assignments, and related trip activity." actions={<Button asChild variant="outline"><Link href={`/vehicles/${vehicle.id}/edit`}>Edit vehicle</Link></Button>} />
+      <PageHeader
+        title={vehicle.registration_number}
+        description="Vehicle details, assignments, and related trip activity."
+        actions={
+          <div className="flex items-center gap-3">
+            {serviceDue ? (
+              <Badge variant="destructive" className="gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Service due
+              </Badge>
+            ) : null}
+            <Button asChild variant="outline">
+              <Link href={`/vehicles/${vehicle.id}/edit`}>Edit vehicle</Link>
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
         <Card className="border-slate-200/80 bg-white/90">
@@ -115,6 +135,40 @@ export default async function VehicleDetailPage({
           </Card>
         </div>
       </div>
+
+      <Card className="border-slate-200/80 bg-white/90">
+        <CardHeader>
+          <CardTitle>Maintenance Log</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {maintenanceLogs.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-400">No maintenance records yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>KM at Service</TableHead>
+                  <TableHead>Next Service KM</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {maintenanceLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{formatDate(log.performed_at)}</TableCell>
+                    <TableCell className="font-medium">{log.type}</TableCell>
+                    <TableCell className="max-w-xs truncate">{log.description ?? '-'}</TableCell>
+                    <TableCell>{log.km_at_service != null ? `${toDisplayNumber(log.km_at_service)} km` : '-'}</TableCell>
+                    <TableCell>{log.next_service_km != null ? `${toDisplayNumber(log.next_service_km)} km` : '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

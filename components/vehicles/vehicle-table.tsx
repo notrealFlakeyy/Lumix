@@ -41,12 +41,12 @@ export function VehicleTable({
                 {vehicle.registration_number}
               </Link>
             </TableCell>
-            <TableCell>{vehicle.branch_name ?? '-'}</TableCell>
-            <TableCell>{[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '-'}</TableCell>
-            <TableCell>{vehicle.year ?? '-'}</TableCell>
-            <TableCell>{vehicle.fuel_type ?? '-'}</TableCell>
+            <TableCell>{vehicle.branch_name ?? '—'}</TableCell>
+            <TableCell>{[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '—'}</TableCell>
+            <TableCell>{vehicle.year ?? '—'}</TableCell>
+            <TableCell>{vehicle.fuel_type ?? '—'}</TableCell>
             <TableCell>{toDisplayNumber(vehicle.current_km)} km</TableCell>
-            <TableCell>{vehicle.next_service_km ? `${toDisplayNumber(vehicle.next_service_km)} km` : '-'}</TableCell>
+            <TableCell>{vehicle.next_service_km ? `${toDisplayNumber(vehicle.next_service_km)} km` : '—'}</TableCell>
             <TableCell>
               <Badge variant={vehicle.is_active ? 'success' : 'warning'}>{vehicle.is_active ? 'Active' : 'Inactive'}</Badge>
             </TableCell>

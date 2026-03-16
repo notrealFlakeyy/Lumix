@@ -17,11 +17,11 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
   const { locale } = await params
   const { membership } = await requireCompany(locale)
 
-  const [branches, customers, vehicles, drivers] = await Promise.all([
+  const [branches, { data: customers }, { data: vehicles }, { data: drivers }] = await Promise.all([
     listActiveBranches(membership.company_id, membership),
-    listCustomers(membership.company_id, undefined, membership.branchIds),
-    listVehicles(membership.company_id, undefined, membership.branchIds),
-    listDrivers(membership.company_id, undefined, membership.branchIds),
+    listCustomers(membership.company_id, undefined, membership.branchIds, 1, 1000),
+    listVehicles(membership.company_id, undefined, membership.branchIds, 1, 1000),
+    listDrivers(membership.company_id, undefined, membership.branchIds, 1, 1000),
   ])
 
   async function action(formData: FormData) {

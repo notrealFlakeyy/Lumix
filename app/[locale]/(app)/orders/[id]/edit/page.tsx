@@ -21,12 +21,12 @@ export default async function EditOrderPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const [result, branches, customers, vehicles, drivers] = await Promise.all([
+  const [result, branches, { data: customers }, { data: vehicles }, { data: drivers }] = await Promise.all([
     getOrderById(membership.company_id, id, undefined, membership.branchIds),
     listActiveBranches(membership.company_id, membership),
-    listCustomers(membership.company_id, undefined, membership.branchIds),
-    listVehicles(membership.company_id, undefined, membership.branchIds),
-    listDrivers(membership.company_id, undefined, membership.branchIds),
+    listCustomers(membership.company_id, undefined, membership.branchIds, 1, 1000),
+    listVehicles(membership.company_id, undefined, membership.branchIds, 1, 1000),
+    listDrivers(membership.company_id, undefined, membership.branchIds, 1, 1000),
   ])
   if (!result) return null
 

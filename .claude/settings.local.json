@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/svens/Documents/Code/Lumix/app/[locale]/)",
+      "Bash(ls -la /c/Users/svens/Documents/Code/Lumix/app/[locale]/\\\\\\(app\\\\\\)/dashboard/)"
+    ]
+  }
+}

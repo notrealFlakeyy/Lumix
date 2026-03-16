@@ -46,13 +46,17 @@ export function TripTable({
                 {getTripDisplayId(trip)}
               </Link>
             </TableCell>
-            <TableCell>{trip.customer_name}</TableCell>
-            <TableCell>{trip.branch_name ?? 'No branch'}</TableCell>
+            <TableCell className="max-w-[160px]">
+              <span className="block truncate">{trip.customer_name}</span>
+            </TableCell>
+            <TableCell>{trip.branch_name ?? '—'}</TableCell>
             <TableCell>{trip.vehicle_name}</TableCell>
-            <TableCell>{trip.driver_name}</TableCell>
+            <TableCell className="max-w-[140px]">
+              <span className="block truncate">{trip.driver_name}</span>
+            </TableCell>
             <TableCell>{formatDateTime(trip.start_time)}</TableCell>
             <TableCell>{formatDateTime(trip.end_time)}</TableCell>
-            <TableCell>{trip.distance_km ? `${toDisplayNumber(trip.distance_km, 0)} km` : '-'}</TableCell>
+            <TableCell>{trip.distance_km ? `${toDisplayNumber(trip.distance_km, 0)} km` : '—'}</TableCell>
             <TableCell>{trip.waiting_time_minutes} min</TableCell>
             <TableCell>
               <TripStatusBadge status={trip.status} />

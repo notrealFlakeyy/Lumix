@@ -1,17 +1,31 @@
 import { Plus } from 'lucide-react'
+import { Suspense } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { CustomerTable } from '@/components/customers/customer-table'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { CsvExportButton } from '@/components/ui/csv-export-button'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { TableSearch } from '@/components/ui/table-search'
 import { requireCompany } from '@/lib/auth/require-company'
 import { listCustomers } from '@/lib/db/queries/customers'
 
-export default async function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
+const PAGE_SIZE = 50
+
+export default async function CustomersPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
+}) {
   const { locale } = await params
+  const { page: pageParam, q } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? 1))
   const { membership } = await requireCompany(locale)
-  const customers = await listCustomers(membership.company_id, undefined, membership.branchIds)
+  const { data: customers, total } = await listCustomers(membership.company_id, undefined, membership.branchIds, page, PAGE_SIZE, q)
 
   return (
     <div className="space-y-6">
@@ -27,10 +41,24 @@ export default async function CustomersPage({ params }: { params: Promise<{ loca
           </Button>
         }
       />
-
       <Card className="border-slate-200/80 bg-white/90">
         <CardContent className="pt-6">
-          {customers.length > 0 ? <CustomerTable customers={customers} /> : <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">No customers yet.</div>}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <Suspense>
+              <TableSearch placeholder="Search name, email, business ID..." />
+            </Suspense>
+            <CsvExportButton resource="customers" />
+          </div>
+          {customers.length > 0 ? (
+            <>
+              <CustomerTable customers={customers} />
+              <TablePagination page={page} total={total} pageSize={PAGE_SIZE} href={(p) => `/customers?page=${p}${q ? `&q=${q}` : ''}`} />
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
+              {q ? 'No customers match your search.' : 'No customers yet.'}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

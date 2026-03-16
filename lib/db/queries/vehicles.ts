@@ -3,25 +3,43 @@ import type { TableRow } from '@/types/database'
 import { getDbClient, type DbClient } from '@/lib/db/shared'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 
-export async function listVehicles(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
+export async function listVehicles(
+  companyId: string,
+  client?: DbClient,
+  branchIds?: readonly string[] | null,
+  page = 1,
+  pageSize = 50,
+  search?: string,
+) {
   const supabase = await getDbClient(client)
   const branchScope = normalizeBranchScope(branchIds)
-  let query = supabase.from('vehicles').select('*').eq('company_id', companyId).order('registration_number')
+  const offset = (page - 1) * pageSize
+  let query = supabase
+    .from('vehicles')
+    .select('*', { count: 'exact' })
+    .eq('company_id', companyId)
+    .order('registration_number')
+    .range(offset, offset + pageSize - 1)
 
   if (branchScope) {
     query = query.in('branch_id', branchScope)
   }
+  if (search) {
+    query = query.or(`registration_number.ilike.%${search}%,make.ilike.%${search}%,model.ilike.%${search}%`)
+  }
 
-  const [{ data: vehicles }, { data: branches }] = await Promise.all([
+  const [{ data: vehicles, count }, { data: branches }] = await Promise.all([
     query,
     supabase.from('branches').select('id, name').eq('company_id', companyId),
   ])
   const branchMap = new Map((branches ?? []).map((branch) => [branch.id, branch.name]))
 
-  return ((vehicles ?? []) as TableRow<'vehicles'>[]).map((vehicle) => ({
+  const data = ((vehicles ?? []) as TableRow<'vehicles'>[]).map((vehicle) => ({
     ...vehicle,
-    branch_name: vehicle.branch_id ? branchMap.get(vehicle.branch_id) ?? 'Unknown branch' : 'No branch',
+    branch_name: vehicle.branch_id ? (branchMap.get(vehicle.branch_id) ?? '—') : '—',
   }))
+
+  return { data, total: count ?? 0 }
 }
 
 export async function getVehicleById(companyId: string, id: string, client?: DbClient, branchIds?: readonly string[] | null) {
@@ -52,12 +70,18 @@ export async function getVehicleById(companyId: string, id: string, client?: DbC
     invoicesQuery = invoicesQuery.in('branch_id', branchScope)
   }
 
-  const [{ data: vehicle }, { data: orders }, { data: trips }, { data: invoices }, { data: branches }] = await Promise.all([
+  const [{ data: vehicle }, { data: orders }, { data: trips }, { data: invoices }, { data: branches }, { data: maintenanceLogs }] = await Promise.all([
     vehicleQuery.maybeSingle(),
     ordersQuery,
     tripsQuery,
     invoicesQuery,
     supabase.from('branches').select('id, name').eq('company_id', companyId),
+    supabase
+      .from('vehicle_maintenance')
+      .select('id, type, description, performed_at, km_at_service, next_service_km, created_at')
+      .eq('company_id', companyId)
+      .eq('vehicle_id', id)
+      .order('performed_at', { ascending: false }),
   ])
 
   const typedVehicle = vehicle as TableRow<'vehicles'> | null
@@ -83,5 +107,6 @@ export async function getVehicleById(companyId: string, id: string, client?: DbC
       branch_name: trip.branch_id ? branchMap.get(trip.branch_id) ?? 'Unknown branch' : 'No branch',
     })),
     revenue,
+    maintenanceLogs: maintenanceLogs ?? [],
   }
 }

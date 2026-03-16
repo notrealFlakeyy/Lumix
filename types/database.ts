@@ -233,6 +233,34 @@ export type Database = {
         Update: Partial<Omit<Database['public']['Tables']['vehicles']['Insert'], 'company_id'>>
         Relationships: Relationship[]
       }
+      vehicle_maintenance: {
+        Row: {
+          id: string
+          company_id: string
+          vehicle_id: string
+          branch_id: string | null
+          type: string
+          description: string | null
+          performed_at: string
+          km_at_service: number | null
+          next_service_km: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          vehicle_id: string
+          branch_id?: string | null
+          type: string
+          description?: string | null
+          performed_at?: string
+          km_at_service?: number | null
+          next_service_km?: number | null
+          created_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['vehicle_maintenance']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
       drivers: {
         Row: {
           id: string

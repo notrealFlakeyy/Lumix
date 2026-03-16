@@ -4,23 +4,41 @@ import { getDbClient, type DbClient } from '@/lib/db/shared'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 import { isUuid } from '@/lib/utils/public-ids'
 
-export async function listDrivers(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
+export async function listDrivers(
+  companyId: string,
+  client?: DbClient,
+  branchIds?: readonly string[] | null,
+  page = 1,
+  pageSize = 50,
+  search?: string,
+) {
   const supabase = await getDbClient(client)
   const branchScope = normalizeBranchScope(branchIds)
-  let query = supabase.from('drivers').select('*').eq('company_id', companyId).order('full_name')
+  const offset = (page - 1) * pageSize
+  let query = supabase
+    .from('drivers')
+    .select('*', { count: 'exact' })
+    .eq('company_id', companyId)
+    .order('full_name')
+    .range(offset, offset + pageSize - 1)
   if (branchScope) {
     query = query.in('branch_id', branchScope)
   }
-  const [{ data: drivers }, { data: branches }] = await Promise.all([
+  if (search) {
+    query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
+  }
+  const [{ data: drivers, count }, { data: branches }] = await Promise.all([
     query,
     supabase.from('branches').select('id, name').eq('company_id', companyId),
   ])
   const branchMap = new Map((branches ?? []).map((branch) => [branch.id, branch.name]))
 
-  return ((drivers ?? []) as TableRow<'drivers'>[]).map((driver) => ({
+  const data = ((drivers ?? []) as TableRow<'drivers'>[]).map((driver) => ({
     ...driver,
-    branch_name: driver.branch_id ? branchMap.get(driver.branch_id) ?? 'Unknown branch' : 'No branch',
+    branch_name: driver.branch_id ? (branchMap.get(driver.branch_id) ?? '—') : '—',
   }))
+
+  return { data, total: count ?? 0 }
 }
 
 export async function getDriverById(companyId: string, id: string, client?: DbClient, branchIds?: readonly string[] | null) {

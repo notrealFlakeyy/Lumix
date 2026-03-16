@@ -16,10 +16,10 @@ import { getOptionalString, getString, parseInvoiceItems } from '@/lib/utils/for
 export default async function NewInvoicePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const [branches, customers, trips] = await Promise.all([
+  const [branches, { data: customers }, { data: trips }] = await Promise.all([
     listActiveBranches(membership.company_id, membership),
-    listCustomers(membership.company_id, undefined, membership.branchIds),
-    listTrips(membership.company_id, undefined, membership.branchIds),
+    listCustomers(membership.company_id, undefined, membership.branchIds, 1, 1000),
+    listTrips(membership.company_id, undefined, membership.branchIds, 1, 1000),
   ])
 
   async function action(formData: FormData) {

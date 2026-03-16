@@ -3,10 +3,10 @@ import { canManageSettings } from '@/lib/auth/permissions'
 import { stringifyCsvRows } from '@/lib/utils/csv'
 import { toNumber } from '@/lib/utils/numbers'
 
-type ExportResource = 'customers' | 'vehicles' | 'drivers' | 'invoices'
+type ExportResource = 'customers' | 'vehicles' | 'drivers' | 'invoices' | 'orders' | 'trips'
 
 function isExportResource(value: string): value is ExportResource {
-  return value === 'customers' || value === 'vehicles' || value === 'drivers' || value === 'invoices'
+  return ['customers', 'vehicles', 'drivers', 'invoices', 'orders', 'trips'].includes(value)
 }
 
 export async function GET(
@@ -171,6 +171,88 @@ export async function GET(
         paid_amount: paymentTotals.get(row.id)?.toFixed(2) ?? '0.00',
         reference_number: row.reference_number,
         notes: row.notes,
+        created_at: row.created_at,
+      })),
+    )
+  }
+
+  if (resource === 'orders') {
+    const [{ data: orders, error: ordersError }, { data: customers }, { data: vehicles }, { data: drivers }] = await Promise.all([
+      (() => {
+        let query = supabase
+          .from('transport_orders')
+          .select('id, branch_id, order_number, customer_id, assigned_vehicle_id, assigned_driver_id, pickup_location, delivery_location, scheduled_at, status, cargo_description, notes, created_at')
+          .eq('company_id', companyId)
+          .order('created_at', { ascending: false })
+        if (branchScope) query = query.in('branch_id', branchScope)
+        return query
+      })(),
+      supabase.from('customers').select('id, name').eq('company_id', companyId),
+      supabase.from('vehicles').select('id, registration_number').eq('company_id', companyId),
+      supabase.from('drivers').select('id, full_name').eq('company_id', companyId),
+    ])
+
+    if (ordersError) return Response.json({ error: ordersError.message }, { status: 500 })
+
+    const customerMap = new Map((customers ?? []).map((r) => [r.id, r.name]))
+    const vehicleMap = new Map((vehicles ?? []).map((r) => [r.id, r.registration_number]))
+    const driverMap = new Map((drivers ?? []).map((r) => [r.id, r.full_name]))
+
+    csv = stringifyCsvRows(
+      (orders ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
+        order_number: row.order_number,
+        customer_name: customerMap.get(row.customer_id) ?? '',
+        vehicle: row.assigned_vehicle_id ? (vehicleMap.get(row.assigned_vehicle_id) ?? '') : '',
+        driver: row.assigned_driver_id ? (driverMap.get(row.assigned_driver_id) ?? '') : '',
+        pickup_location: row.pickup_location,
+        delivery_location: row.delivery_location,
+        scheduled_at: row.scheduled_at ?? '',
+        status: row.status,
+        cargo_description: row.cargo_description ?? '',
+        notes: row.notes ?? '',
+        created_at: row.created_at,
+      })),
+    )
+  }
+
+  if (resource === 'trips') {
+    const [{ data: trips, error: tripsError }, { data: customers }, { data: vehicles }, { data: drivers }] = await Promise.all([
+      (() => {
+        let query = supabase
+          .from('trips')
+          .select('id, public_id, branch_id, customer_id, vehicle_id, driver_id, start_time, end_time, distance_km, waiting_time_minutes, status, notes, created_at')
+          .eq('company_id', companyId)
+          .order('created_at', { ascending: false })
+        if (branchScope) query = query.in('branch_id', branchScope)
+        return query
+      })(),
+      supabase.from('customers').select('id, name').eq('company_id', companyId),
+      supabase.from('vehicles').select('id, registration_number').eq('company_id', companyId),
+      supabase.from('drivers').select('id, full_name').eq('company_id', companyId),
+    ])
+
+    if (tripsError) return Response.json({ error: tripsError.message }, { status: 500 })
+
+    const customerMap = new Map((customers ?? []).map((r) => [r.id, r.name]))
+    const vehicleMap = new Map((vehicles ?? []).map((r) => [r.id, r.registration_number]))
+    const driverMap = new Map((drivers ?? []).map((r) => [r.id, r.full_name]))
+
+    csv = stringifyCsvRows(
+      (trips ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
+        trip_id: row.public_id ?? row.id,
+        customer_name: customerMap.get(row.customer_id) ?? '',
+        vehicle: row.vehicle_id ? (vehicleMap.get(row.vehicle_id) ?? '') : '',
+        driver: row.driver_id ? (driverMap.get(row.driver_id) ?? '') : '',
+        start_time: row.start_time ?? '',
+        end_time: row.end_time ?? '',
+        distance_km: row.distance_km ?? '',
+        waiting_time_minutes: row.waiting_time_minutes ?? 0,
+        status: row.status,
+        notes: row.notes ?? '',
         created_at: row.created_at,
       })),
     )
