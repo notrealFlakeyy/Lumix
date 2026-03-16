@@ -17,7 +17,7 @@ export default async function DriverDetailPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const result = await getDriverById(membership.company_id, id)
+  const result = await getDriverById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
   const { driver, orders, trips, revenue } = result
@@ -33,6 +33,7 @@ export default async function DriverDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div><span className="font-medium text-slate-900">Phone:</span> {driver.phone ?? '-'}</div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {driver.branch_name ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Email:</span> {driver.email ?? '-'}</div>
             <div><span className="font-medium text-slate-900">License Type:</span> {driver.license_type ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Employment Type:</span> {driver.employment_type ?? '-'}</div>
@@ -50,6 +51,7 @@ export default async function DriverDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Pickup</TableHead>
                     <TableHead>Delivery</TableHead>
                     <TableHead>Status</TableHead>
@@ -59,6 +61,7 @@ export default async function DriverDetailPage({
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell><Link href={`/orders/${order.id}`}>{order.order_number}</Link></TableCell>
+                      <TableCell>{order.branch_name ?? '-'}</TableCell>
                       <TableCell>{order.pickup_location}</TableCell>
                       <TableCell>{order.delivery_location}</TableCell>
                       <TableCell>{order.status}</TableCell>
@@ -78,6 +81,7 @@ export default async function DriverDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Trip</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Start</TableHead>
                     <TableHead>End</TableHead>
                     <TableHead>Distance</TableHead>
@@ -88,6 +92,7 @@ export default async function DriverDetailPage({
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
                       <TableCell><Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link></TableCell>
+                      <TableCell>{trip.branch_name ?? '-'}</TableCell>
                       <TableCell>{formatDateTime(trip.start_time)}</TableCell>
                       <TableCell>{formatDateTime(trip.end_time)}</TableCell>
                       <TableCell>{trip.distance_km ? `${toNumber(trip.distance_km)} km` : '-'}</TableCell>

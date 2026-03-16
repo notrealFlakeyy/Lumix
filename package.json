@@ -6,6 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
+    "mobile:start": "npm run start --prefix apps/mobile",
+    "mobile:type-check": "npm run type-check --prefix apps/mobile",
     "clean": "rimraf .next node_modules tsconfig.tsbuildinfo",
     "type-check": "rimraf tsconfig.tsbuildinfo .next/types && tsc --noEmit",
     "test": "vitest run",

@@ -11,7 +11,7 @@ import { listCustomers } from '@/lib/db/queries/customers'
 export default async function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const customers = await listCustomers(membership.company_id)
+  const customers = await listCustomers(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

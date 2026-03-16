@@ -17,7 +17,7 @@ export default async function CustomerDetailPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const result = await getCustomerById(membership.company_id, id)
+  const result = await getCustomerById(membership.company_id, id, undefined, membership.branchIds)
 
   if (!result) return null
 
@@ -34,6 +34,7 @@ export default async function CustomerDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div><span className="font-medium text-slate-900">Business ID:</span> {customer.business_id ?? '-'}</div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {customer.branch_name ?? '-'}</div>
             <div><span className="font-medium text-slate-900">VAT Number:</span> {customer.vat_number ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Email:</span> {customer.email ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Phone:</span> {customer.phone ?? '-'}</div>
@@ -53,6 +54,7 @@ export default async function CustomerDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Pickup</TableHead>
                     <TableHead>Delivery</TableHead>
                     <TableHead>Scheduled</TableHead>
@@ -63,6 +65,7 @@ export default async function CustomerDetailPage({
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell><Link href={`/orders/${order.id}`}>{order.order_number}</Link></TableCell>
+                      <TableCell>{order.branch_name ?? '-'}</TableCell>
                       <TableCell>{order.pickup_location}</TableCell>
                       <TableCell>{order.delivery_location}</TableCell>
                       <TableCell>{formatDateTime(order.scheduled_at)}</TableCell>
@@ -83,6 +86,7 @@ export default async function CustomerDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Trip</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Start</TableHead>
                     <TableHead>End</TableHead>
                     <TableHead>Distance</TableHead>
@@ -93,6 +97,7 @@ export default async function CustomerDetailPage({
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
                       <TableCell><Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link></TableCell>
+                      <TableCell>{trip.branch_name ?? '-'}</TableCell>
                       <TableCell>{formatDateTime(trip.start_time)}</TableCell>
                       <TableCell>{formatDateTime(trip.end_time)}</TableCell>
                       <TableCell>{trip.distance_km ? `${toNumber(trip.distance_km)} km` : '-'}</TableCell>
@@ -113,6 +118,7 @@ export default async function CustomerDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Invoice</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Issue Date</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Total</TableHead>
@@ -123,6 +129,7 @@ export default async function CustomerDetailPage({
                   {invoices.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell><Link href={`/invoices/${invoice.id}`}>{invoice.invoice_number}</Link></TableCell>
+                      <TableCell>{invoice.branch_name ?? '-'}</TableCell>
                       <TableCell>{formatDate(invoice.issue_date)}</TableCell>
                       <TableCell>{formatDate(invoice.due_date)}</TableCell>
                       <TableCell>{formatCurrency(toNumber(invoice.total))}</TableCell>

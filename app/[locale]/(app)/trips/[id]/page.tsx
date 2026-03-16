@@ -36,7 +36,7 @@ export default async function TripDetailPage({
   const { locale, id } = await params
   const { success, error } = await searchParams
   const { membership } = await requireCompany(locale)
-  const result = await getTripById(membership.company_id, id)
+  const result = await getTripById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
   async function startAction() {
@@ -67,8 +67,8 @@ export default async function TripDetailPage({
     redirect(`/${locale}/invoices/${invoice.id}`)
   }
 
-  const { trip, customer, vehicle, driver, order, invoice } = result
-  const tripDocuments = await listTripDocuments(membership.company_id, trip.id)
+  const { trip, branch, customer, vehicle, driver, order, invoice } = result
+  const tripDocuments = await listTripDocuments(membership.company_id, trip.id, undefined, membership.branchIds)
   const documentFeed = await Promise.all(
     tripDocuments.map(async (document) => ({
       ...document,
@@ -127,6 +127,7 @@ export default async function TripDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div className="flex items-center gap-3"><span className="font-medium text-slate-900">Status:</span> <TripStatusBadge status={trip.status as any} /></div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {branch?.name ?? 'No branch assigned'}</div>
             <div><span className="font-medium text-slate-900">Customer:</span> {customer?.name ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Vehicle:</span> {vehicle ? `${vehicle.registration_number} ${[vehicle.make, vehicle.model].filter(Boolean).join(' ')}` : 'Unassigned'}</div>
             <div><span className="font-medium text-slate-900">Driver:</span> {driver?.full_name ?? 'Unassigned'}</div>

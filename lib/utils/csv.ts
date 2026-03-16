@@ -3,6 +3,7 @@ export type CsvTemplateResource = 'customers' | 'vehicles' | 'drivers'
 
 export const csvTemplateColumns: Record<CsvTemplateResource, string[]> = {
   customers: [
+    'branch_code',
     'name',
     'business_id',
     'vat_number',
@@ -15,13 +16,14 @@ export const csvTemplateColumns: Record<CsvTemplateResource, string[]> = {
     'billing_country',
     'notes',
   ],
-  vehicles: ['registration_number', 'make', 'model', 'year', 'fuel_type', 'current_km', 'next_service_km', 'is_active'],
-  drivers: ['full_name', 'email', 'phone', 'license_type', 'employment_type', 'is_active'],
+  vehicles: ['branch_code', 'registration_number', 'make', 'model', 'year', 'fuel_type', 'current_km', 'next_service_km', 'is_active'],
+  drivers: ['branch_code', 'full_name', 'email', 'phone', 'license_type', 'employment_type', 'is_active'],
 }
 
 const csvTemplateRows: Record<CsvTemplateResource, Array<Record<string, string>>> = {
   customers: [
     {
+      branch_code: 'HEL',
       name: 'North Harbor Timber',
       business_id: '3012345-6',
       vat_number: 'FI30123456',
@@ -37,6 +39,7 @@ const csvTemplateRows: Record<CsvTemplateResource, Array<Record<string, string>>
   ],
   vehicles: [
     {
+      branch_code: 'HEL',
       registration_number: 'JKL-321',
       make: 'Volvo',
       model: 'FH',
@@ -49,6 +52,7 @@ const csvTemplateRows: Record<CsvTemplateResource, Array<Record<string, string>>
   ],
   drivers: [
     {
+      branch_code: 'HEL',
       full_name: 'Laura Miettinen',
       email: 'laura.miettinen@example.com',
       phone: '+358401234561',

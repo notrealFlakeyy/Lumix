@@ -8,6 +8,7 @@ export function VehicleTable({
 }: {
   vehicles: Array<{
     id: string
+    branch_name?: string | null
     registration_number: string
     make: string | null
     model: string | null
@@ -23,6 +24,7 @@ export function VehicleTable({
       <TableHeader>
         <TableRow>
           <TableHead>Registration</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Make/Model</TableHead>
           <TableHead>Year</TableHead>
           <TableHead>Fuel Type</TableHead>
@@ -39,6 +41,7 @@ export function VehicleTable({
                 {vehicle.registration_number}
               </Link>
             </TableCell>
+            <TableCell>{vehicle.branch_name ?? '-'}</TableCell>
             <TableCell>{[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '-'}</TableCell>
             <TableCell>{vehicle.year ?? '-'}</TableCell>
             <TableCell>{vehicle.fuel_type ?? '-'}</TableCell>

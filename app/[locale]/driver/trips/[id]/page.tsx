@@ -1,35 +1,30 @@
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 
 import { Link } from '@/i18n/navigation'
+import { CheckCircle2, Circle, Route, ShieldCheck } from 'lucide-react'
+import { DriverCheckpointPanel } from '@/components/driver/driver-checkpoint-panel'
 import { DriverDocumentList } from '@/components/driver/driver-document-list'
+import { DriverProofOfDeliveryCard } from '@/components/driver/driver-proof-of-delivery-card'
+import { DriverTripActionPanel } from '@/components/driver/driver-trip-action-panel'
 import { TripStatusBadge } from '@/components/trips/trip-status-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { getCurrentWorkforceEmployee } from '@/lib/auth/get-current-workforce-employee'
 import { getDriverPortalContext } from '@/lib/auth/get-driver-portal-context'
-import { canManageTripExecution } from '@/lib/auth/permissions'
 import { uploadTripDocument } from '@/lib/documents/storage'
-import { completeTrip, startTrip } from '@/lib/db/mutations/trips'
 import { listTripDocuments } from '@/lib/db/queries/documents'
 import { getDriverMobileTripById } from '@/lib/db/queries/driver-mobile'
+import { listTripCheckpoints } from '@/lib/db/queries/trip-checkpoints'
 import { getTripById } from '@/lib/db/queries/trips'
+import { getMobileTimeSummary } from '@/lib/db/queries/workforce-mobile'
 import { getSignedDocumentUrl, transportDocumentsBucket } from '@/lib/documents/storage'
 import { getOptionalString } from '@/lib/utils/forms'
 import { formatDateTime } from '@/lib/utils/dates'
 import { toDisplayNumber } from '@/lib/utils/numbers'
 import { getTripRouteId } from '@/lib/utils/public-ids'
-
-function parseOptionalNumber(value: FormDataEntryValue | null) {
-  if (value === null) return undefined
-  const text = String(value).trim()
-  if (!text) return undefined
-  const parsed = Number(text)
-  return Number.isFinite(parsed) ? parsed : undefined
-}
 
 function buildHref(locale: string, tripId: string, previewDriverId?: string | null, extras?: Record<string, string>) {
   const params = new URLSearchParams()
@@ -70,7 +65,13 @@ export default async function DriverTripDetailPage({
   ])
 
   const resolvedTrip = trip
-  const tripDocuments = resolvedTrip ? await listTripDocuments(membership.company_id, resolvedTrip.id, context.supabase) : []
+  const showTimeModule = membership.enabledModules.includes('time')
+  const workforceContext = showTimeModule && membership.role === 'driver' ? await getCurrentWorkforceEmployee(membership.company_id) : null
+  const mobileTimeSummary = workforceContext?.employee
+    ? await getMobileTimeSummary(membership.company_id, workforceContext.employee.id, context.supabase, membership.branchIds)
+    : null
+  const tripDocuments = resolvedTrip ? await listTripDocuments(membership.company_id, resolvedTrip.id, context.supabase, membership.branchIds) : []
+  const checkpoints = resolvedTrip ? await listTripCheckpoints(membership.company_id, resolvedTrip.id, context.supabase, membership.branchIds) : []
 
   if (!resolvedTrip || !tripDetail || tripDetail.trip.driver_id !== activeDriver.id) {
     redirect(selectedDriverId ? `/${locale}/driver/trips?driver=${selectedDriverId}` : `/${locale}/driver/trips`)
@@ -82,82 +83,30 @@ export default async function DriverTripDetailPage({
       access_url: await getSignedDocumentUrl(document.file_path),
     })),
   )
+  const checkpointTypes = new Set(checkpoints.map((checkpoint) => checkpoint.checkpoint_type))
 
-  async function startAction(formData: FormData) {
-    'use server'
-
-    const previewDriverId = getOptionalString(formData, 'preview_driver_id')
-    const context = await getDriverPortalContext(locale, previewDriverId)
-
-    if (!context.activeDriver || !canManageTripExecution(context.membership.role)) {
-      redirect(buildHref(locale, id, previewDriverId, { error: 'You do not have access to start this trip.' }))
-    }
-
-    const trip = await getDriverMobileTripById(context.membership.company_id, context.activeDriver.id, id, context.supabase)
-    if (!trip) {
-      redirect(buildHref(locale, id, previewDriverId, { error: 'Trip not found for the selected driver.' }))
-    }
-
-    try {
-      await startTrip(
-        context.membership.company_id,
-        context.user.id,
-        trip.id,
-        {
-          start_km: parseOptionalNumber(formData.get('start_km')),
-          notes: getOptionalString(formData, 'notes') ?? undefined,
-        },
-        context.supabase,
-      )
-    } catch (error) {
-      redirect(buildHref(locale, id, previewDriverId, { error: error instanceof Error ? error.message : 'Unable to start trip.' }))
-    }
-
-    revalidatePath(`/${locale}/driver`)
-    revalidatePath(`/${locale}/driver/trips`)
-    revalidatePath(`/${locale}/driver/trips/${id}`)
-    redirect(buildHref(locale, id, previewDriverId, { success: 'Trip started successfully.' }))
-  }
-
-  async function completeAction(formData: FormData) {
-    'use server'
-
-    const previewDriverId = getOptionalString(formData, 'preview_driver_id')
-    const context = await getDriverPortalContext(locale, previewDriverId)
-
-    if (!context.activeDriver || !canManageTripExecution(context.membership.role)) {
-      redirect(buildHref(locale, id, previewDriverId, { error: 'You do not have access to complete this trip.' }))
-    }
-
-    const trip = await getDriverMobileTripById(context.membership.company_id, context.activeDriver.id, id, context.supabase)
-    if (!trip) {
-      redirect(buildHref(locale, id, previewDriverId, { error: 'Trip not found for the selected driver.' }))
-    }
-
-    const waitingTime = parseOptionalNumber(formData.get('waiting_time_minutes'))
-
-    try {
-      await completeTrip(
-        context.membership.company_id,
-        context.user.id,
-        trip.id,
-        {
-          end_km: parseOptionalNumber(formData.get('end_km')),
-          waiting_time_minutes: waitingTime !== undefined ? Math.max(0, Math.round(waitingTime)) : undefined,
-          delivery_confirmation: getOptionalString(formData, 'delivery_confirmation') ?? undefined,
-          notes: getOptionalString(formData, 'notes') ?? undefined,
-        },
-        context.supabase,
-      )
-    } catch (error) {
-      redirect(buildHref(locale, id, previewDriverId, { error: error instanceof Error ? error.message : 'Unable to complete trip.' }))
-    }
-
-    revalidatePath(`/${locale}/driver`)
-    revalidatePath(`/${locale}/driver/trips`)
-    revalidatePath(`/${locale}/driver/trips/${id}`)
-    redirect(buildHref(locale, id, previewDriverId, { success: 'Trip completed successfully.' }))
-  }
+  const tripChecklist = [
+    {
+      label: 'Shift active',
+      done: !showTimeModule || membership.role !== 'driver' || Boolean(mobileTimeSummary?.openEntry) || resolvedTrip.status !== 'planned',
+    },
+    {
+      label: 'Departed pickup',
+      done: checkpointTypes.has('departed_pickup') || resolvedTrip.status !== 'planned',
+    },
+    {
+      label: 'Arrived delivery',
+      done: checkpointTypes.has('arrived_delivery') || checkpointTypes.has('delivered'),
+    },
+    {
+      label: 'Delivery confirmed',
+      done: checkpointTypes.has('delivered') || Boolean(tripDetail.trip.delivery_confirmation),
+    },
+    {
+      label: 'Proof uploaded',
+      done: documentFeed.length > 0,
+    },
+  ]
 
   async function uploadAction(formData: FormData) {
     'use server'
@@ -165,8 +114,8 @@ export default async function DriverTripDetailPage({
     const previewDriverId = getOptionalString(formData, 'preview_driver_id')
     const context = await getDriverPortalContext(locale, previewDriverId)
 
-    if (!context.activeDriver || !canManageTripExecution(context.membership.role)) {
-      redirect(buildHref(locale, id, previewDriverId, { error: 'You do not have access to upload documents for this trip.' }))
+    if (!context.activeDriver) {
+      redirect(buildHref(locale, id, previewDriverId, { error: 'Driver context is missing for document upload.' }))
     }
 
     const trip = await getDriverMobileTripById(context.membership.company_id, context.activeDriver.id, id, context.supabase)
@@ -186,12 +135,14 @@ export default async function DriverTripDetailPage({
         userId: context.user.id,
         file,
       })
-    } catch (error) {
-      redirect(buildHref(locale, id, previewDriverId, { error: error instanceof Error ? error.message : 'Unable to upload document.' }))
+    } catch (uploadError) {
+      redirect(
+        buildHref(locale, id, previewDriverId, {
+          error: uploadError instanceof Error ? uploadError.message : 'Unable to upload document.',
+        }),
+      )
     }
 
-    revalidatePath(`/${locale}/driver/documents`)
-    revalidatePath(`/${locale}/driver/trips/${id}`)
     redirect(buildHref(locale, id, previewDriverId, { success: 'Document uploaded successfully.' }))
   }
 
@@ -217,6 +168,7 @@ export default async function DriverTripDetailPage({
           <div><span className="font-medium text-slate-900">Scheduled:</span> {formatDateTime(resolvedTrip.scheduled_at)}</div>
           <div><span className="font-medium text-slate-900">Vehicle:</span> {resolvedTrip.vehicle_name}</div>
           <div><span className="font-medium text-slate-900">Customer contact:</span> {tripDetail.customer?.phone ?? tripDetail.customer?.email ?? '-'}</div>
+          <div><span className="font-medium text-slate-900">Branch:</span> {tripDetail.branch?.name ?? 'No branch'}</div>
           <div className="flex flex-wrap gap-2">
             {resolvedTrip.invoice_number ? <Badge variant="success">{resolvedTrip.invoice_number}</Badge> : <Badge variant="default">Not invoiced</Badge>}
             {resolvedTrip.start_km ? <Badge variant="default">Start {toDisplayNumber(resolvedTrip.start_km)} km</Badge> : null}
@@ -225,68 +177,83 @@ export default async function DriverTripDetailPage({
         </CardContent>
       </Card>
 
-      {resolvedTrip.status === 'planned' ? (
-        <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
-          <CardHeader className="pb-4">
-            <CardTitle>Start trip</CardTitle>
-            <CardDescription>Capture the starting odometer and a short dispatch note before departure.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={startAction} className="space-y-3">
-              {selectedDriverId ? <input type="hidden" name="preview_driver_id" value={selectedDriverId} /> : null}
-              <div className="space-y-2">
-                <Label htmlFor="start_km">Start odometer (km)</Label>
-                <Input id="start_km" name="start_km" inputMode="decimal" placeholder="182450" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="start_notes">Kickoff note</Label>
-                <Textarea id="start_notes" name="notes" placeholder="Loaded, vehicle checked, leaving terminal now." />
-              </div>
-              <Button type="submit" className="w-full">Start trip</Button>
-            </form>
-          </CardContent>
-        </Card>
+      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <CardHeader className="pb-4">
+          <CardTitle>Field checklist</CardTitle>
+          <CardDescription>The essentials to finish before dispatch closes the job and invoicing picks it up.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {tripChecklist.map((item) => (
+            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
+              {item.done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-slate-400" />}
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <CardHeader className="pb-4">
+          <CardTitle>Route brief</CardTitle>
+          <CardDescription>Keep the live route, order context, and site notes visible while working from the phone.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-slate-600">
+          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+            <Route className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <div className="font-medium text-slate-950">Route</div>
+              <div className="mt-1">{resolvedTrip.pickup_location ?? 'Pickup TBD'} {'->'} {resolvedTrip.delivery_location ?? 'Delivery TBD'}</div>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+            <ShieldCheck className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <div className="font-medium text-slate-950">Dispatch note</div>
+              <div className="mt-1">{tripDetail.order?.status ? `Order ${tripDetail.order.order_number ?? 'linked'} is ${tripDetail.order.status}.` : 'No linked order status.'}</div>
+              <div className="mt-1 text-slate-500">{tripDetail.trip.notes ?? 'No route or handling notes recorded yet.'}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {membership.role === 'driver' && !selectedDriverId ? (
+        <DriverTripActionPanel
+          tripId={getTripRouteId(resolvedTrip)}
+          status={resolvedTrip.status as 'planned' | 'started' | 'completed' | 'invoiced'}
+          hasOpenShift={Boolean(mobileTimeSummary?.openEntry)}
+          allowCombinedShiftStart={showTimeModule}
+          defaultWaitingMinutes={resolvedTrip.waiting_time_minutes ?? 0}
+          defaultNotes={tripDetail.trip.notes ?? ''}
+        />
       ) : null}
 
-      {resolvedTrip.status === 'started' ? (
-        <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
-          <CardHeader className="pb-4">
-            <CardTitle>Complete trip</CardTitle>
-            <CardDescription>Record the delivery confirmation, final odometer, and any wait time from the field.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={completeAction} className="space-y-3">
-              {selectedDriverId ? <input type="hidden" name="preview_driver_id" value={selectedDriverId} /> : null}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="end_km">End odometer</Label>
-                  <Input id="end_km" name="end_km" inputMode="decimal" placeholder="182870" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="waiting_time_minutes">Waiting min</Label>
-                  <Input id="waiting_time_minutes" name="waiting_time_minutes" inputMode="numeric" defaultValue={String(resolvedTrip.waiting_time_minutes ?? 0)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="delivery_confirmation">Delivery confirmation</Label>
-                <Input id="delivery_confirmation" name="delivery_confirmation" placeholder="Signed by warehouse contact" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="complete_notes">Driver note</Label>
-                <Textarea id="complete_notes" name="notes" defaultValue={tripDetail.trip.notes ?? ''} placeholder="Queue time, unloading notes, route issues." />
-              </div>
-              <Button type="submit" className="w-full">Complete trip</Button>
-            </form>
-          </CardContent>
-        </Card>
+      {membership.role === 'driver' && !selectedDriverId ? (
+        <DriverCheckpointPanel tripId={getTripRouteId(resolvedTrip)} existingCheckpointTypes={checkpoints.map((checkpoint) => checkpoint.checkpoint_type)} />
+      ) : null}
+
+      {membership.role === 'driver' && !selectedDriverId ? (
+        <DriverProofOfDeliveryCard
+          tripId={getTripRouteId(resolvedTrip)}
+          currentRecipientName={tripDetail.trip.delivery_recipient_name}
+          currentConfirmation={tripDetail.trip.delivery_confirmation}
+          currentReceivedAt={tripDetail.trip.delivery_received_at}
+        />
       ) : null}
 
       <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Proof of delivery and receipts</CardTitle>
-          <CardDescription>Upload photos or PDFs directly from the phone. Files are stored in the `{transportDocumentsBucket}` Supabase bucket when configured.</CardDescription>
+          <CardDescription>Capture a phone photo or upload a PDF directly from the field. Files are stored in the `{transportDocumentsBucket}` Supabase bucket when configured.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <form action={uploadAction} className="space-y-3">
+            {selectedDriverId ? <input type="hidden" name="preview_driver_id" value={selectedDriverId} /> : null}
+            <div className="space-y-2">
+              <Label htmlFor="camera_file">Capture delivery photo</Label>
+              <Input id="camera_file" name="file" type="file" accept="image/*" capture="environment" />
+            </div>
+            <Button type="submit" className="w-full">Capture and upload photo</Button>
+          </form>
           <form action={uploadAction} className="space-y-3">
             {selectedDriverId ? <input type="hidden" name="preview_driver_id" value={selectedDriverId} /> : null}
             <div className="space-y-2">
@@ -295,7 +262,40 @@ export default async function DriverTripDetailPage({
             </div>
             <Button type="submit" variant="outline" className="w-full">Upload document</Button>
           </form>
+          <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+            Document uploads still require connectivity. Trip and shift actions can queue offline and sync automatically when the device reconnects.
+          </div>
           <DriverDocumentList documents={documentFeed} />
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <CardHeader className="pb-4">
+          <CardTitle>Checkpoint history</CardTitle>
+          <CardDescription>Arrival and departure stamps captured from the driver phone with location metadata.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {checkpoints.length > 0 ? (
+            checkpoints.map((checkpoint) => (
+              <div key={checkpoint.id} className="rounded-2xl border border-slate-200 px-4 py-4 text-sm text-slate-600">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-medium text-slate-950">{checkpoint.checkpoint_type.replaceAll('_', ' ')}</div>
+                  <Badge variant="default">{formatDateTime(checkpoint.captured_at)}</Badge>
+                </div>
+                <div className="mt-2">
+                  {checkpoint.latitude}, {checkpoint.longitude}
+                </div>
+                <div className="mt-1 text-slate-500">
+                  Accuracy: {checkpoint.accuracy_meters ? `${Number(checkpoint.accuracy_meters).toFixed(0)} m` : 'n/a'}
+                </div>
+                {checkpoint.notes ? <div className="mt-2 text-slate-500">{checkpoint.notes}</div> : null}
+              </div>
+            ))
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+              No live arrival or departure stamps captured yet.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -307,6 +307,8 @@ export default async function DriverTripDetailPage({
         <CardContent className="space-y-3 text-sm text-slate-600">
           <div><span className="font-medium text-slate-900">Start time:</span> {formatDateTime(tripDetail.trip.start_time)}</div>
           <div><span className="font-medium text-slate-900">End time:</span> {formatDateTime(tripDetail.trip.end_time)}</div>
+          <div><span className="font-medium text-slate-900">Recipient:</span> {tripDetail.trip.delivery_recipient_name ?? 'Not captured yet'}</div>
+          <div><span className="font-medium text-slate-900">Delivery received:</span> {formatDateTime(tripDetail.trip.delivery_received_at)}</div>
           <div><span className="font-medium text-slate-900">Delivery confirmation:</span> {tripDetail.trip.delivery_confirmation ?? 'Not captured yet'}</div>
           <div><span className="font-medium text-slate-900">Notes:</span> {tripDetail.trip.notes ?? 'No notes recorded'}</div>
         </CardContent>

@@ -28,14 +28,19 @@ export async function GET(
   }
 
   const companyId = membership.company_id
+  const branchScope = membership.branchIds.length > 0 ? membership.branchIds : null
+  const { data: branches } = await supabase.from('branches').select('id, code, name').eq('company_id', companyId)
+  const branchMap = new Map((branches ?? []).map((row) => [row.id, { code: row.code, name: row.name }]))
   let csv = ''
 
   if (resource === 'customers') {
-    const { data, error } = await supabase
+    let query = supabase
       .from('customers')
-      .select('name, business_id, vat_number, email, phone, billing_address_line1, billing_address_line2, billing_postal_code, billing_city, billing_country, notes, created_at')
+      .select('branch_id, name, business_id, vat_number, email, phone, billing_address_line1, billing_address_line2, billing_postal_code, billing_city, billing_country, notes, created_at')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
+    if (branchScope) query = query.in('branch_id', branchScope)
+    const { data, error } = await query
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })
@@ -43,6 +48,8 @@ export async function GET(
 
     csv = stringifyCsvRows(
       (data ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
         name: row.name,
         business_id: row.business_id,
         vat_number: row.vat_number,
@@ -60,11 +67,13 @@ export async function GET(
   }
 
   if (resource === 'vehicles') {
-    const { data, error } = await supabase
+    let query = supabase
       .from('vehicles')
-      .select('registration_number, make, model, year, fuel_type, current_km, next_service_km, is_active, created_at')
+      .select('branch_id, registration_number, make, model, year, fuel_type, current_km, next_service_km, is_active, created_at')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
+    if (branchScope) query = query.in('branch_id', branchScope)
+    const { data, error } = await query
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })
@@ -72,6 +81,8 @@ export async function GET(
 
     csv = stringifyCsvRows(
       (data ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
         registration_number: row.registration_number,
         make: row.make,
         model: row.model,
@@ -86,11 +97,13 @@ export async function GET(
   }
 
   if (resource === 'drivers') {
-    const { data, error } = await supabase
+    let query = supabase
       .from('drivers')
-      .select('full_name, phone, email, license_type, employment_type, is_active, created_at')
+      .select('branch_id, full_name, phone, email, license_type, employment_type, is_active, created_at')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
+    if (branchScope) query = query.in('branch_id', branchScope)
+    const { data, error } = await query
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })
@@ -98,6 +111,8 @@ export async function GET(
 
     csv = stringifyCsvRows(
       (data ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
         full_name: row.full_name,
         phone: row.phone,
         email: row.email,
@@ -111,13 +126,24 @@ export async function GET(
 
   if (resource === 'invoices') {
     const [{ data: invoices, error: invoiceError }, { data: customers }, { data: payments }] = await Promise.all([
-      supabase
-        .from('invoices')
-        .select('id, invoice_number, customer_id, issue_date, due_date, status, subtotal, vat_total, total, reference_number, notes, created_at')
-        .eq('company_id', companyId)
-        .order('issue_date', { ascending: false }),
-      supabase.from('customers').select('id, name').eq('company_id', companyId),
-      supabase.from('payments').select('invoice_id, amount').eq('company_id', companyId),
+      (() => {
+        let query = supabase
+          .from('invoices')
+          .select('id, branch_id, invoice_number, customer_id, issue_date, due_date, status, subtotal, vat_total, total, reference_number, notes, created_at')
+          .eq('company_id', companyId)
+          .order('issue_date', { ascending: false })
+        if (branchScope) query = query.in('branch_id', branchScope)
+        return query
+      })(),
+      (() => {
+        let query = supabase.from('customers').select('id, name').eq('company_id', companyId)
+        if (branchScope) query = query.in('branch_id', branchScope)
+        return query
+      })(),
+      (() => {
+        let query = supabase.from('payments').select('invoice_id, amount').eq('company_id', companyId)
+        return query
+      })(),
     ])
 
     if (invoiceError) {
@@ -132,6 +158,8 @@ export async function GET(
 
     csv = stringifyCsvRows(
       (invoices ?? []).map((row) => ({
+        branch_code: row.branch_id ? branchMap.get(row.branch_id)?.code ?? '' : '',
+        branch_name: row.branch_id ? branchMap.get(row.branch_id)?.name ?? '' : '',
         invoice_number: row.invoice_number,
         customer_name: customerMap.get(row.customer_id) ?? 'Unknown customer',
         issue_date: row.issue_date,

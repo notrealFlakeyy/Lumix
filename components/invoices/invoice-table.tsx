@@ -10,6 +10,7 @@ export function InvoiceTable({
   invoices: Array<{
     id: string
     invoice_number: string
+    branch_name?: string
     customer_name: string
     issue_date: string
     due_date: string
@@ -23,6 +24,7 @@ export function InvoiceTable({
         <TableRow>
           <TableHead>Invoice Number</TableHead>
           <TableHead>Customer</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Issue Date</TableHead>
           <TableHead>Due Date</TableHead>
           <TableHead>Total</TableHead>
@@ -38,6 +40,7 @@ export function InvoiceTable({
               </Link>
             </TableCell>
             <TableCell>{invoice.customer_name}</TableCell>
+            <TableCell>{invoice.branch_name ?? 'No branch'}</TableCell>
             <TableCell>{formatDate(invoice.issue_date)}</TableCell>
             <TableCell>{formatDate(invoice.due_date)}</TableCell>
             <TableCell>{formatCurrency(Number(invoice.total ?? 0))}</TableCell>

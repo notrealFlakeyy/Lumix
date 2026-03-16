@@ -11,7 +11,7 @@ import { listVehicles } from '@/lib/db/queries/vehicles'
 export default async function VehiclesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const vehicles = await listVehicles(membership.company_id)
+  const vehicles = await listVehicles(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

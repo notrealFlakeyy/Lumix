@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { canManageOrders } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { updateOrder } from '@/lib/db/mutations/orders'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { listCustomers } from '@/lib/db/queries/customers'
 import { listDrivers } from '@/lib/db/queries/drivers'
 import { getOrderById } from '@/lib/db/queries/orders'
@@ -20,11 +21,12 @@ export default async function EditOrderPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const [result, customers, vehicles, drivers] = await Promise.all([
-    getOrderById(membership.company_id, id),
-    listCustomers(membership.company_id),
-    listVehicles(membership.company_id),
-    listDrivers(membership.company_id),
+  const [result, branches, customers, vehicles, drivers] = await Promise.all([
+    getOrderById(membership.company_id, id, undefined, membership.branchIds),
+    listActiveBranches(membership.company_id, membership),
+    listCustomers(membership.company_id, undefined, membership.branchIds),
+    listVehicles(membership.company_id, undefined, membership.branchIds),
+    listDrivers(membership.company_id, undefined, membership.branchIds),
   ])
   if (!result) return null
 
@@ -35,6 +37,7 @@ export default async function EditOrderPage({
     if (!canManageOrders(membership.role)) throw new Error('Insufficient permissions.')
 
     const input = orderSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       customer_id: getString(formData, 'customer_id'),
       assigned_vehicle_id: getOptionalString(formData, 'assigned_vehicle_id'),
       assigned_driver_id: getOptionalString(formData, 'assigned_driver_id'),
@@ -58,6 +61,7 @@ export default async function EditOrderPage({
       <OrderForm
         action={action}
         defaults={result.order}
+        branches={branches.map((row) => ({ value: row.id, label: row.name }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
         vehicles={vehicles.map((row) => ({ value: row.id, label: row.registration_number }))}
         drivers={drivers.map((row) => ({ value: row.id, label: row.full_name }))}

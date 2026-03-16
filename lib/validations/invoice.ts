@@ -12,6 +12,7 @@ export const invoiceItemSchema = z.object({
 })
 
 export const invoiceSchema = z.object({
+  branch_id: optionalUuid,
   customer_id: z.string().uuid(),
   trip_id: optionalUuid,
   issue_date: z.string().min(1),

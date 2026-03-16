@@ -3,10 +3,20 @@ import 'server-only'
 import type { TableRow } from '@/types/database'
 import type { VehicleInput } from '@/lib/validations/vehicle'
 
+import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { getDbClient, insertAuditLog, type DbClient } from '@/lib/db/shared'
 
-export async function createVehicle(companyId: string, userId: string, input: VehicleInput, client?: DbClient) {
+export async function createVehicle(
+  companyId: string,
+  userId: string,
+  input: VehicleInput,
+  membership?: { branchIds: string[]; hasRestrictedBranchAccess: boolean },
+  client?: DbClient,
+) {
   const supabase = await getDbClient(client)
+  if (membership) {
+    ensureBranchAccess(membership, input.branch_id, 'vehicle')
+  }
   const { data, error } = await supabase
     .from('vehicles')
     .insert({
@@ -34,9 +44,19 @@ export async function createVehicle(companyId: string, userId: string, input: Ve
   return vehicle
 }
 
-export async function updateVehicle(companyId: string, userId: string, id: string, input: VehicleInput, client?: DbClient) {
+export async function updateVehicle(
+  companyId: string,
+  userId: string,
+  id: string,
+  input: VehicleInput,
+  membership?: { branchIds: string[]; hasRestrictedBranchAccess: boolean },
+  client?: DbClient,
+) {
   const supabase = await getDbClient(client)
   const { data: previous } = await supabase.from('vehicles').select('*').eq('company_id', companyId).eq('id', id).maybeSingle()
+  if (membership) {
+    ensureBranchAccess(membership, input.branch_id, 'vehicle')
+  }
   const { data, error } = await supabase
     .from('vehicles')
     .update({

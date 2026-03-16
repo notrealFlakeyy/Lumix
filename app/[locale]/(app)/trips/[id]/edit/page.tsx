@@ -6,6 +6,7 @@ import { TripForm } from '@/components/trips/trip-form'
 import { canManageOrders } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { updateTrip } from '@/lib/db/mutations/trips'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { listCustomers } from '@/lib/db/queries/customers'
 import { listDrivers } from '@/lib/db/queries/drivers'
 import { listOrders } from '@/lib/db/queries/orders'
@@ -22,12 +23,13 @@ export default async function EditTripPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const [result, orders, customers, vehicles, drivers] = await Promise.all([
-    getTripById(membership.company_id, id),
-    listOrders(membership.company_id),
-    listCustomers(membership.company_id),
-    listVehicles(membership.company_id),
-    listDrivers(membership.company_id),
+  const [result, branches, orders, customers, vehicles, drivers] = await Promise.all([
+    getTripById(membership.company_id, id, undefined, membership.branchIds),
+    listActiveBranches(membership.company_id, membership),
+    listOrders(membership.company_id, undefined, membership.branchIds),
+    listCustomers(membership.company_id, undefined, membership.branchIds),
+    listVehicles(membership.company_id, undefined, membership.branchIds),
+    listDrivers(membership.company_id, undefined, membership.branchIds),
   ])
   if (!result) return null
   const trip = result.trip
@@ -39,6 +41,7 @@ export default async function EditTripPage({
     if (!canManageOrders(membership.role)) throw new Error('Insufficient permissions.')
 
     const input = tripSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       transport_order_id: getOptionalString(formData, 'transport_order_id'),
       customer_id: getString(formData, 'customer_id'),
       vehicle_id: getOptionalString(formData, 'vehicle_id'),
@@ -66,6 +69,7 @@ export default async function EditTripPage({
       <TripForm
         action={action}
         defaults={trip}
+        branches={branches.map((row) => ({ value: row.id, label: row.name }))}
         orders={orders.map((row) => ({ value: row.id, label: row.order_number }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
         vehicles={vehicles.map((row) => ({ value: row.id, label: row.registration_number }))}

@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const bundle = await getInvoiceById(membership.company_id, id)
+  const bundle = await getInvoiceById(membership.company_id, id, undefined, membership.branchIds)
 
   if (!bundle) {
     return new Response('Invoice not found.', { status: 404 })

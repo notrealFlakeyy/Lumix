@@ -5,6 +5,7 @@ import type { Membership } from '@/types/app'
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { activeCompanyCookieName } from '@/lib/auth/constants'
+import { defaultEnabledPlatformModules, normalizeEnabledPlatformModules } from '@/lib/platform/modules'
 
 export async function getCurrentMembership() {
   const supabase = await createSupabaseServerClient()
@@ -39,14 +40,45 @@ export async function getCurrentMembership() {
     .select('id, name, timezone, country')
     .in('id', companyIds)
 
+  const { data: companyModules } = await supabase
+    .from('company_modules')
+    .select('company_id, module_key, is_enabled')
+    .in('company_id', companyIds)
+
+  const { data: companyUserBranches } = await supabase
+    .from('company_user_branches')
+    .select('company_id, branch_id')
+    .eq('user_id', user.id)
+    .in('company_id', companyIds)
+
   const companyMap = new Map((companies ?? []).map((company) => [company.id, company]))
+  const companyModuleMap = new Map<string, string[]>()
+  const companyBranchScopeMap = new Map<string, string[]>()
+
+  for (const moduleRow of companyModules ?? []) {
+    if (!moduleRow.is_enabled) continue
+    const current = companyModuleMap.get(moduleRow.company_id) ?? []
+    current.push(moduleRow.module_key)
+    companyModuleMap.set(moduleRow.company_id, current)
+  }
+
+  for (const branchRow of companyUserBranches ?? []) {
+    const current = companyBranchScopeMap.get(branchRow.company_id) ?? []
+    current.push(branchRow.branch_id)
+    companyBranchScopeMap.set(branchRow.company_id, current)
+  }
+
   const memberships = membershipRows
     .map((membershipRow) => {
       const company = companyMap.get(membershipRow.company_id)
+      const branchIds = [...new Set(companyBranchScopeMap.get(membershipRow.company_id) ?? [])]
       return company
         ? {
             ...membershipRow,
             company,
+            enabledModules: normalizeEnabledPlatformModules(companyModuleMap.get(membershipRow.company_id) ?? defaultEnabledPlatformModules),
+            branchIds,
+            hasRestrictedBranchAccess: branchIds.length > 0,
           }
         : null
     })

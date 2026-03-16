@@ -10,6 +10,7 @@ export function DriverTable({
     id: string
     public_id?: string | null
     full_name: string
+    branch_name?: string | null
     phone: string | null
     email: string | null
     license_type: string | null
@@ -22,6 +23,7 @@ export function DriverTable({
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Phone</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>License Type</TableHead>
@@ -37,6 +39,7 @@ export function DriverTable({
                 {driver.full_name}
               </Link>
             </TableCell>
+            <TableCell>{driver.branch_name ?? '-'}</TableCell>
             <TableCell>{driver.phone ?? '-'}</TableCell>
             <TableCell>{driver.email ?? '-'}</TableCell>
             <TableCell>{driver.license_type ?? '-'}</TableCell>

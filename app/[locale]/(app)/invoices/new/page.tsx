@@ -6,15 +6,21 @@ import { PageHeader } from '@/components/layout/page-header'
 import { canManageInvoices } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createInvoice } from '@/lib/db/mutations/invoices'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { listCustomers } from '@/lib/db/queries/customers'
 import { listTrips } from '@/lib/db/queries/trips'
+import { getTripDisplayId } from '@/lib/utils/public-ids'
 import { invoiceSchema } from '@/lib/validations/invoice'
 import { getOptionalString, getString, parseInvoiceItems } from '@/lib/utils/forms'
 
 export default async function NewInvoicePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const [customers, trips] = await Promise.all([listCustomers(membership.company_id), listTrips(membership.company_id)])
+  const [branches, customers, trips] = await Promise.all([
+    listActiveBranches(membership.company_id, membership),
+    listCustomers(membership.company_id, undefined, membership.branchIds),
+    listTrips(membership.company_id, undefined, membership.branchIds),
+  ])
 
   async function action(formData: FormData) {
     'use server'
@@ -23,6 +29,7 @@ export default async function NewInvoicePage({ params }: { params: Promise<{ loc
     if (!canManageInvoices(membership.role)) throw new Error('Insufficient permissions.')
 
     const input = invoiceSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       customer_id: getString(formData, 'customer_id'),
       trip_id: getOptionalString(formData, 'trip_id'),
       issue_date: getString(formData, 'issue_date'),
@@ -47,8 +54,9 @@ export default async function NewInvoicePage({ params }: { params: Promise<{ loc
       <InvoiceForm
         action={action}
         defaults={{ issue_date: today, due_date: dueDate, status: 'draft' }}
+        branches={branches.map((row) => ({ value: row.id, label: row.name }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
-        trips={trips.map((row) => ({ value: row.id, label: `${row.id.slice(0, 8).toUpperCase()} • ${row.customer_name}` }))}
+        trips={trips.map((row) => ({ value: row.id, label: `${getTripDisplayId(row)} | ${row.customer_name}${'branch_name' in row ? ` | ${row.branch_name}` : ''}` }))}
         items={[{ description: 'Transport service', quantity: 1, unit_price: 0, vat_rate: 25.5 }]}
         submitLabel="Create invoice"
       />

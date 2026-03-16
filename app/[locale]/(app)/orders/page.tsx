@@ -11,7 +11,7 @@ import { listOrders } from '@/lib/db/queries/orders'
 export default async function OrdersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const orders = await listOrders(membership.company_id)
+  const orders = await listOrders(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

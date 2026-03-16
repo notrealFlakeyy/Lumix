@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { canManageOrders } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createOrder } from '@/lib/db/mutations/orders'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { listCustomers } from '@/lib/db/queries/customers'
 import { listDrivers } from '@/lib/db/queries/drivers'
 import { listVehicles } from '@/lib/db/queries/vehicles'
@@ -16,10 +17,11 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
   const { locale } = await params
   const { membership } = await requireCompany(locale)
 
-  const [customers, vehicles, drivers] = await Promise.all([
-    listCustomers(membership.company_id),
-    listVehicles(membership.company_id),
-    listDrivers(membership.company_id),
+  const [branches, customers, vehicles, drivers] = await Promise.all([
+    listActiveBranches(membership.company_id, membership),
+    listCustomers(membership.company_id, undefined, membership.branchIds),
+    listVehicles(membership.company_id, undefined, membership.branchIds),
+    listDrivers(membership.company_id, undefined, membership.branchIds),
   ])
 
   async function action(formData: FormData) {
@@ -31,6 +33,7 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
     }
 
     const input = orderSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       customer_id: getString(formData, 'customer_id'),
       assigned_vehicle_id: getOptionalString(formData, 'assigned_vehicle_id'),
       assigned_driver_id: getOptionalString(formData, 'assigned_driver_id'),
@@ -52,6 +55,7 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
       <PageHeader title="New Order" description="Create a transport order and optionally assign a vehicle and driver immediately." />
       <OrderForm
         action={action}
+        branches={branches.map((row) => ({ value: row.id, label: row.name }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
         vehicles={vehicles.map((row) => ({ value: row.id, label: row.registration_number }))}
         drivers={drivers.map((row) => ({ value: row.id, label: row.full_name }))}

@@ -6,12 +6,14 @@ import { PageHeader } from '@/components/layout/page-header'
 import { canEditMasterData } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createDriver } from '@/lib/db/mutations/drivers'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { driverSchema } from '@/lib/validations/driver'
 import { getCheckboxValue, getOptionalString } from '@/lib/utils/forms'
 
 export default async function NewDriverPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  await requireCompany(locale)
+  const { membership } = await requireCompany(locale)
+  const branches = await listActiveBranches(membership.company_id, membership)
 
   async function action(formData: FormData) {
     'use server'
@@ -22,6 +24,7 @@ export default async function NewDriverPage({ params }: { params: Promise<{ loca
     }
 
     const input = driverSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       full_name: getOptionalString(formData, 'full_name') ?? '',
       phone: getOptionalString(formData, 'phone'),
       email: getOptionalString(formData, 'email'),
@@ -30,7 +33,7 @@ export default async function NewDriverPage({ params }: { params: Promise<{ loca
       is_active: getCheckboxValue(formData, 'is_active'),
     })
 
-    await createDriver(membership.company_id, user.id, input)
+    await createDriver(membership.company_id, user.id, input, membership)
     revalidatePath(`/${locale}/drivers`)
     redirect(`/${locale}/drivers`)
   }
@@ -38,7 +41,7 @@ export default async function NewDriverPage({ params }: { params: Promise<{ loca
   return (
     <div className="space-y-6">
       <PageHeader title="New Driver" description="Create a driver profile for assignment planning and trip reporting." />
-      <DriverForm action={action} submitLabel="Create driver" />
+      <DriverForm action={action} branches={branches.map((branch) => ({ value: branch.id, label: branch.name }))} submitLabel="Create driver" />
     </div>
   )
 }

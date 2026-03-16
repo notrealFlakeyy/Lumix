@@ -11,7 +11,7 @@ import { listDrivers } from '@/lib/db/queries/drivers'
 export default async function DriversPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const drivers = await listDrivers(membership.company_id)
+  const drivers = await listDrivers(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

@@ -13,7 +13,7 @@ export default async function AppLayout({
   const { user, membership, memberships } = await requireCompany(locale)
 
   return (
-    <AppShell locale={locale} membership={membership} memberships={memberships} allowedModules={getAllowedModules(membership.role)} userEmail={user.email}>
+    <AppShell locale={locale} membership={membership} memberships={memberships} allowedModules={getAllowedModules(membership.role, membership.enabledModules)} userEmail={user.email}>
       {children}
     </AppShell>
   )

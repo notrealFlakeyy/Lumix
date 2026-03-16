@@ -9,6 +9,7 @@ export function OrderTable({
   orders: Array<{
     id: string
     order_number: string
+    branch_name?: string
     customer_name: string
     pickup_location: string
     delivery_location: string
@@ -24,6 +25,7 @@ export function OrderTable({
         <TableRow>
           <TableHead>Order Number</TableHead>
           <TableHead>Customer</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Pickup</TableHead>
           <TableHead>Delivery</TableHead>
           <TableHead>Scheduled At</TableHead>
@@ -41,6 +43,7 @@ export function OrderTable({
               </Link>
             </TableCell>
             <TableCell>{order.customer_name}</TableCell>
+            <TableCell>{order.branch_name ?? 'No branch'}</TableCell>
             <TableCell>{order.pickup_location}</TableCell>
             <TableCell>{order.delivery_location}</TableCell>
             <TableCell>{formatDateTime(order.scheduled_at)}</TableCell>

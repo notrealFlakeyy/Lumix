@@ -8,6 +8,7 @@ import { toDateTimeInputValue } from '@/lib/utils/forms'
 type SelectOption = { value: string; label: string }
 
 type OrderDefaults = {
+  branch_id?: string | null
   customer_id?: string | null
   assigned_vehicle_id?: string | null
   assigned_driver_id?: string | null
@@ -25,6 +26,7 @@ export function OrderForm({
   customers,
   vehicles,
   drivers,
+  branches,
   submitLabel,
 }: {
   action: (formData: FormData) => void | Promise<void>
@@ -32,6 +34,7 @@ export function OrderForm({
   customers: SelectOption[]
   vehicles: SelectOption[]
   drivers: SelectOption[]
+  branches?: SelectOption[]
   submitLabel: string
 }) {
   return (
@@ -41,6 +44,17 @@ export function OrderForm({
           <CardTitle>Order Summary</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="branch_id">Branch</Label>
+            <select id="branch_id" name="branch_id" defaultValue={defaults?.branch_id ?? branches?.[0]?.value ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">
+              <option value="">No branch</option>
+              {(branches ?? []).map((branch) => (
+                <option key={branch.value} value={branch.value}>
+                  {branch.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="customer_id">Customer</Label>
             <select id="customer_id" name="customer_id" defaultValue={defaults?.customer_id ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">

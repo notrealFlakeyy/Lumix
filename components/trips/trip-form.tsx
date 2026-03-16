@@ -8,6 +8,7 @@ import { toDateTimeInputValue } from '@/lib/utils/forms'
 type SelectOption = { value: string; label: string }
 
 type TripDefaults = {
+  branch_id?: string | null
   transport_order_id?: string | null
   customer_id?: string | null
   vehicle_id?: string | null
@@ -30,6 +31,7 @@ export function TripForm({
   customers,
   vehicles,
   drivers,
+  branches,
   submitLabel,
 }: {
   action: (formData: FormData) => void | Promise<void>
@@ -38,6 +40,7 @@ export function TripForm({
   customers: SelectOption[]
   vehicles: SelectOption[]
   drivers: SelectOption[]
+  branches?: SelectOption[]
   submitLabel: string
 }) {
   return (
@@ -47,6 +50,17 @@ export function TripForm({
           <CardTitle>Trip Summary</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="branch_id">Branch</Label>
+            <select id="branch_id" name="branch_id" defaultValue={defaults?.branch_id ?? branches?.[0]?.value ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">
+              <option value="">No branch</option>
+              {(branches ?? []).map((branch) => (
+                <option key={branch.value} value={branch.value}>
+                  {branch.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="transport_order_id">Linked Order</Label>
             <select id="transport_order_id" name="transport_order_id" defaultValue={defaults?.transport_order_id ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">

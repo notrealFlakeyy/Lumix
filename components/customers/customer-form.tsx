@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 
 type CustomerDefaults = {
+  branch_id?: string | null
   name?: string | null
   business_id?: string | null
   vat_number?: string | null
@@ -18,13 +19,17 @@ type CustomerDefaults = {
   notes?: string | null
 }
 
+type SelectOption = { value: string; label: string }
+
 export function CustomerForm({
   action,
   defaults,
+  branches,
   submitLabel,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaults?: CustomerDefaults
+  branches?: SelectOption[]
   submitLabel: string
 }) {
   return (
@@ -34,6 +39,17 @@ export function CustomerForm({
           <CardTitle>Customer Details</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="branch_id">Branch</Label>
+            <select id="branch_id" name="branch_id" defaultValue={defaults?.branch_id ?? branches?.[0]?.value ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">
+              <option value="">No branch</option>
+              {(branches ?? []).map((branch) => (
+                <option key={branch.value} value={branch.value}>
+                  {branch.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" defaultValue={defaults?.name ?? ''} required />

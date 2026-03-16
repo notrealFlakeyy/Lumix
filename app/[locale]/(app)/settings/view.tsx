@@ -32,9 +32,10 @@ import { hasEmailDeliveryConfig } from '@/lib/env/email'
 import { getMonitoringEnv, hasSentryConfig, hasSentrySourceMapConfig } from '@/lib/env/monitoring'
 import { getServiceRoleEnv } from '@/lib/env/service-role'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+import { defaultEnabledPlatformModules, platformModuleDefinitions } from '@/lib/platform/modules'
 import { parseCsvRecords } from '@/lib/utils/csv'
 import type { TableRow as DbTableRow } from '@/types/database'
-import { companyRoles, type CompanyRole } from '@/types/app'
+import { companyRoles, platformModuleKeys, type CompanyBranch, type CompanyModule, type CompanyRole, type PlatformModuleKey } from '@/types/app'
 import { getCheckboxValue, getOptionalString, getString } from '@/lib/utils/forms'
 import { formatDateTime } from '@/lib/utils/dates'
 import { companyAppSettingsSchema } from '@/lib/validations/company-settings'
@@ -62,6 +63,8 @@ type InviteLinkPayload = {
   actionLink: string
   generatedAt: string
 }
+
+type CsvImportBranch = Pick<DbTableRow<'branches'>, 'id' | 'code' | 'name'>
 
 export type SettingsSection = 'overview' | 'company' | 'team' | 'billing' | 'operations' | 'data'
 
@@ -163,6 +166,35 @@ function parseCsvBoolean(value: string | null | undefined, fallback = true) {
   }
 
   return fallback
+}
+
+function resolveImportedBranchId(
+  row: Record<string, string>,
+  branches: CsvImportBranch[],
+  membership: { branchIds: string[]; hasRestrictedBranchAccess: boolean },
+) {
+  const rawBranch = row.branch_code || row.branch_name || ''
+  if (!rawBranch) {
+    if (membership.hasRestrictedBranchAccess) {
+      if (branches.length === 1) {
+        return branches[0].id
+      }
+      throw new Error('Branch code is required when your access is limited to specific branches.')
+    }
+
+    return undefined
+  }
+
+  const normalizedBranch = normalizeText(rawBranch)
+  const matchedBranch =
+    branches.find((branch) => branch.code && normalizeText(branch.code) === normalizedBranch) ??
+    branches.find((branch) => normalizeText(branch.name) === normalizedBranch)
+
+  if (!matchedBranch) {
+    throw new Error(`Unknown branch reference "${rawBranch}". Use an active branch code or exact branch name.`)
+  }
+
+  return matchedBranch.id
 }
 
 function getSubscriptionBadgeVariant(status: string | null | undefined): 'default' | 'success' | 'warning' | 'destructive' {
@@ -291,13 +323,16 @@ export async function SettingsView({
   const inviteLinkData = parseInviteLinkCookie((await cookies()).get(INVITE_LINK_COOKIE)?.value)
   const { supabase, membership, user } = await requireCompany(locale)
 
-  const [company, memberships, profiles, drivers, customers, vehicles] = await Promise.all([
+  const [company, memberships, profiles, drivers, customers, vehicles, companyModules, branches, companyUserBranches] = await Promise.all([
     supabase.from('companies').select('*').eq('id', membership.company_id).single(),
     supabase.from('company_users').select('user_id, role, is_active, created_at').eq('company_id', membership.company_id).order('created_at'),
     supabase.from('profiles').select('id, full_name, phone'),
     supabase.from('drivers').select('*').eq('company_id', membership.company_id).order('full_name'),
     supabase.from('customers').select('name, business_id, email').eq('company_id', membership.company_id).order('name'),
     supabase.from('vehicles').select('registration_number').eq('company_id', membership.company_id).order('registration_number'),
+    supabase.from('company_modules').select('*').eq('company_id', membership.company_id).order('module_key'),
+    supabase.from('branches').select('*').eq('company_id', membership.company_id).order('name'),
+    supabase.from('company_user_branches').select('user_id, branch_id').eq('company_id', membership.company_id),
   ])
   const companyData = company.data as DbTableRow<'companies'> | null
   if (!companyData) return null
@@ -307,6 +342,9 @@ export async function SettingsView({
   const driverRows = (drivers.data ?? []) as DbTableRow<'drivers'>[]
   const customerRows = (customers.data ?? []) as Pick<DbTableRow<'customers'>, 'name' | 'business_id' | 'email'>[]
   const vehicleRows = (vehicles.data ?? []) as Pick<DbTableRow<'vehicles'>, 'registration_number'>[]
+  const companyModuleRows = (companyModules.data ?? []) as CompanyModule[]
+  const branchRows = (branches.data ?? []) as CompanyBranch[]
+  const companyUserBranchRows = (companyUserBranches.data ?? []) as Array<Pick<DbTableRow<'company_user_branches'>, 'user_id' | 'branch_id'>>
   const [recentAuditLogs, diagnostics, billingOverview, companyAppSettings] = await Promise.all([
     listRecentAuditLogs(membership.company_id, 10, supabase),
     getCompanyDiagnostics(membership.company_id, supabase),
@@ -317,6 +355,17 @@ export async function SettingsView({
   const resolvedCompanyAppSettings = {
     ...defaultCompanyAppSettings,
     ...(companyAppSettings ?? {}),
+  }
+  const enabledCompanyModuleKeys = new Set(
+    (companyModuleRows.filter((row) => row.is_enabled).map((row) => row.module_key) as PlatformModuleKey[]).length > 0
+      ? (companyModuleRows.filter((row) => row.is_enabled).map((row) => row.module_key) as PlatformModuleKey[])
+      : defaultEnabledPlatformModules,
+  )
+  const branchAccessMap = new Map<string, string[]>()
+  for (const row of companyUserBranchRows) {
+    const current = branchAccessMap.get(row.user_id) ?? []
+    current.push(row.branch_id)
+    branchAccessMap.set(row.user_id, current)
   }
   const authUserMap = await getAuthUserMap([...new Set(membershipRows.map((member) => member.user_id))])
   const linkedUserIds = new Set(driverRows.map((driver) => driver.auth_user_id).filter(Boolean))
@@ -401,7 +450,7 @@ export async function SettingsView({
 
     const { supabase, membership } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     await supabase
@@ -422,7 +471,132 @@ export async function SettingsView({
       .eq('id', membership.company_id)
 
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Company details saved.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Company details saved.' }))
+  }
+
+  async function updateCompanyModulesAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
+    }
+
+    const payload = platformModuleKeys.map((moduleKey) => ({
+      company_id: membership.company_id,
+      module_key: moduleKey,
+      is_enabled: moduleKey === 'core' ? true : getCheckboxValue(formData, `module_${moduleKey}`),
+    }))
+
+    const { error: upsertError } = await supabase.from('company_modules').upsert(payload, { onConflict: 'company_id,module_key' })
+
+    if (upsertError) {
+      redirect(buildSettingsHref(locale, section, { error: upsertError.message }))
+    }
+
+    await insertAuditLog(createSupabaseAdminClient(), {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_modules',
+      entity_id: membership.company_id,
+      action: 'update_company_modules',
+      new_values: {
+        enabled_modules: payload.filter((row) => row.is_enabled).map((row) => row.module_key),
+      },
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/settings/company`)
+    redirect(buildSettingsHref(locale, section, { success: 'Platform modules updated.' }))
+  }
+
+  async function createBranchAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
+    }
+
+    const name = getString(formData, 'branch_name')
+    if (!name.trim()) {
+      redirect(buildSettingsHref(locale, section, { error: 'Branch name is required.' }))
+    }
+
+    const payload = {
+      company_id: membership.company_id,
+      name,
+      code: getOptionalString(formData, 'branch_code'),
+      branch_type: getOptionalString(formData, 'branch_type') ?? 'branch',
+      city: getOptionalString(formData, 'branch_city'),
+      country: (getOptionalString(formData, 'branch_country') ?? 'FI').toUpperCase(),
+      is_active: true,
+    }
+
+    const { data, error: insertError } = await supabase.from('branches').insert(payload).select('*').single()
+    const branch = data as DbTableRow<'branches'> | null
+
+    if (insertError || !branch) {
+      redirect(buildSettingsHref(locale, section, { error: insertError?.message ?? 'Unable to create branch.' }))
+    }
+
+    await insertAuditLog(createSupabaseAdminClient(), {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'branch',
+      entity_id: branch.id,
+      action: 'create_branch',
+      new_values: branch,
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/settings/company`)
+    redirect(buildSettingsHref(locale, section, { success: `Branch ${branch.name} created.` }))
+  }
+
+  async function updateBranchAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
+    }
+
+    const branchId = getString(formData, 'branch_id')
+    const payload = {
+      name: getString(formData, 'branch_name'),
+      code: getOptionalString(formData, 'branch_code'),
+      branch_type: getOptionalString(formData, 'branch_type') ?? 'branch',
+      city: getOptionalString(formData, 'branch_city'),
+      country: (getOptionalString(formData, 'branch_country') ?? 'FI').toUpperCase(),
+      is_active: getCheckboxValue(formData, 'branch_is_active'),
+    }
+
+    const { data, error: updateError } = await supabase
+      .from('branches')
+      .update(payload)
+      .eq('id', branchId)
+      .eq('company_id', membership.company_id)
+      .select('*')
+      .single()
+    const branch = data as DbTableRow<'branches'> | null
+
+    if (updateError || !branch) {
+      redirect(buildSettingsHref(locale, section, { error: updateError?.message ?? 'Unable to update branch.' }))
+    }
+
+    await insertAuditLog(createSupabaseAdminClient(), {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'branch',
+      entity_id: branch.id,
+      action: 'update_branch',
+      new_values: branch,
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/settings/company`)
+    redirect(buildSettingsHref(locale, section, { success: `Branch ${branch.name} updated.` }))
   }
 
   async function inviteTeamMemberAction(formData: FormData) {
@@ -430,7 +604,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const email = normalizeEmail(getString(formData, 'email'))
@@ -445,11 +619,11 @@ export async function SettingsView({
     const employmentType = getOptionalString(formData, 'driver_employment_type')
 
     if (!email) {
-      redirect(buildSettingsHref(locale, { error: 'Email is required.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Email is required.' }))
     }
 
     if (role === 'owner' && membership.role !== 'owner') {
-      redirect(buildSettingsHref(locale, { error: 'Only an owner can invite another owner.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only an owner can invite another owner.' }))
     }
 
     const admin = createSupabaseAdminClient()
@@ -465,7 +639,7 @@ export async function SettingsView({
     if (!targetUser) {
       if (createAccountWithoutEmail) {
         if (!temporaryPassword || temporaryPassword.length < 8) {
-          redirect(buildSettingsHref(locale, { error: 'Temporary password must be at least 8 characters for manual account creation.' }))
+          redirect(buildSettingsHref(locale, section, { error: 'Temporary password must be at least 8 characters for manual account creation.' }))
         }
 
         const { data, error } = await admin.auth.admin.createUser({
@@ -478,7 +652,7 @@ export async function SettingsView({
         })
 
         if (error || !data.user) {
-          redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to create user account.' }))
+          redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to create user account.' }))
         }
 
         targetUser = data.user
@@ -497,7 +671,7 @@ export async function SettingsView({
           })
 
           if (error || !data.user || !data.properties?.action_link) {
-            redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+            redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to generate invite link.' }))
           }
 
           targetUser = data.user
@@ -515,7 +689,7 @@ export async function SettingsView({
           })
 
           if (error || !data.user) {
-            redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to invite user.' }))
+            redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to invite user.' }))
           }
 
           targetUser = data.user
@@ -534,7 +708,7 @@ export async function SettingsView({
     )
 
     if (profileError) {
-      redirect(buildSettingsHref(locale, { error: profileError.message }))
+      redirect(buildSettingsHref(locale, section, { error: profileError.message }))
     }
 
     const membershipResponse = await admin
@@ -554,7 +728,7 @@ export async function SettingsView({
     const membershipError = membershipResponse.error
 
     if (membershipError || !membershipRow) {
-      redirect(buildSettingsHref(locale, { error: membershipError?.message ?? 'Unable to save company membership.' }))
+      redirect(buildSettingsHref(locale, section, { error: membershipError?.message ?? 'Unable to save company membership.' }))
     }
 
     let driverAuditValues: DbTableRow<'drivers'> | null = null
@@ -594,7 +768,7 @@ export async function SettingsView({
           .single()
 
         if (driverUpdateError) {
-          redirect(buildSettingsHref(locale, { error: driverUpdateError.message }))
+          redirect(buildSettingsHref(locale, section, { error: driverUpdateError.message }))
         }
 
         driverAuditValues = updatedDriver as DbTableRow<'drivers'>
@@ -615,7 +789,7 @@ export async function SettingsView({
           .single()
 
         if (driverInsertError) {
-          redirect(buildSettingsHref(locale, { error: driverInsertError.message }))
+          redirect(buildSettingsHref(locale, section, { error: driverInsertError.message }))
         }
 
         driverAuditValues = createdDriver as DbTableRow<'drivers'>
@@ -655,7 +829,7 @@ export async function SettingsView({
       })
 
       if (error || !data.properties?.action_link) {
-        redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+        redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to generate invite link.' }))
       }
 
       inviteLinkPayload = {
@@ -683,7 +857,7 @@ export async function SettingsView({
     revalidatePath(`/${locale}/settings`)
     revalidatePath(`/${locale}/drivers`)
     redirect(
-      buildSettingsHref(locale, {
+      buildSettingsHref(locale, section, {
         success: wasCreatedManually
           ? 'User created and membership assigned. Share the temporary password securely.'
           : inviteLinkPayload
@@ -700,7 +874,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const targetUserId = getString(formData, 'target_user_id')
@@ -717,15 +891,15 @@ export async function SettingsView({
     const currentMembership = currentMembershipResponse.data as DbTableRow<'company_users'> | null
 
     if (!currentMembership) {
-      redirect(buildSettingsHref(locale, { error: 'Membership not found.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Membership not found.' }))
     }
 
     if (membership.role !== 'owner' && (currentMembership.role === 'owner' || nextRole === 'owner')) {
-      redirect(buildSettingsHref(locale, { error: 'Only an owner can change owner memberships.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only an owner can change owner memberships.' }))
     }
 
     if (targetUserId === user.id && !isActive) {
-      redirect(buildSettingsHref(locale, { error: 'You cannot deactivate your own active membership.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'You cannot deactivate your own active membership.' }))
     }
 
     if (currentMembership.role === 'owner' && (!isActive || nextRole !== 'owner')) {
@@ -738,7 +912,7 @@ export async function SettingsView({
         .neq('user_id', targetUserId)
 
       if (!count || count < 1) {
-        redirect(buildSettingsHref(locale, { error: 'At least one active owner must remain in the company.' }))
+        redirect(buildSettingsHref(locale, section, { error: 'At least one active owner must remain in the company.' }))
       }
     }
 
@@ -756,7 +930,7 @@ export async function SettingsView({
     const updateError = updatedMembershipResponse.error
 
     if (updateError || !updatedMembership) {
-      redirect(buildSettingsHref(locale, { error: updateError?.message ?? 'Unable to update membership.' }))
+      redirect(buildSettingsHref(locale, section, { error: updateError?.message ?? 'Unable to update membership.' }))
     }
 
     await insertAuditLog(admin, {
@@ -770,7 +944,7 @@ export async function SettingsView({
     })
 
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Membership updated.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Membership updated.' }))
   }
 
   async function updateDriverLinkAction(formData: FormData) {
@@ -778,7 +952,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const driverId = getString(formData, 'driver_id')
@@ -799,11 +973,11 @@ export async function SettingsView({
 
     const typedDriver = currentDriver as DbTableRow<'drivers'> | null
     if (!typedDriver) {
-      redirect(buildSettingsHref(locale, { error: 'Driver row not found.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Driver row not found.' }))
     }
 
     if (authUserId && (!selectedMembership || !selectedMembership.is_active || selectedMembership.role !== 'driver')) {
-      redirect(buildSettingsHref(locale, { error: 'Only active company users with the driver role can be linked.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only active company users with the driver role can be linked.' }))
     }
 
     const { data: updatedDriver, error: updateError } = await admin
@@ -815,7 +989,7 @@ export async function SettingsView({
       .single()
 
     if (updateError || !updatedDriver) {
-      redirect(buildSettingsHref(locale, { error: updateError?.message ?? 'Unable to update driver link.' }))
+      redirect(buildSettingsHref(locale, section, { error: updateError?.message ?? 'Unable to update driver link.' }))
     }
 
     await insertAuditLog(admin, {
@@ -830,7 +1004,7 @@ export async function SettingsView({
 
     revalidatePath(`/${locale}/settings`)
     revalidatePath(`/${locale}/drivers`)
-    redirect(buildSettingsHref(locale, { success: authUserId ? 'Driver login linked.' : 'Driver login link cleared.' }))
+    redirect(buildSettingsHref(locale, section, { success: authUserId ? 'Driver login linked.' : 'Driver login link cleared.' }))
   }
 
   async function autoLinkDriversAction() {
@@ -838,7 +1012,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const admin = createSupabaseAdminClient()
@@ -895,7 +1069,7 @@ export async function SettingsView({
           .single()
 
         if (updateError || !updatedDriver) {
-          redirect(buildSettingsHref(locale, { error: updateError?.message ?? `Auto-link failed for ${driver.full_name}.` }))
+          redirect(buildSettingsHref(locale, section, { error: updateError?.message ?? `Auto-link failed for ${driver.full_name}.` }))
         }
 
         linkedUserIds.add(candidate.user_id)
@@ -924,7 +1098,7 @@ export async function SettingsView({
     revalidatePath(`/${locale}/settings`)
     revalidatePath(`/${locale}/drivers`)
     redirect(
-      buildSettingsHref(locale, {
+      buildSettingsHref(locale, section, {
         success: `Driver auto-link completed. ${linked} linked, ${ambiguous} ambiguous, ${skipped} unchanged.`,
       }),
     )
@@ -935,7 +1109,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const targetUserId = getString(formData, 'target_user_id')
@@ -955,15 +1129,15 @@ export async function SettingsView({
     const profile = profileResponse.data as Pick<DbTableRow<'profiles'>, 'full_name'> | null
 
     if (!typedMembership || !typedMembership.is_active) {
-      redirect(buildSettingsHref(locale, { error: 'Only active memberships can receive invite emails.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only active memberships can receive invite emails.' }))
     }
 
     if (!authUser?.email) {
-      redirect(buildSettingsHref(locale, { error: 'Auth user email could not be resolved.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Auth user email could not be resolved.' }))
     }
 
     if (authUser.last_sign_in_at || authUser.email_confirmed_at) {
-      redirect(buildSettingsHref(locale, { error: 'This user already completed account setup. No invite resend is needed.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'This user already completed account setup. No invite resend is needed.' }))
     }
 
     const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(authUser.email, {
@@ -974,7 +1148,7 @@ export async function SettingsView({
     })
 
     if (inviteError) {
-      redirect(buildSettingsHref(locale, { error: inviteError.message }))
+      redirect(buildSettingsHref(locale, section, { error: inviteError.message }))
     }
 
     await insertAuditLog(admin, {
@@ -987,7 +1161,7 @@ export async function SettingsView({
     })
 
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: `Invite resent to ${authUser.email}.` }))
+    redirect(buildSettingsHref(locale, section, { success: `Invite resent to ${authUser.email}.` }))
   }
 
   async function revokeMembershipAction(formData: FormData) {
@@ -995,7 +1169,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const targetUserId = getString(formData, 'target_user_id')
@@ -1009,15 +1183,15 @@ export async function SettingsView({
     const currentMembership = currentMembershipResponse.data as DbTableRow<'company_users'> | null
 
     if (!currentMembership) {
-      redirect(buildSettingsHref(locale, { error: 'Membership not found.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Membership not found.' }))
     }
 
     if (membership.role !== 'owner' && currentMembership.role === 'owner') {
-      redirect(buildSettingsHref(locale, { error: 'Only an owner can revoke another owner.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only an owner can revoke another owner.' }))
     }
 
     if (targetUserId === user.id) {
-      redirect(buildSettingsHref(locale, { error: 'You cannot revoke your own active membership.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'You cannot revoke your own active membership.' }))
     }
 
     if (currentMembership.role === 'owner' && currentMembership.is_active) {
@@ -1030,7 +1204,7 @@ export async function SettingsView({
         .neq('user_id', targetUserId)
 
       if (!count || count < 1) {
-        redirect(buildSettingsHref(locale, { error: 'At least one active owner must remain in the company.' }))
+        redirect(buildSettingsHref(locale, section, { error: 'At least one active owner must remain in the company.' }))
       }
     }
 
@@ -1046,7 +1220,7 @@ export async function SettingsView({
     const updatedMembership = updatedMembershipResponse.data as DbTableRow<'company_users'> | null
 
     if (updatedMembershipResponse.error || !updatedMembership) {
-      redirect(buildSettingsHref(locale, { error: updatedMembershipResponse.error?.message ?? 'Unable to revoke membership.' }))
+      redirect(buildSettingsHref(locale, section, { error: updatedMembershipResponse.error?.message ?? 'Unable to revoke membership.' }))
     }
 
     const linkedDriversResponse = await admin
@@ -1087,7 +1261,7 @@ export async function SettingsView({
 
     revalidatePath(`/${locale}/settings`)
     revalidatePath(`/${locale}/drivers`)
-    redirect(buildSettingsHref(locale, { success: 'Membership access revoked.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Membership access revoked.' }))
   }
 
   async function generateInviteLinkAction(formData: FormData) {
@@ -1095,7 +1269,7 @@ export async function SettingsView({
 
     const { membership, user } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const targetUserId = getString(formData, 'target_user_id')
@@ -1115,15 +1289,15 @@ export async function SettingsView({
     const profile = profileResponse.data as Pick<DbTableRow<'profiles'>, 'full_name'> | null
 
     if (!typedMembership || !typedMembership.is_active) {
-      redirect(buildSettingsHref(locale, { error: 'Only active memberships can receive invite links.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Only active memberships can receive invite links.' }))
     }
 
     if (!authUser?.email) {
-      redirect(buildSettingsHref(locale, { error: 'Auth user email could not be resolved.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Auth user email could not be resolved.' }))
     }
 
     if (authUser.last_sign_in_at || authUser.email_confirmed_at) {
-      redirect(buildSettingsHref(locale, { error: 'This user already completed account setup. No invite link is needed.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'This user already completed account setup. No invite link is needed.' }))
     }
 
     const { data, error } = await admin.auth.admin.generateLink({
@@ -1138,7 +1312,7 @@ export async function SettingsView({
     })
 
     if (error || !data.properties?.action_link) {
-      redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to generate invite link.' }))
+      redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to generate invite link.' }))
     }
 
     await setInviteLinkCookie({
@@ -1157,7 +1331,7 @@ export async function SettingsView({
     })
 
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: `Invite link generated for ${authUser.email}.` }))
+    redirect(buildSettingsHref(locale, section, { success: `Invite link generated for ${authUser.email}.` }))
   }
 
   async function clearInviteLinkAction() {
@@ -1165,7 +1339,60 @@ export async function SettingsView({
 
     await clearInviteLinkCookie()
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale))
+    redirect(buildSettingsHref(locale, section))
+  }
+
+  async function updateBranchAccessAction(formData: FormData) {
+    'use server'
+
+    const { membership, user, supabase } = await requireCompany(locale)
+    if (!canManageSettings(membership.role)) {
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
+    }
+
+    const targetUserId = getString(formData, 'target_user_id')
+    const selectedBranchIds = formData
+      .getAll('branch_ids')
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
+
+    const { error: deleteError } = await supabase
+      .from('company_user_branches')
+      .delete()
+      .eq('company_id', membership.company_id)
+      .eq('user_id', targetUserId)
+
+    if (deleteError) {
+      redirect(buildSettingsHref(locale, section, { error: deleteError.message }))
+    }
+
+    if (selectedBranchIds.length > 0) {
+      const rows = selectedBranchIds.map((branchId) => ({
+        company_id: membership.company_id,
+        user_id: targetUserId,
+        branch_id: branchId,
+      }))
+      const { error: insertError } = await supabase.from('company_user_branches').insert(rows)
+
+      if (insertError) {
+        redirect(buildSettingsHref(locale, section, { error: insertError.message }))
+      }
+    }
+
+    await insertAuditLog(createSupabaseAdminClient(), {
+      company_id: membership.company_id,
+      user_id: user.id,
+      entity_type: 'company_user_branches',
+      entity_id: null,
+      action: 'update_branch_access',
+      new_values: {
+        target_user_id: targetUserId,
+        branch_ids: selectedBranchIds,
+      },
+    })
+
+    revalidatePath(`/${locale}/settings`)
+    revalidatePath(`/${locale}/settings/team`)
+    redirect(buildSettingsHref(locale, section, { success: 'Branch access updated.' }))
   }
 
   async function startBillingCheckoutAction(formData: FormData) {
@@ -1173,12 +1400,12 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const planKey = getString(formData, 'plan_key')
     if (!isBillablePlanKey(planKey)) {
-      redirect(buildSettingsHref(locale, { error: 'Unsupported billing plan.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Unsupported billing plan.' }))
     }
 
     const { data: companyRecord, error: companyError } = await supabase
@@ -1188,7 +1415,7 @@ export async function SettingsView({
       .single()
 
     if (companyError || !companyRecord) {
-      redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
+      redirect(buildSettingsHref(locale, section, { error: companyError?.message ?? 'Company details could not be loaded.' }))
     }
 
     let checkoutUrl: string
@@ -1211,7 +1438,7 @@ export async function SettingsView({
         new_values: { plan_key: planKey },
       })
     } catch (error) {
-      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe checkout could not be created.' }))
+      redirect(buildSettingsHref(locale, section, { error: error instanceof Error ? error.message : 'Stripe checkout could not be created.' }))
     }
 
     redirect(checkoutUrl)
@@ -1222,7 +1449,7 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const { data: companyRecord, error: companyError } = await supabase
@@ -1232,7 +1459,7 @@ export async function SettingsView({
       .single()
 
     if (companyError || !companyRecord) {
-      redirect(buildSettingsHref(locale, { error: companyError?.message ?? 'Company details could not be loaded.' }))
+      redirect(buildSettingsHref(locale, section, { error: companyError?.message ?? 'Company details could not be loaded.' }))
     }
 
     let portalUrl: string
@@ -1252,7 +1479,7 @@ export async function SettingsView({
         action: 'open_billing_portal',
       })
     } catch (error) {
-      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Stripe billing portal could not be opened.' }))
+      redirect(buildSettingsHref(locale, section, { error: error instanceof Error ? error.message : 'Stripe billing portal could not be opened.' }))
     }
 
     redirect(portalUrl)
@@ -1263,7 +1490,7 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const parsed = companyAppSettingsSchema.safeParse({
@@ -1283,7 +1510,7 @@ export async function SettingsView({
     })
 
     if (!parsed.success) {
-      redirect(buildSettingsHref(locale, { error: parsed.error.issues[0]?.message ?? 'Invalid company settings.' }))
+      redirect(buildSettingsHref(locale, section, { error: parsed.error.issues[0]?.message ?? 'Invalid company settings.' }))
     }
 
     const previous = await getCompanyAppSettings(membership.company_id, supabase)
@@ -1300,7 +1527,7 @@ export async function SettingsView({
       .single()
 
     if (error || !data) {
-      redirect(buildSettingsHref(locale, { error: error?.message ?? 'Unable to save company configuration.' }))
+      redirect(buildSettingsHref(locale, section, { error: error?.message ?? 'Unable to save company configuration.' }))
     }
 
     await insertAuditLog(supabase, {
@@ -1314,7 +1541,7 @@ export async function SettingsView({
     })
 
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Company configuration saved.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Company configuration saved.' }))
   }
 
   async function importCustomersCsvAction(formData: FormData) {
@@ -1322,29 +1549,53 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const file = formData.get('file')
     if (!(file instanceof File) || file.size === 0) {
-      redirect(buildSettingsHref(locale, { error: 'Select a customer CSV file first.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Select a customer CSV file first.' }))
     }
 
     const rows = parseCsvRecords(await file.text())
     if (rows.length === 0) {
-      redirect(buildSettingsHref(locale, { error: 'The customer CSV file was empty.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'The customer CSV file was empty.' }))
     }
 
-    const { data: existingRows, error: existingError } = await supabase.from('customers').select('*').eq('company_id', membership.company_id)
+    let branchQuery = supabase.from('branches').select('id, code, name').eq('company_id', membership.company_id).eq('is_active', true)
+    if (membership.branchIds.length > 0) {
+      branchQuery = branchQuery.in('id', membership.branchIds)
+    }
+
+    let existingQuery = supabase.from('customers').select('*').eq('company_id', membership.company_id)
+    if (membership.branchIds.length > 0) {
+      existingQuery = existingQuery.in('branch_id', membership.branchIds)
+    }
+
+    const [{ data: branchRowsForImport, error: branchError }, { data: existingRows, error: existingError }] = await Promise.all([
+      branchQuery,
+      existingQuery,
+    ])
+    if (branchError) {
+      redirect(buildSettingsHref(locale, section, { error: branchError.message }))
+    }
     if (existingError) {
-      redirect(buildSettingsHref(locale, { error: existingError.message }))
+      redirect(buildSettingsHref(locale, section, { error: existingError.message }))
     }
 
+    const importBranches = (branchRowsForImport ?? []) as CsvImportBranch[]
     const existingCustomers = [...((existingRows as DbTableRow<'customers'>[] | null) ?? [])]
     let created = 0
     let updated = 0
     for (const row of rows) {
       const parsed = customerSchema.safeParse({
+        branch_id: (() => {
+          try {
+            return resolveImportedBranchId(row, importBranches, membership)
+          } catch (branchResolutionError) {
+            redirect(buildSettingsHref(locale, section, { error: `Customer import failed for "${row.name || 'unknown row'}": ${branchResolutionError instanceof Error ? branchResolutionError.message : 'Invalid branch.'}` }))
+          }
+        })(),
         name: row.name,
         email: row.email,
         business_id: row.business_id,
@@ -1359,7 +1610,7 @@ export async function SettingsView({
       })
 
       if (!parsed.success) {
-        redirect(buildSettingsHref(locale, { error: `Customer import failed for "${row.name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+        redirect(buildSettingsHref(locale, section, { error: `Customer import failed for "${row.name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
       }
 
       const match =
@@ -1367,10 +1618,10 @@ export async function SettingsView({
         existingCustomers.find((customer) => normalizeText(customer.name) === normalizeText(parsed.data.name))
 
       if (match) {
-        await updateCustomer(membership.company_id, user.id, match.id, parsed.data, supabase)
+        await updateCustomer(membership.company_id, user.id, match.id, parsed.data, membership, supabase)
         updated += 1
       } else {
-        const createdRow = await createCustomer(membership.company_id, user.id, parsed.data, supabase)
+        const createdRow = await createCustomer(membership.company_id, user.id, parsed.data, membership, supabase)
         existingCustomers.push(createdRow)
         created += 1
       }
@@ -1378,7 +1629,7 @@ export async function SettingsView({
 
     revalidatePath(`/${locale}/customers`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: `Customer import completed. ${created} created, ${updated} updated.` }))
+    redirect(buildSettingsHref(locale, section, { success: `Customer import completed. ${created} created, ${updated} updated.` }))
   }
 
   async function importVehiclesCsvAction(formData: FormData) {
@@ -1386,29 +1637,53 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const file = formData.get('file')
     if (!(file instanceof File) || file.size === 0) {
-      redirect(buildSettingsHref(locale, { error: 'Select a vehicle CSV file first.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Select a vehicle CSV file first.' }))
     }
 
     const rows = parseCsvRecords(await file.text())
     if (rows.length === 0) {
-      redirect(buildSettingsHref(locale, { error: 'The vehicle CSV file was empty.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'The vehicle CSV file was empty.' }))
     }
 
-    const { data: existingRows, error: existingError } = await supabase.from('vehicles').select('*').eq('company_id', membership.company_id)
+    let branchQuery = supabase.from('branches').select('id, code, name').eq('company_id', membership.company_id).eq('is_active', true)
+    if (membership.branchIds.length > 0) {
+      branchQuery = branchQuery.in('id', membership.branchIds)
+    }
+
+    let existingQuery = supabase.from('vehicles').select('*').eq('company_id', membership.company_id)
+    if (membership.branchIds.length > 0) {
+      existingQuery = existingQuery.in('branch_id', membership.branchIds)
+    }
+
+    const [{ data: branchRowsForImport, error: branchError }, { data: existingRows, error: existingError }] = await Promise.all([
+      branchQuery,
+      existingQuery,
+    ])
+    if (branchError) {
+      redirect(buildSettingsHref(locale, section, { error: branchError.message }))
+    }
     if (existingError) {
-      redirect(buildSettingsHref(locale, { error: existingError.message }))
+      redirect(buildSettingsHref(locale, section, { error: existingError.message }))
     }
 
+    const importBranches = (branchRowsForImport ?? []) as CsvImportBranch[]
     const existingVehicles = [...((existingRows as DbTableRow<'vehicles'>[] | null) ?? [])]
     let created = 0
     let updated = 0
     for (const row of rows) {
       const parsed = vehicleSchema.safeParse({
+        branch_id: (() => {
+          try {
+            return resolveImportedBranchId(row, importBranches, membership)
+          } catch (branchResolutionError) {
+            redirect(buildSettingsHref(locale, section, { error: `Vehicle import failed for "${row.registration_number || 'unknown row'}": ${branchResolutionError instanceof Error ? branchResolutionError.message : 'Invalid branch.'}` }))
+          }
+        })(),
         registration_number: row.registration_number,
         make: row.make,
         model: row.model,
@@ -1420,7 +1695,7 @@ export async function SettingsView({
       })
 
       if (!parsed.success) {
-        redirect(buildSettingsHref(locale, { error: `Vehicle import failed for "${row.registration_number || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+        redirect(buildSettingsHref(locale, section, { error: `Vehicle import failed for "${row.registration_number || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
       }
 
       const match = existingVehicles.find(
@@ -1428,10 +1703,10 @@ export async function SettingsView({
       )
 
       if (match) {
-        await updateVehicle(membership.company_id, user.id, match.id, parsed.data, supabase)
+        await updateVehicle(membership.company_id, user.id, match.id, parsed.data, membership, supabase)
         updated += 1
       } else {
-        const createdRow = await createVehicle(membership.company_id, user.id, parsed.data, supabase)
+        const createdRow = await createVehicle(membership.company_id, user.id, parsed.data, membership, supabase)
         existingVehicles.push(createdRow)
         created += 1
       }
@@ -1439,7 +1714,7 @@ export async function SettingsView({
 
     revalidatePath(`/${locale}/vehicles`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: `Vehicle import completed. ${created} created, ${updated} updated.` }))
+    redirect(buildSettingsHref(locale, section, { success: `Vehicle import completed. ${created} created, ${updated} updated.` }))
   }
 
   async function importDriversCsvAction(formData: FormData) {
@@ -1447,29 +1722,53 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     const file = formData.get('file')
     if (!(file instanceof File) || file.size === 0) {
-      redirect(buildSettingsHref(locale, { error: 'Select a driver CSV file first.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Select a driver CSV file first.' }))
     }
 
     const rows = parseCsvRecords(await file.text())
     if (rows.length === 0) {
-      redirect(buildSettingsHref(locale, { error: 'The driver CSV file was empty.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'The driver CSV file was empty.' }))
     }
 
-    const { data: existingRows, error: existingError } = await supabase.from('drivers').select('*').eq('company_id', membership.company_id)
+    let branchQuery = supabase.from('branches').select('id, code, name').eq('company_id', membership.company_id).eq('is_active', true)
+    if (membership.branchIds.length > 0) {
+      branchQuery = branchQuery.in('id', membership.branchIds)
+    }
+
+    let existingQuery = supabase.from('drivers').select('*').eq('company_id', membership.company_id)
+    if (membership.branchIds.length > 0) {
+      existingQuery = existingQuery.in('branch_id', membership.branchIds)
+    }
+
+    const [{ data: branchRowsForImport, error: branchError }, { data: existingRows, error: existingError }] = await Promise.all([
+      branchQuery,
+      existingQuery,
+    ])
+    if (branchError) {
+      redirect(buildSettingsHref(locale, section, { error: branchError.message }))
+    }
     if (existingError) {
-      redirect(buildSettingsHref(locale, { error: existingError.message }))
+      redirect(buildSettingsHref(locale, section, { error: existingError.message }))
     }
 
+    const importBranches = (branchRowsForImport ?? []) as CsvImportBranch[]
     const existingDrivers = [...((existingRows as DbTableRow<'drivers'>[] | null) ?? [])]
     let created = 0
     let updated = 0
     for (const row of rows) {
       const parsed = driverSchema.safeParse({
+        branch_id: (() => {
+          try {
+            return resolveImportedBranchId(row, importBranches, membership)
+          } catch (branchResolutionError) {
+            redirect(buildSettingsHref(locale, section, { error: `Driver import failed for "${row.full_name || 'unknown row'}": ${branchResolutionError instanceof Error ? branchResolutionError.message : 'Invalid branch.'}` }))
+          }
+        })(),
         full_name: row.full_name,
         phone: row.phone,
         email: row.email,
@@ -1479,7 +1778,7 @@ export async function SettingsView({
       })
 
       if (!parsed.success) {
-        redirect(buildSettingsHref(locale, { error: `Driver import failed for "${row.full_name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
+        redirect(buildSettingsHref(locale, section, { error: `Driver import failed for "${row.full_name || 'unknown row'}": ${parsed.error.issues[0]?.message ?? 'Invalid row.'}` }))
       }
 
       const match =
@@ -1487,10 +1786,10 @@ export async function SettingsView({
         existingDrivers.find((driver) => normalizeText(driver.full_name) === normalizeText(parsed.data.full_name))
 
       if (match) {
-        await updateDriver(membership.company_id, user.id, match.id, parsed.data, supabase)
+        await updateDriver(membership.company_id, user.id, match.id, parsed.data, membership, supabase)
         updated += 1
       } else {
-        const createdRow = await createDriver(membership.company_id, user.id, parsed.data, supabase)
+        const createdRow = await createDriver(membership.company_id, user.id, parsed.data, membership, supabase)
         existingDrivers.push(createdRow)
         created += 1
       }
@@ -1498,7 +1797,7 @@ export async function SettingsView({
 
     revalidatePath(`/${locale}/drivers`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: `Driver import completed. ${created} created, ${updated} updated.` }))
+    redirect(buildSettingsHref(locale, section, { success: `Driver import completed. ${created} created, ${updated} updated.` }))
   }
 
   async function mergeCustomerDuplicateAction(formData: FormData) {
@@ -1506,7 +1805,7 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     try {
@@ -1518,7 +1817,7 @@ export async function SettingsView({
         supabase,
       )
     } catch (error) {
-      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Customer merge failed.' }))
+      redirect(buildSettingsHref(locale, section, { error: error instanceof Error ? error.message : 'Customer merge failed.' }))
     }
 
     revalidatePath(`/${locale}/customers`)
@@ -1526,7 +1825,7 @@ export async function SettingsView({
     revalidatePath(`/${locale}/trips`)
     revalidatePath(`/${locale}/invoices`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Customer duplicate merged.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Customer duplicate merged.' }))
   }
 
   async function mergeVehicleDuplicateAction(formData: FormData) {
@@ -1534,7 +1833,7 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     try {
@@ -1546,14 +1845,14 @@ export async function SettingsView({
         supabase,
       )
     } catch (error) {
-      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Vehicle merge failed.' }))
+      redirect(buildSettingsHref(locale, section, { error: error instanceof Error ? error.message : 'Vehicle merge failed.' }))
     }
 
     revalidatePath(`/${locale}/vehicles`)
     revalidatePath(`/${locale}/orders`)
     revalidatePath(`/${locale}/trips`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Vehicle duplicate merged.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Vehicle duplicate merged.' }))
   }
 
   async function mergeDriverDuplicateAction(formData: FormData) {
@@ -1561,7 +1860,7 @@ export async function SettingsView({
 
     const { membership, user, supabase } = await requireCompany(locale)
     if (!canManageSettings(membership.role)) {
-      redirect(buildSettingsHref(locale, { error: 'Insufficient permissions.' }))
+      redirect(buildSettingsHref(locale, section, { error: 'Insufficient permissions.' }))
     }
 
     try {
@@ -1573,14 +1872,14 @@ export async function SettingsView({
         supabase,
       )
     } catch (error) {
-      redirect(buildSettingsHref(locale, { error: error instanceof Error ? error.message : 'Driver merge failed.' }))
+      redirect(buildSettingsHref(locale, section, { error: error instanceof Error ? error.message : 'Driver merge failed.' }))
     }
 
     revalidatePath(`/${locale}/drivers`)
     revalidatePath(`/${locale}/orders`)
     revalidatePath(`/${locale}/trips`)
     revalidatePath(`/${locale}/settings`)
-    redirect(buildSettingsHref(locale, { success: 'Driver duplicate merged.' }))
+    redirect(buildSettingsHref(locale, section, { success: 'Driver duplicate merged.' }))
   }
 
   return (
@@ -1851,6 +2150,129 @@ export async function SettingsView({
         </Card>
       </form> : null}
 
+      {section === 'company' ? <form action={updateCompanyModulesAction}>
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Platform Modules</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              Enable only the parts of the platform this client actually needs. Transport can stay focused while inventory, purchasing, time, payroll, or accounting are turned on later.
+            </div>
+            <div className="grid gap-4 xl:grid-cols-2">
+              {platformModuleDefinitions.map((moduleDefinition) => (
+                <label key={moduleDefinition.key} className="flex gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+                  <input
+                    type="checkbox"
+                    name={`module_${moduleDefinition.key}`}
+                    value="true"
+                    defaultChecked={enabledCompanyModuleKeys.has(moduleDefinition.key)}
+                    disabled={moduleDefinition.alwaysEnabled}
+                    className="mt-1 h-4 w-4 rounded border-slate-300"
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-950">{moduleDefinition.label}</span>
+                      {moduleDefinition.alwaysEnabled ? <Badge variant="default">Always on</Badge> : null}
+                    </div>
+                    <p className="text-sm text-slate-600">{moduleDefinition.description}</p>
+                    <div className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                      {moduleDefinition.routeModules.join(' / ')}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit">Save module entitlements</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form> : null}
+
+      {section === 'company' ? <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+        <Card className="border-slate-200/80 bg-white/90">
+          <CardHeader>
+            <CardTitle>Branches</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              Branches let you tailor access for depots, terminals, warehouses, or business units without spinning up another app instance.
+            </div>
+            {branchRows.length > 0 ? (
+              <div className="space-y-3">
+                {branchRows.map((branch) => (
+                  <form key={branch.id} action={updateBranchAction} className="grid gap-3 rounded-2xl border border-slate-200 px-4 py-4 md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_auto]">
+                    <input type="hidden" name="branch_id" value={branch.id} />
+                    <div className="space-y-2">
+                      <Label htmlFor={`branch_name_${branch.id}`}>Name</Label>
+                      <Input id={`branch_name_${branch.id}`} name="branch_name" defaultValue={branch.name} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`branch_code_${branch.id}`}>Code</Label>
+                      <Input id={`branch_code_${branch.id}`} name="branch_code" defaultValue={branch.code ?? ''} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`branch_type_${branch.id}`}>Type</Label>
+                      <Input id={`branch_type_${branch.id}`} name="branch_type" defaultValue={branch.branch_type} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`branch_city_${branch.id}`}>City</Label>
+                      <Input id={`branch_city_${branch.id}`} name="branch_city" defaultValue={branch.city ?? ''} />
+                    </div>
+                    <div className="flex items-end gap-3">
+                      <label className="mb-2 flex items-center gap-2 text-sm text-slate-600">
+                        <input type="checkbox" name="branch_is_active" value="true" defaultChecked={branch.is_active} className="h-4 w-4 rounded border-slate-300" />
+                        Active
+                      </label>
+                      <input type="hidden" name="branch_country" value={branch.country} />
+                      <Button type="submit" variant="outline">Save</Button>
+                    </div>
+                  </form>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No branches created yet. Keep a single workspace if the client does not operate by branch, depot, terminal, or warehouse.</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <form action={createBranchAction}>
+          <Card className="border-slate-200/80 bg-white/90">
+            <CardHeader>
+              <CardTitle>Add Branch</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="branch_name">Name</Label>
+                <Input id="branch_name" name="branch_name" placeholder="Helsinki Terminal" />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="branch_code">Code</Label>
+                  <Input id="branch_code" name="branch_code" placeholder="HEL" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch_type">Type</Label>
+                  <Input id="branch_type" name="branch_type" placeholder="terminal" />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="branch_city">City</Label>
+                  <Input id="branch_city" name="branch_city" placeholder="Helsinki" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch_country">Country</Label>
+                  <Input id="branch_country" name="branch_country" defaultValue="FI" />
+                </div>
+              </div>
+              <Button type="submit">Create branch</Button>
+            </CardContent>
+          </Card>
+        </form>
+      </div> : null}
+
       {section === 'data' ? <CsvOnboardingPanel
         customerAction={importCustomersCsvAction}
         vehicleAction={importVehiclesCsvAction}
@@ -1867,6 +2289,10 @@ export async function SettingsView({
           primary: driver.full_name,
           secondary: driver.email,
           tertiary: driver.phone,
+        }))}
+        availableBranches={branchRows.map((branch) => ({
+          code: branch.code,
+          name: branch.name,
         }))}
       /> : null}
 
@@ -2146,6 +2572,65 @@ export async function SettingsView({
               No active company users with the driver role are available to link yet.
             </div>
           ) : null}
+        </CardContent>
+      </Card> : null}
+
+      {section === 'team' ? <Card className="border-slate-200/80 bg-white/90">
+        <CardHeader>
+          <CardTitle>Branch Access</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Leave branch access empty for a user to keep full-company visibility. Assign one or more branches when a client wants branch-specific access for depots, warehouses, or terminals.
+          </div>
+          {branchRows.length > 0 ? (
+            <div className="space-y-4">
+              {membershipRows.map((member) => {
+                const assignedBranchIds = new Set(branchAccessMap.get(member.user_id) ?? [])
+                const authUser = authUserMap.get(member.user_id)
+                const profile = profileMap.get(member.user_id)
+
+                return (
+                  <form key={`branch-access-${member.user_id}`} action={updateBranchAccessAction} className="rounded-2xl border border-slate-200 px-4 py-4">
+                    <input type="hidden" name="target_user_id" value={member.user_id} />
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="font-medium text-slate-950">{profile?.full_name ?? authUser?.email ?? member.user_id.slice(0, 8)}</div>
+                        <div className="text-sm text-slate-500">{authUser?.email ?? 'No auth email'} · {member.role}</div>
+                      </div>
+                      <Badge variant={assignedBranchIds.size === 0 ? 'default' : 'success'}>
+                        {assignedBranchIds.size === 0 ? 'All branches' : `${assignedBranchIds.size} assigned`}
+                      </Badge>
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {branchRows.map((branch) => (
+                        <label key={`${member.user_id}-${branch.id}`} className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            name="branch_ids"
+                            value={branch.id}
+                            defaultChecked={assignedBranchIds.has(branch.id)}
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          <div>
+                            <div className="font-medium text-slate-950">{branch.name}</div>
+                            <div className="text-xs uppercase tracking-[0.14em] text-slate-500">{branch.branch_type}{branch.city ? ` · ${branch.city}` : ''}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="mt-4">
+                      <Button type="submit" variant="outline">Save branch scope</Button>
+                    </div>
+                  </form>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
+              Create branches in Company Settings before assigning branch access to users.
+            </div>
+          )}
         </CardContent>
       </Card> : null}
 
@@ -2596,3 +3081,4 @@ export async function SettingsView({
     </div>
   )
 }
+

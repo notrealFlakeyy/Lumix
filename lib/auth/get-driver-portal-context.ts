@@ -7,13 +7,13 @@ import { requireCompany } from '@/lib/auth/require-company'
 export async function getDriverPortalContext(locale: string, previewDriverId?: string) {
   const { supabase, user, membership } = await requireCompany(locale)
 
-  if (!canUseDriverWorkflow(membership.role)) {
+  if (!canUseDriverWorkflow(membership.role) || !membership.enabledModules.includes('transport')) {
     redirect(`/${locale}/dashboard`)
   }
 
   const { data: activeDrivers } = await supabase
     .from('drivers')
-    .select('id, public_id, full_name, email, phone, is_active')
+    .select('id, public_id, auth_user_id, full_name, email, phone, is_active')
     .eq('company_id', membership.company_id)
     .eq('is_active', true)
     .order('full_name')

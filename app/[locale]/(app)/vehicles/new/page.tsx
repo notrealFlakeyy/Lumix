@@ -6,12 +6,14 @@ import { VehicleForm } from '@/components/vehicles/vehicle-form'
 import { canEditMasterData } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createVehicle } from '@/lib/db/mutations/vehicles'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { vehicleSchema } from '@/lib/validations/vehicle'
 import { getCheckboxValue, getOptionalString } from '@/lib/utils/forms'
 
 export default async function NewVehiclePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  await requireCompany(locale)
+  const { membership } = await requireCompany(locale)
+  const branches = await listActiveBranches(membership.company_id, membership)
 
   async function action(formData: FormData) {
     'use server'
@@ -22,6 +24,7 @@ export default async function NewVehiclePage({ params }: { params: Promise<{ loc
     }
 
     const input = vehicleSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       registration_number: getOptionalString(formData, 'registration_number') ?? '',
       make: getOptionalString(formData, 'make'),
       model: getOptionalString(formData, 'model'),
@@ -32,7 +35,7 @@ export default async function NewVehiclePage({ params }: { params: Promise<{ loc
       is_active: getCheckboxValue(formData, 'is_active'),
     })
 
-    await createVehicle(membership.company_id, user.id, input)
+    await createVehicle(membership.company_id, user.id, input, membership)
     revalidatePath(`/${locale}/vehicles`)
     redirect(`/${locale}/vehicles`)
   }
@@ -40,7 +43,7 @@ export default async function NewVehiclePage({ params }: { params: Promise<{ loc
   return (
     <div className="space-y-6">
       <PageHeader title="New Vehicle" description="Add a fleet vehicle for dispatch assignments and trip tracking." />
-      <VehicleForm action={action} submitLabel="Create vehicle" />
+      <VehicleForm action={action} branches={branches.map((branch) => ({ value: branch.id, label: branch.name }))} submitLabel="Create vehicle" />
     </div>
   )
 }

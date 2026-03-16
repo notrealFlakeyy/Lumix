@@ -17,6 +17,11 @@ type ExistingRecord = {
   tertiary?: string | null
 }
 
+type BranchRecord = {
+  code?: string | null
+  name: string
+}
+
 type CsvImportAction = (formData: FormData) => void | Promise<void>
 
 type ResourceConfig = {
@@ -34,6 +39,7 @@ type PreviewState = {
   previewRows: CsvRecord[]
   missingColumns: string[]
   duplicateMatches: Array<{ rowLabel: string; matchType: string; matchedValue: string }>
+  invalidBranches: Array<{ rowLabel: string; branchValue: string }>
   hasFile: boolean
 }
 
@@ -143,6 +149,27 @@ function getMissingColumns(resource: CsvTemplateResource, rows: CsvRecord[], fil
   return requiredColumns.filter((column) => !fileHeaders.includes(column))
 }
 
+function getInvalidBranchMatches(rows: CsvRecord[], availableBranches: BranchRecord[]) {
+  const branchKeys = new Set(
+    availableBranches
+      .flatMap((branch) => [normalizeValue(branch.code), normalizeValue(branch.name)])
+      .filter((value) => value.length > 0),
+  )
+
+  return rows
+    .map((row) => {
+      const rawBranch = row.branch_code || row.branch_name || ''
+      if (!rawBranch) return null
+      if (branchKeys.has(normalizeValue(rawBranch))) return null
+
+      return {
+        rowLabel: row.name || row.registration_number || row.full_name || 'Unnamed row',
+        branchValue: rawBranch,
+      }
+    })
+    .filter((value): value is { rowLabel: string; branchValue: string } => Boolean(value))
+}
+
 function emptyPreviewState(): PreviewState {
   return {
     fileName: '',
@@ -151,6 +178,7 @@ function emptyPreviewState(): PreviewState {
     previewRows: [],
     missingColumns: [],
     duplicateMatches: [],
+    invalidBranches: [],
     hasFile: false,
   }
 }
@@ -162,6 +190,7 @@ export function CsvOnboardingPanel({
   existingCustomers,
   existingVehicles,
   existingDrivers,
+  availableBranches,
 }: {
   customerAction: CsvImportAction
   vehicleAction: CsvImportAction
@@ -169,6 +198,7 @@ export function CsvOnboardingPanel({
   existingCustomers: ExistingRecord[]
   existingVehicles: ExistingRecord[]
   existingDrivers: ExistingRecord[]
+  availableBranches: BranchRecord[]
 }) {
   const [previews, setPreviews] = React.useState<Record<CsvTemplateResource, PreviewState>>({
     customers: emptyPreviewState(),
@@ -198,6 +228,7 @@ export function CsvOnboardingPanel({
     const rows = parseCsvRecords(content)
     const headers = parseCsvHeaders(content)
     const duplicateMatches = getDuplicateMatches(resource, rows, existingRecordMap[resource])
+    const invalidBranches = getInvalidBranchMatches(rows, availableBranches)
 
     setPreviews((current) => ({
       ...current,
@@ -208,6 +239,7 @@ export function CsvOnboardingPanel({
         previewRows: rows.slice(0, 5),
         missingColumns: getMissingColumns(resource, rows, headers),
         duplicateMatches,
+        invalidBranches,
         hasFile: true,
       },
     }))
@@ -284,14 +316,21 @@ export function CsvOnboardingPanel({
                           <div className="text-sm font-medium text-slate-900">{preview.fileName}</div>
                           <div className="text-xs text-slate-500">{preview.rowCount} rows detected</div>
                         </div>
-                        <Badge variant={preview.missingColumns.length === 0 ? 'success' : 'warning'}>
-                          {preview.missingColumns.length === 0 ? 'Preview ready' : 'Missing required columns'}
+                        <Badge variant={preview.missingColumns.length === 0 && preview.invalidBranches.length === 0 ? 'success' : 'warning'}>
+                          {preview.missingColumns.length === 0 && preview.invalidBranches.length === 0 ? 'Preview ready' : 'Needs review'}
                         </Badge>
                       </div>
 
                       {preview.missingColumns.length > 0 ? (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                           Missing required columns: {preview.missingColumns.join(', ')}
+                        </div>
+                      ) : null}
+
+                      {preview.invalidBranches.length > 0 ? (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                          Unknown branch references: {preview.invalidBranches.slice(0, 3).map((item) => `${item.rowLabel} (${item.branchValue})`).join(', ')}
+                          {preview.invalidBranches.length > 3 ? ' and more.' : ''}
                         </div>
                       ) : null}
 
@@ -328,7 +367,7 @@ export function CsvOnboardingPanel({
                                 {preview.previewRows.map((row, index) => (
                                   <TableRow key={`${config.resource}-preview-${index}`}>
                                     {expectedColumns.slice(0, 4).map((column) => (
-                                      <TableCell key={column}>{row[column] || '—'}</TableCell>
+                                      <TableCell key={column}>{row[column] || '-'}</TableCell>
                                     ))}
                                   </TableRow>
                                 ))}
@@ -351,7 +390,7 @@ export function CsvOnboardingPanel({
                   </div>
                 </div>
 
-                <Button type="submit" variant="outline" className="mt-4 w-full" disabled={!preview.hasFile || preview.missingColumns.length > 0}>
+                <Button type="submit" variant="outline" className="mt-4 w-full" disabled={!preview.hasFile || preview.missingColumns.length > 0 || preview.invalidBranches.length > 0}>
                   {config.importLabel}
                 </Button>
               </form>
@@ -364,6 +403,7 @@ export function CsvOnboardingPanel({
           <div className="mt-2 space-y-2">
             <p>Customer imports update existing rows by business ID first, then by exact customer name.</p>
             <p>Vehicle imports update rows by registration number. Driver imports update by email first, then by exact full name.</p>
+            <p>Use `branch_code` whenever the company has more than one active branch. Branch names are accepted as a fallback, but branch codes are safer for repeatable imports and exports.</p>
             <p>Invoices are export-only in this pass to avoid importing financial rows without stronger reconciliation controls.</p>
           </div>
         </div>

@@ -38,9 +38,41 @@ export async function uploadTripDocument({
   const safeName = sanitizeFileName(file.name || 'document')
   const filePath = `${companyId}/trip/${tripId}/${Date.now()}-${safeName}`
   const bytes = Buffer.from(await file.arrayBuffer())
+  return uploadTripDocumentBytes({
+    admin,
+    companyId,
+    tripId,
+    userId,
+    fileName: file.name,
+    filePath,
+    bytes,
+    mimeType: file.type || null,
+  })
+}
+
+async function uploadTripDocumentBytes({
+  admin,
+  companyId,
+  tripId,
+  userId,
+  fileName,
+  filePath,
+  bytes,
+  mimeType,
+}: {
+  admin: ReturnType<typeof createSupabaseAdminClient>
+  companyId: string
+  tripId: string
+  userId: string
+  fileName: string
+  filePath: string
+  bytes: Buffer
+  mimeType: string | null
+}) {
+  const { data: trip } = await admin.from('trips').select('branch_id').eq('company_id', companyId).eq('id', tripId).maybeSingle()
 
   const { error: uploadError } = await admin.storage.from(transportDocumentsBucket).upload(filePath, bytes, {
-    contentType: file.type || 'application/octet-stream',
+    contentType: mimeType || 'application/octet-stream',
     upsert: false,
   })
 
@@ -56,11 +88,12 @@ export async function uploadTripDocument({
     .from('documents')
     .insert({
       company_id: companyId,
+      branch_id: trip?.branch_id ?? null,
       related_type: 'trip',
       related_id: tripId,
-      file_name: file.name,
+      file_name: fileName,
       file_path: filePath,
-      mime_type: file.type || null,
+      mime_type: mimeType,
       uploaded_by: userId,
     })
     .select('*')
@@ -83,6 +116,37 @@ export async function uploadTripDocument({
   })
 
   return document
+}
+
+export async function uploadGeneratedTripDocument({
+  companyId,
+  tripId,
+  userId,
+  fileName,
+  bytes,
+  mimeType,
+}: {
+  companyId: string
+  tripId: string
+  userId: string
+  fileName: string
+  bytes: Buffer
+  mimeType: string
+}) {
+  const admin = createSupabaseAdminClient()
+  const safeName = sanitizeFileName(fileName || 'document')
+  const filePath = `${companyId}/trip/${tripId}/${Date.now()}-${safeName}`
+
+  return uploadTripDocumentBytes({
+    admin,
+    companyId,
+    tripId,
+    userId,
+    fileName,
+    filePath,
+    bytes,
+    mimeType,
+  })
 }
 
 export async function getSignedDocumentUrl(filePath: string) {

@@ -17,7 +17,7 @@ export default async function VehicleDetailPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const result = await getVehicleById(membership.company_id, id)
+  const result = await getVehicleById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
   const { vehicle, orders, trips, revenue } = result
@@ -33,6 +33,7 @@ export default async function VehicleDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div><span className="font-medium text-slate-900">Make / Model:</span> {[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '-'}</div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {vehicle.branch_name ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Year:</span> {vehicle.year ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Fuel Type:</span> {vehicle.fuel_type ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Current KM:</span> {toDisplayNumber(vehicle.current_km)} km</div>
@@ -51,6 +52,7 @@ export default async function VehicleDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Pickup</TableHead>
                     <TableHead>Delivery</TableHead>
                     <TableHead>Status</TableHead>
@@ -60,6 +62,7 @@ export default async function VehicleDetailPage({
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell><Link href={`/orders/${order.id}`}>{order.order_number}</Link></TableCell>
+                      <TableCell>{order.branch_name ?? '-'}</TableCell>
                       <TableCell>{order.pickup_location}</TableCell>
                       <TableCell>{order.delivery_location}</TableCell>
                       <TableCell>{order.status}</TableCell>
@@ -79,6 +82,7 @@ export default async function VehicleDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Trip</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead>Start</TableHead>
                     <TableHead>End</TableHead>
                     <TableHead>Distance</TableHead>
@@ -89,6 +93,7 @@ export default async function VehicleDetailPage({
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
                       <TableCell><Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link></TableCell>
+                      <TableCell>{trip.branch_name ?? '-'}</TableCell>
                       <TableCell>{formatDateTime(trip.start_time)}</TableCell>
                       <TableCell>{formatDateTime(trip.end_time)}</TableCell>
                       <TableCell>{trip.distance_km ? `${toNumber(trip.distance_km)} km` : '-'}</TableCell>

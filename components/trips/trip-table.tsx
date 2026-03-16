@@ -11,6 +11,7 @@ export function TripTable({
   trips: Array<{
     id: string
     public_id?: string | null
+    branch_name?: string
     customer_name: string
     vehicle_name: string
     driver_name: string
@@ -27,6 +28,7 @@ export function TripTable({
         <TableRow>
           <TableHead>Trip ID</TableHead>
           <TableHead>Customer</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Vehicle</TableHead>
           <TableHead>Driver</TableHead>
           <TableHead>Start Time</TableHead>
@@ -45,6 +47,7 @@ export function TripTable({
               </Link>
             </TableCell>
             <TableCell>{trip.customer_name}</TableCell>
+            <TableCell>{trip.branch_name ?? 'No branch'}</TableCell>
             <TableCell>{trip.vehicle_name}</TableCell>
             <TableCell>{trip.driver_name}</TableCell>
             <TableCell>{formatDateTime(trip.start_time)}</TableCell>

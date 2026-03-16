@@ -3,6 +3,10 @@ node_modules/
 out/
 dist/
 build/
+apps/mobile/node_modules/
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
 .env
 .env.local
 .env.development.local

@@ -1,33 +1,45 @@
 import type { DashboardStats, RecentInvoice, RecentOrder, RevenueBreakdown } from '@/types/app'
 
 import { getDbClient, type DbClient } from '@/lib/db/shared'
+import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 import { getDashboardProfitabilityStats } from '@/lib/db/queries/reports'
 import { toNumber } from '@/lib/utils/numbers'
 
-export async function getDashboardStats(companyId: string, client?: DbClient): Promise<DashboardStats> {
+export async function getDashboardStats(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<DashboardStats> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10)
   const today = now.toISOString().slice(0, 10)
 
+  let invoicesQuery = supabase
+    .from('invoices')
+    .select('total, issue_date, status, due_date')
+    .eq('company_id', companyId)
+    .neq('status', 'cancelled')
+  let ordersQuery = supabase
+    .from('transport_orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('company_id', companyId)
+    .in('status', ['planned', 'assigned', 'in_progress'])
+  let tripsQuery = supabase
+    .from('trips')
+    .select('*', { count: 'exact', head: true })
+    .eq('company_id', companyId)
+    .in('status', ['completed', 'invoiced'])
+    .gte('updated_at', `${monthStart}T00:00:00.000Z`)
+
+  if (branchScope) {
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+    ordersQuery = ordersQuery.in('branch_id', branchScope)
+    tripsQuery = tripsQuery.in('branch_id', branchScope)
+  }
+
   const [{ data: invoices }, { count: activeOrders }, { count: completedTrips }, profitabilityStats] = await Promise.all([
-    supabase
-      .from('invoices')
-      .select('total, issue_date, status, due_date')
-      .eq('company_id', companyId)
-      .neq('status', 'cancelled'),
-    supabase
-      .from('transport_orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('company_id', companyId)
-      .in('status', ['planned', 'assigned', 'in_progress']),
-    supabase
-      .from('trips')
-      .select('*', { count: 'exact', head: true })
-      .eq('company_id', companyId)
-      .in('status', ['completed', 'invoiced'])
-      .gte('updated_at', `${monthStart}T00:00:00.000Z`),
-    getDashboardProfitabilityStats(companyId, supabase),
+    invoicesQuery,
+    ordersQuery,
+    tripsQuery,
+    getDashboardProfitabilityStats(companyId, supabase, branchScope),
   ])
 
   const revenueThisMonth = (invoices ?? [])
@@ -46,10 +58,15 @@ export async function getDashboardStats(companyId: string, client?: DbClient): P
   }
 }
 
-export async function getRevenueByCustomer(companyId: string, client?: DbClient): Promise<RevenueBreakdown[]> {
+export async function getRevenueByCustomer(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<RevenueBreakdown[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let invoicesQuery = supabase.from('invoices').select('customer_id, total').eq('company_id', companyId).neq('status', 'cancelled')
+  if (branchScope) {
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+  }
   const [{ data: invoices }, { data: customers }] = await Promise.all([
-    supabase.from('invoices').select('customer_id, total').eq('company_id', companyId).neq('status', 'cancelled'),
+    invoicesQuery,
     supabase.from('customers').select('id, name').eq('company_id', companyId),
   ])
 
@@ -66,11 +83,18 @@ export async function getRevenueByCustomer(companyId: string, client?: DbClient)
     .sort((a, b) => b.value - a.value)
 }
 
-export async function getRevenueByVehicle(companyId: string, client?: DbClient): Promise<RevenueBreakdown[]> {
+export async function getRevenueByVehicle(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<RevenueBreakdown[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let tripsQuery = supabase.from('trips').select('id, vehicle_id').eq('company_id', companyId)
+  let invoicesQuery = supabase.from('invoices').select('trip_id, total').eq('company_id', companyId).neq('status', 'cancelled')
+  if (branchScope) {
+    tripsQuery = tripsQuery.in('branch_id', branchScope)
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+  }
   const [{ data: trips }, { data: invoices }, { data: vehicles }] = await Promise.all([
-    supabase.from('trips').select('id, vehicle_id').eq('company_id', companyId),
-    supabase.from('invoices').select('trip_id, total').eq('company_id', companyId).neq('status', 'cancelled'),
+    tripsQuery,
+    invoicesQuery,
     supabase.from('vehicles').select('id, registration_number, make, model').eq('company_id', companyId),
   ])
 
@@ -94,11 +118,18 @@ export async function getRevenueByVehicle(companyId: string, client?: DbClient):
     .sort((a, b) => b.value - a.value)
 }
 
-export async function getRevenueByDriver(companyId: string, client?: DbClient): Promise<RevenueBreakdown[]> {
+export async function getRevenueByDriver(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<RevenueBreakdown[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let tripsQuery = supabase.from('trips').select('id, driver_id').eq('company_id', companyId)
+  let invoicesQuery = supabase.from('invoices').select('trip_id, total').eq('company_id', companyId).neq('status', 'cancelled')
+  if (branchScope) {
+    tripsQuery = tripsQuery.in('branch_id', branchScope)
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+  }
   const [{ data: trips }, { data: invoices }, { data: drivers }] = await Promise.all([
-    supabase.from('trips').select('id, driver_id').eq('company_id', companyId),
-    supabase.from('invoices').select('trip_id, total').eq('company_id', companyId).neq('status', 'cancelled'),
+    tripsQuery,
+    invoicesQuery,
     supabase.from('drivers').select('id, full_name').eq('company_id', companyId),
   ])
 
@@ -117,15 +148,20 @@ export async function getRevenueByDriver(companyId: string, client?: DbClient): 
     .sort((a, b) => b.value - a.value)
 }
 
-export async function getRecentOrders(companyId: string, client?: DbClient): Promise<RecentOrder[]> {
+export async function getRecentOrders(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<RecentOrder[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let ordersQuery = supabase
+    .from('transport_orders')
+    .select('id, order_number, customer_id, pickup_location, delivery_location, status, scheduled_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  if (branchScope) {
+    ordersQuery = ordersQuery.in('branch_id', branchScope)
+  }
   const [{ data: orders }, { data: customers }] = await Promise.all([
-    supabase
-      .from('transport_orders')
-      .select('id, order_number, customer_id, pickup_location, delivery_location, status, scheduled_at')
-      .eq('company_id', companyId)
-      .order('created_at', { ascending: false })
-      .limit(6),
+    ordersQuery,
     supabase.from('customers').select('id, name').eq('company_id', companyId),
   ])
 
@@ -141,15 +177,20 @@ export async function getRecentOrders(companyId: string, client?: DbClient): Pro
   }))
 }
 
-export async function getRecentInvoices(companyId: string, client?: DbClient): Promise<RecentInvoice[]> {
+export async function getRecentInvoices(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<RecentInvoice[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let invoicesQuery = supabase
+    .from('invoices')
+    .select('id, invoice_number, customer_id, total, status, due_date')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  if (branchScope) {
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+  }
   const [{ data: invoices }, { data: customers }] = await Promise.all([
-    supabase
-      .from('invoices')
-      .select('id, invoice_number, customer_id, total, status, due_date')
-      .eq('company_id', companyId)
-      .order('created_at', { ascending: false })
-      .limit(6),
+    invoicesQuery,
     supabase.from('customers').select('id, name').eq('company_id', companyId),
   ])
 

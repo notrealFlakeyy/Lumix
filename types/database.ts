@@ -85,10 +85,85 @@ export type Database = {
         Update: Partial<Omit<Database['public']['Tables']['company_users']['Insert'], 'company_id' | 'user_id'>>
         Relationships: Relationship[]
       }
+      company_modules: {
+        Row: {
+          id: string
+          company_id: string
+          module_key: string
+          is_enabled: boolean
+          config: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          module_key: string
+          is_enabled?: boolean
+          config?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['company_modules']['Insert'], 'company_id' | 'module_key'>>
+        Relationships: Relationship[]
+      }
+      branches: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          code: string | null
+          branch_type: string
+          address_line1: string | null
+          address_line2: string | null
+          postal_code: string | null
+          city: string | null
+          country: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          name: string
+          code?: string | null
+          branch_type?: string
+          address_line1?: string | null
+          address_line2?: string | null
+          postal_code?: string | null
+          city?: string | null
+          country?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['branches']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      company_user_branches: {
+        Row: {
+          id: string
+          company_id: string
+          user_id: string
+          branch_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          user_id: string
+          branch_id: string
+          created_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['company_user_branches']['Insert'], 'company_id' | 'user_id' | 'branch_id'>>
+        Relationships: Relationship[]
+      }
       customers: {
         Row: {
           id: string
           company_id: string
+          branch_id: string | null
           name: string
           business_id: string | null
           vat_number: string | null
@@ -106,6 +181,7 @@ export type Database = {
         Insert: {
           id?: string
           company_id: string
+          branch_id?: string | null
           name: string
           business_id?: string | null
           vat_number?: string | null
@@ -127,6 +203,7 @@ export type Database = {
         Row: {
           id: string
           company_id: string
+          branch_id: string | null
           registration_number: string
           make: string | null
           model: string | null
@@ -141,6 +218,7 @@ export type Database = {
         Insert: {
           id?: string
           company_id: string
+          branch_id?: string | null
           registration_number: string
           make?: string | null
           model?: string | null
@@ -160,6 +238,7 @@ export type Database = {
           id: string
           public_id: string
           company_id: string
+          branch_id: string | null
           auth_user_id: string | null
           full_name: string
           phone: string | null
@@ -174,6 +253,7 @@ export type Database = {
           id?: string
           public_id?: string
           company_id: string
+          branch_id?: string | null
           auth_user_id?: string | null
           full_name: string
           phone?: string | null
@@ -191,6 +271,7 @@ export type Database = {
         Row: {
           id: string
           company_id: string
+          branch_id: string | null
           customer_id: string
           assigned_vehicle_id: string | null
           assigned_driver_id: string | null
@@ -208,6 +289,7 @@ export type Database = {
         Insert: {
           id?: string
           company_id: string
+          branch_id?: string | null
           customer_id: string
           assigned_vehicle_id?: string | null
           assigned_driver_id?: string | null
@@ -230,6 +312,7 @@ export type Database = {
           id: string
           public_id: string
           company_id: string
+          branch_id: string | null
           transport_order_id: string | null
           customer_id: string
           vehicle_id: string | null
@@ -242,6 +325,8 @@ export type Database = {
           waiting_time_minutes: number
           notes: string | null
           delivery_confirmation: string | null
+          delivery_recipient_name: string | null
+          delivery_received_at: string | null
           status: string
           created_by: string | null
           created_at: string
@@ -251,6 +336,7 @@ export type Database = {
           id?: string
           public_id?: string
           company_id: string
+          branch_id?: string | null
           transport_order_id?: string | null
           customer_id: string
           vehicle_id?: string | null
@@ -263,6 +349,8 @@ export type Database = {
           waiting_time_minutes?: number
           notes?: string | null
           delivery_confirmation?: string | null
+          delivery_recipient_name?: string | null
+          delivery_received_at?: string | null
           status?: string
           created_by?: string | null
           created_at?: string
@@ -271,10 +359,43 @@ export type Database = {
         Update: Partial<Omit<Database['public']['Tables']['trips']['Insert'], 'company_id' | 'created_by'>>
         Relationships: Relationship[]
       }
+      trip_checkpoints: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string | null
+          trip_id: string
+          checkpoint_type: string
+          latitude: string
+          longitude: string
+          accuracy_meters: string | null
+          notes: string | null
+          captured_at: string
+          captured_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id?: string | null
+          trip_id: string
+          checkpoint_type: string
+          latitude: number | string
+          longitude: number | string
+          accuracy_meters?: number | string | null
+          notes?: string | null
+          captured_at?: string
+          captured_by?: string | null
+          created_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['trip_checkpoints']['Insert'], 'company_id' | 'trip_id'>>
+        Relationships: Relationship[]
+      }
       invoices: {
         Row: {
           id: string
           company_id: string
+          branch_id: string | null
           customer_id: string
           trip_id: string | null
           invoice_number: string
@@ -294,6 +415,7 @@ export type Database = {
         Insert: {
           id?: string
           company_id: string
+          branch_id?: string | null
           customer_id: string
           trip_id?: string | null
           invoice_number: string
@@ -457,10 +579,355 @@ export type Database = {
         Update: Partial<Omit<Database['public']['Tables']['company_app_settings']['Insert'], 'company_id'>>
         Relationships: Relationship[]
       }
+      inventory_products: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          sku: string
+          name: string
+          category: string | null
+          unit: string
+          reorder_level: string
+          cost_price: string
+          sale_price: string | null
+          notes: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          sku: string
+          name: string
+          category?: string | null
+          unit?: string
+          reorder_level?: number | string
+          cost_price?: number | string
+          sale_price?: number | string | null
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['inventory_products']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      inventory_movements: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          product_id: string
+          movement_type: string
+          quantity: string
+          unit_cost: string | null
+          reference: string | null
+          notes: string | null
+          created_by: string | null
+          occurred_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          product_id: string
+          movement_type: string
+          quantity: number | string
+          unit_cost?: number | string | null
+          reference?: string | null
+          notes?: string | null
+          created_by?: string | null
+          occurred_at?: string
+          created_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['inventory_movements']['Insert'], 'company_id' | 'product_id' | 'branch_id' | 'created_by'>>
+        Relationships: Relationship[]
+      }
+      purchase_vendors: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          name: string
+          business_id: string | null
+          email: string | null
+          phone: string | null
+          address_line1: string | null
+          address_line2: string | null
+          postal_code: string | null
+          city: string | null
+          country: string
+          notes: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          name: string
+          business_id?: string | null
+          email?: string | null
+          phone?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          postal_code?: string | null
+          city?: string | null
+          country?: string
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['purchase_vendors']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      purchase_invoices: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          vendor_id: string
+          invoice_number: string
+          invoice_date: string
+          due_date: string | null
+          status: string
+          reference_number: string | null
+          subtotal: string
+          vat_total: string
+          total: string
+          notes: string | null
+          received_at: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          vendor_id: string
+          invoice_number: string
+          invoice_date: string
+          due_date?: string | null
+          status?: string
+          reference_number?: string | null
+          subtotal?: number | string
+          vat_total?: number | string
+          total?: number | string
+          notes?: string | null
+          received_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['purchase_invoices']['Insert'], 'company_id' | 'created_by'>>
+        Relationships: Relationship[]
+      }
+      purchase_invoice_items: {
+        Row: {
+          id: string
+          purchase_invoice_id: string
+          inventory_product_id: string | null
+          description: string
+          quantity: string
+          unit_price: string
+          vat_rate: string
+          line_total: string
+          received_to_stock: boolean
+        }
+        Insert: {
+          id?: string
+          purchase_invoice_id: string
+          inventory_product_id?: string | null
+          description: string
+          quantity: number | string
+          unit_price?: number | string
+          vat_rate?: number | string
+          line_total?: number | string
+          received_to_stock?: boolean
+        }
+        Update: Partial<Omit<Database['public']['Tables']['purchase_invoice_items']['Insert'], 'purchase_invoice_id'>>
+        Relationships: Relationship[]
+      }
+      purchase_payments: {
+        Row: {
+          id: string
+          company_id: string
+          purchase_invoice_id: string
+          payment_date: string
+          amount: string
+          reference: string | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          purchase_invoice_id: string
+          payment_date: string
+          amount: number | string
+          reference?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['purchase_payments']['Insert'], 'company_id' | 'purchase_invoice_id'>>
+        Relationships: Relationship[]
+      }
+      workforce_employees: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          auth_user_id: string | null
+          full_name: string
+          email: string | null
+          phone: string | null
+          job_title: string | null
+          employment_type: string | null
+          pay_type: string
+          hourly_rate: string
+          overtime_rate: string | null
+          notes: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          auth_user_id?: string | null
+          full_name: string
+          email?: string | null
+          phone?: string | null
+          job_title?: string | null
+          employment_type?: string | null
+          pay_type?: string
+          hourly_rate?: number | string
+          overtime_rate?: number | string | null
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['workforce_employees']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      time_entries: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string
+          employee_id: string
+          payroll_run_id: string | null
+          work_date: string
+          start_time: string
+          end_time: string | null
+          break_minutes: number
+          regular_minutes: number
+          overtime_minutes: number
+          status: string
+          source: string
+          notes: string | null
+          created_by: string | null
+          approved_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id: string
+          employee_id: string
+          payroll_run_id?: string | null
+          work_date: string
+          start_time: string
+          end_time?: string | null
+          break_minutes?: number
+          regular_minutes?: number
+          overtime_minutes?: number
+          status?: string
+          source?: string
+          notes?: string | null
+          created_by?: string | null
+          approved_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['time_entries']['Insert'], 'company_id' | 'branch_id' | 'employee_id'>>
+        Relationships: Relationship[]
+      }
+      payroll_runs: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string | null
+          period_start: string
+          period_end: string
+          status: string
+          notes: string | null
+          total_regular_minutes: number
+          total_overtime_minutes: number
+          total_estimated_gross: string
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id?: string | null
+          period_start: string
+          period_end: string
+          status?: string
+          notes?: string | null
+          total_regular_minutes?: number
+          total_overtime_minutes?: number
+          total_estimated_gross?: number | string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['payroll_runs']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      payroll_run_items: {
+        Row: {
+          id: string
+          payroll_run_id: string
+          employee_id: string
+          regular_minutes: number
+          overtime_minutes: number
+          hourly_rate: string
+          overtime_rate: string
+          estimated_gross: string
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          payroll_run_id: string
+          employee_id: string
+          regular_minutes?: number
+          overtime_minutes?: number
+          hourly_rate?: number | string
+          overtime_rate?: number | string
+          estimated_gross?: number | string
+          notes?: string | null
+        }
+        Update: Partial<Omit<Database['public']['Tables']['payroll_run_items']['Insert'], 'payroll_run_id' | 'employee_id'>>
+        Relationships: Relationship[]
+      }
       documents: {
         Row: {
           id: string
           company_id: string
+          branch_id: string | null
           related_type: string | null
           related_id: string | null
           file_name: string
@@ -472,6 +939,7 @@ export type Database = {
         Insert: {
           id?: string
           company_id: string
+          branch_id?: string | null
           related_type?: string | null
           related_id?: string | null
           file_name: string

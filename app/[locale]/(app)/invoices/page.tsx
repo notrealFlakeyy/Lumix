@@ -11,7 +11,7 @@ import { listInvoices } from '@/lib/db/queries/invoices'
 export default async function InvoicesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const invoices = await listInvoices(membership.company_id)
+  const invoices = await listInvoices(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

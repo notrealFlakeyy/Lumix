@@ -11,7 +11,7 @@ import { listTrips } from '@/lib/db/queries/trips'
 export default async function TripsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const trips = await listTrips(membership.company_id)
+  const trips = await listTrips(membership.company_id, undefined, membership.branchIds)
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,7 @@
 import type { DashboardStats, ProfitabilityBreakdown, TripProfitabilityRow } from '@/types/app'
 
 import { getDbClient, type DbClient } from '@/lib/db/shared'
+import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 import { getCompanyAppSettings } from '@/lib/db/queries/company-settings'
 import { estimateTripProfitability } from '@/lib/utils/profitability'
 import { toNumber } from '@/lib/utils/numbers'
@@ -9,19 +10,26 @@ type TripProfitabilityDatasetRow = TripProfitabilityRow & {
   issuedAt: string | null
 }
 
-async function buildTripProfitabilityDataset(companyId: string, client?: DbClient): Promise<TripProfitabilityDatasetRow[]> {
+async function buildTripProfitabilityDataset(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<TripProfitabilityDatasetRow[]> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
+  let tripsQuery = supabase
+    .from('trips')
+    .select('id, public_id, branch_id, customer_id, vehicle_id, driver_id, start_time, end_time, distance_km, waiting_time_minutes, status')
+    .eq('company_id', companyId)
+  let invoicesQuery = supabase
+    .from('invoices')
+    .select('trip_id, branch_id, total, status, issue_date')
+    .eq('company_id', companyId)
+    .neq('status', 'cancelled')
+  if (branchScope) {
+    tripsQuery = tripsQuery.in('branch_id', branchScope)
+    invoicesQuery = invoicesQuery.in('branch_id', branchScope)
+  }
   const [settings, tripsResponse, invoicesResponse, customersResponse, vehiclesResponse, driversResponse] = await Promise.all([
     getCompanyAppSettings(companyId, supabase),
-    supabase
-      .from('trips')
-      .select('id, public_id, customer_id, vehicle_id, driver_id, start_time, end_time, distance_km, waiting_time_minutes, status')
-      .eq('company_id', companyId),
-    supabase
-      .from('invoices')
-      .select('trip_id, total, status, issue_date')
-      .eq('company_id', companyId)
-      .neq('status', 'cancelled'),
+    tripsQuery,
+    invoicesQuery,
     supabase.from('customers').select('id, name').eq('company_id', companyId),
     supabase.from('vehicles').select('id, registration_number, make, model').eq('company_id', companyId),
     supabase.from('drivers').select('id, full_name').eq('company_id', companyId),
@@ -111,12 +119,12 @@ function aggregateProfitability(
     .sort((a, b) => b.estimatedMargin - a.estimatedMargin)
 }
 
-export async function getEstimatedProfitabilityStats(companyId: string, client?: DbClient): Promise<{
+export async function getEstimatedProfitabilityStats(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<{
   totalRevenue: number
   totalEstimatedCost: number
   totalEstimatedMargin: number
 }> {
-  const rows = await buildTripProfitabilityDataset(companyId, client)
+  const rows = await buildTripProfitabilityDataset(companyId, client, branchIds)
   return rows.reduce(
     (totals, row) => ({
       totalRevenue: Number((totals.totalRevenue + row.revenue).toFixed(2)),
@@ -127,25 +135,25 @@ export async function getEstimatedProfitabilityStats(companyId: string, client?:
   )
 }
 
-export async function getEstimatedMarginByCustomer(companyId: string, client?: DbClient): Promise<ProfitabilityBreakdown[]> {
-  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client), (row) => row.customerName, 'Estimated gross margin by customer')
+export async function getEstimatedMarginByCustomer(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<ProfitabilityBreakdown[]> {
+  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client, branchIds), (row) => row.customerName, 'Estimated gross margin by customer')
 }
 
-export async function getEstimatedMarginByVehicle(companyId: string, client?: DbClient): Promise<ProfitabilityBreakdown[]> {
-  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client), (row) => row.vehicleLabel, 'Estimated gross margin by vehicle')
+export async function getEstimatedMarginByVehicle(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<ProfitabilityBreakdown[]> {
+  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client, branchIds), (row) => row.vehicleLabel, 'Estimated gross margin by vehicle')
 }
 
-export async function getEstimatedMarginByDriver(companyId: string, client?: DbClient): Promise<ProfitabilityBreakdown[]> {
-  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client), (row) => row.driverName, 'Estimated gross margin by driver')
+export async function getEstimatedMarginByDriver(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<ProfitabilityBreakdown[]> {
+  return aggregateProfitability(await buildTripProfitabilityDataset(companyId, client, branchIds), (row) => row.driverName, 'Estimated gross margin by driver')
 }
 
-export async function getTripProfitabilityRows(companyId: string, client?: DbClient): Promise<TripProfitabilityRow[]> {
-  const rows = await buildTripProfitabilityDataset(companyId, client)
+export async function getTripProfitabilityRows(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<TripProfitabilityRow[]> {
+  const rows = await buildTripProfitabilityDataset(companyId, client, branchIds)
   return rows.sort((a, b) => b.estimatedMargin - a.estimatedMargin)
 }
 
-export async function getDashboardProfitabilityStats(companyId: string, client?: DbClient): Promise<Pick<DashboardStats, 'estimatedCostThisMonth' | 'estimatedMarginThisMonth'>> {
-  const rows = await buildTripProfitabilityDataset(companyId, client)
+export async function getDashboardProfitabilityStats(companyId: string, client?: DbClient, branchIds?: readonly string[] | null): Promise<Pick<DashboardStats, 'estimatedCostThisMonth' | 'estimatedMarginThisMonth'>> {
+  const rows = await buildTripProfitabilityDataset(companyId, client, branchIds)
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10)
   const monthRows = rows.filter((row) => row.issuedAt && row.issuedAt >= monthStart)
@@ -159,9 +167,14 @@ export async function getDashboardProfitabilityStats(companyId: string, client?:
   )
 }
 
-export async function getInvoiceStatusSummary(companyId: string, client?: DbClient) {
+export async function getInvoiceStatusSummary(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
   const supabase = await getDbClient(client)
-  const { data } = await supabase.from('invoices').select('status, total').eq('company_id', companyId)
+  const branchScope = normalizeBranchScope(branchIds)
+  let query = supabase.from('invoices').select('status, total').eq('company_id', companyId)
+  if (branchScope) {
+    query = query.in('branch_id', branchScope)
+  }
+  const { data } = await query
   const summary = new Map<string, { count: number; total: number }>()
 
   for (const invoice of data ?? []) {
@@ -172,13 +185,18 @@ export async function getInvoiceStatusSummary(companyId: string, client?: DbClie
   return Array.from(summary.entries()).map(([status, values]) => ({ status, ...values }))
 }
 
-export async function getTripVolumeOverTime(companyId: string, client?: DbClient) {
+export async function getTripVolumeOverTime(companyId: string, client?: DbClient, branchIds?: readonly string[] | null) {
   const supabase = await getDbClient(client)
-  const { data } = await supabase
+  const branchScope = normalizeBranchScope(branchIds)
+  let query = supabase
     .from('trips')
     .select('created_at')
     .eq('company_id', companyId)
     .order('created_at', { ascending: true })
+  if (branchScope) {
+    query = query.in('branch_id', branchScope)
+  }
+  const { data } = await query
 
   const volume = new Map<string, number>()
   for (const trip of data ?? []) {

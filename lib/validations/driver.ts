@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
-import { optionalString } from '@/lib/validations/shared'
+import { optionalString, optionalUuid } from '@/lib/validations/shared'
 
 export const driverSchema = z.object({
+  branch_id: optionalUuid,
   full_name: z.string().trim().min(1, 'Driver name is required'),
   phone: optionalString,
   email: z.union([z.literal(''), z.string().email()]).optional().transform((value) => value || undefined),

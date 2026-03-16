@@ -1,6 +1,8 @@
 import { PageHeader } from '@/components/layout/page-header'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { ReportCard } from '@/components/reports/report-card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { requireCompany } from '@/lib/auth/require-company'
 import { getRevenueByCustomer, getRevenueByDriver, getRevenueByVehicle } from '@/lib/db/queries/dashboard'
@@ -12,12 +14,86 @@ import {
   getTripProfitabilityRows,
   getTripVolumeOverTime,
 } from '@/lib/db/queries/reports'
+import { platformModuleDefinitions } from '@/lib/platform/modules'
 import { formatCurrency } from '@/lib/utils/currency'
 
 export default async function ReportsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const { membership } = await requireCompany(locale)
+  const { membership, supabase } = await requireCompany(locale)
   const companyId = membership.company_id
+
+  if (!membership.enabledModules.includes('transport')) {
+    const [{ count: branchCount }, { count: teamCount }, { count: activeDrivers }] = await Promise.all([
+      supabase.from('branches').select('*', { count: 'exact', head: true }).eq('company_id', companyId),
+      supabase.from('company_users').select('*', { count: 'exact', head: true }).eq('company_id', companyId).eq('is_active', true),
+      supabase.from('drivers').select('*', { count: 'exact', head: true }).eq('company_id', companyId).eq('is_active', true),
+    ])
+
+    const enabledModules = platformModuleDefinitions.filter((definition) => membership.enabledModules.includes(definition.key))
+
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Platform Reports"
+          description="This tenant does not currently have the transport suite enabled, so the reporting surface focuses on module footprint and rollout structure rather than dispatch revenue."
+        />
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card className="border-slate-200/80 bg-white/90">
+            <CardHeader>
+              <CardTitle>Enabled Modules</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {enabledModules.map((module) => (
+                <div key={module.key} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm">
+                  <div>
+                    <div className="font-medium text-slate-950">{module.label}</div>
+                    <div className="mt-1 text-slate-600">{module.description}</div>
+                  </div>
+                  <Badge variant="success">Enabled</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200/80 bg-white/90">
+            <CardHeader>
+              <CardTitle>Operational Footprint</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Metric</TableHead>
+                    <TableHead>Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Configured branches</TableCell>
+                    <TableCell>{branchCount ?? 0}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Active team members</TableCell>
+                    <TableCell>{teamCount ?? 0}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Active drivers</TableCell>
+                    <TableCell>{activeDrivers ?? 0}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Transport reporting mode</TableCell>
+                    <TableCell>Disabled until the transport module is enabled</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   const [
     customerRevenue,
     vehicleRevenue,
@@ -29,15 +105,15 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
     invoiceStatusSummary,
     tripVolume,
   ] = await Promise.all([
-    getRevenueByCustomer(companyId),
-    getRevenueByVehicle(companyId),
-    getRevenueByDriver(companyId),
-    getEstimatedMarginByCustomer(companyId),
-    getEstimatedMarginByVehicle(companyId),
-    getEstimatedMarginByDriver(companyId),
-    getTripProfitabilityRows(companyId),
-    getInvoiceStatusSummary(companyId),
-    getTripVolumeOverTime(companyId),
+    getRevenueByCustomer(companyId, undefined, membership.branchIds),
+    getRevenueByVehicle(companyId, undefined, membership.branchIds),
+    getRevenueByDriver(companyId, undefined, membership.branchIds),
+    getEstimatedMarginByCustomer(companyId, undefined, membership.branchIds),
+    getEstimatedMarginByVehicle(companyId, undefined, membership.branchIds),
+    getEstimatedMarginByDriver(companyId, undefined, membership.branchIds),
+    getTripProfitabilityRows(companyId, undefined, membership.branchIds),
+    getInvoiceStatusSummary(companyId, undefined, membership.branchIds),
+    getTripVolumeOverTime(companyId, undefined, membership.branchIds),
   ])
 
   return (

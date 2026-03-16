@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
 type VehicleDefaults = {
+  branch_id?: string | null
   registration_number?: string | null
   make?: string | null
   model?: string | null
@@ -14,13 +15,17 @@ type VehicleDefaults = {
   is_active?: boolean
 }
 
+type SelectOption = { value: string; label: string }
+
 export function VehicleForm({
   action,
   defaults,
+  branches,
   submitLabel,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaults?: VehicleDefaults
+  branches?: SelectOption[]
   submitLabel: string
 }) {
   return (
@@ -30,6 +35,17 @@ export function VehicleForm({
           <CardTitle>Vehicle Details</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="branch_id">Branch</Label>
+            <select id="branch_id" name="branch_id" defaultValue={defaults?.branch_id ?? branches?.[0]?.value ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">
+              <option value="">No branch</option>
+              {(branches ?? []).map((branch) => (
+                <option key={branch.value} value={branch.value}>
+                  {branch.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="registration_number">Registration Number</Label>
             <Input id="registration_number" name="registration_number" defaultValue={defaults?.registration_number ?? ''} required />

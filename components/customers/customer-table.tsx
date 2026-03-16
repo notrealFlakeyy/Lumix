@@ -8,6 +8,7 @@ export function CustomerTable({
   customers: Array<{
     id: string
     name: string
+    branch_name?: string | null
     business_id: string | null
     email: string | null
     phone: string | null
@@ -20,6 +21,7 @@ export function CustomerTable({
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Business ID</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Phone</TableHead>
@@ -35,6 +37,7 @@ export function CustomerTable({
                 {customer.name}
               </Link>
             </TableCell>
+            <TableCell>{customer.branch_name ?? '-'}</TableCell>
             <TableCell>{customer.business_id ?? '-'}</TableCell>
             <TableCell>{customer.email ?? '-'}</TableCell>
             <TableCell>{customer.phone ?? '-'}</TableCell>

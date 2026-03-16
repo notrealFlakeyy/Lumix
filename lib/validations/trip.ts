@@ -4,6 +4,7 @@ import { tripStatuses } from '@/types/app'
 import { optionalNumber, optionalString, optionalUuid } from '@/lib/validations/shared'
 
 export const tripSchema = z.object({
+  branch_id: optionalUuid,
   transport_order_id: optionalUuid,
   customer_id: z.string().uuid(),
   vehicle_id: optionalUuid,

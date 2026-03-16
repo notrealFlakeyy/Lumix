@@ -3,16 +3,40 @@ import 'server-only'
 import type { TableRow } from '@/types/database'
 import type { TripInput } from '@/lib/validations/trip'
 
+import { getCurrentMembership } from '@/lib/auth/get-current-membership'
+import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { getDbClient, insertAuditLog, type DbClient } from '@/lib/db/shared'
 
 export async function createTrip(companyId: string, userId: string, input: TripInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  let branchId = input.branch_id ?? null
+  if (input.transport_order_id) {
+    const { data: linkedOrder } = await supabase
+      .from('transport_orders')
+      .select('branch_id')
+      .eq('company_id', companyId)
+      .eq('id', input.transport_order_id)
+      .maybeSingle()
+
+    if (linkedOrder?.branch_id) {
+      if (branchId && branchId !== linkedOrder.branch_id) {
+        throw new Error('The selected trip branch must match the linked order branch.')
+      }
+      branchId = linkedOrder.branch_id
+    }
+  }
+
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, branchId, 'trip')
+  }
   const { data, error } = await supabase
     .from('trips')
     .insert({
       company_id: companyId,
       created_by: userId,
       ...input,
+      branch_id: branchId,
     })
     .select('*')
     .single()
@@ -35,10 +59,33 @@ export async function createTrip(companyId: string, userId: string, input: TripI
 
 export async function updateTrip(companyId: string, userId: string, id: string, input: TripInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  let branchId = input.branch_id ?? null
+  if (input.transport_order_id) {
+    const { data: linkedOrder } = await supabase
+      .from('transport_orders')
+      .select('branch_id')
+      .eq('company_id', companyId)
+      .eq('id', input.transport_order_id)
+      .maybeSingle()
+
+    if (linkedOrder?.branch_id) {
+      if (branchId && branchId !== linkedOrder.branch_id) {
+        throw new Error('The selected trip branch must match the linked order branch.')
+      }
+      branchId = linkedOrder.branch_id
+    }
+  }
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, branchId, 'trip')
+  }
   const { data: previous } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).maybeSingle()
   const { data, error } = await supabase
     .from('trips')
-    .update(input)
+    .update({
+      ...input,
+      branch_id: branchId,
+    })
     .eq('company_id', companyId)
     .eq('id', id)
     .select('*')
@@ -72,6 +119,10 @@ export async function createTripFromOrder(companyId: string, userId: string, ord
 
   if (error) throw error
   const typedOrder = order as TableRow<'transport_orders'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, typedOrder.branch_id, 'trip')
+  }
 
   const { data: existingTrip } = await supabase
     .from('trips')
@@ -88,6 +139,7 @@ export async function createTripFromOrder(companyId: string, userId: string, ord
     .insert({
       company_id: companyId,
       created_by: userId,
+      branch_id: typedOrder.branch_id,
       transport_order_id: typedOrder.id,
       customer_id: typedOrder.customer_id,
       vehicle_id: typedOrder.assigned_vehicle_id,
@@ -134,6 +186,10 @@ export async function startTrip(
 
   if (currentTripError) throw currentTripError
   const previousTrip = currentTrip as TableRow<'trips'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, previousTrip.branch_id, 'trip')
+  }
 
   const { data, error } = await supabase
     .from('trips')
@@ -189,6 +245,10 @@ export async function completeTrip(
   const { data: trip, error: tripError } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).single()
   if (tripError) throw tripError
   const currentTrip = trip as TableRow<'trips'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, currentTrip.branch_id, 'trip')
+  }
 
   const endKm = input?.end_km ?? currentTrip.end_km
   const waitingTime = input?.waiting_time_minutes ?? currentTrip.waiting_time_minutes
@@ -241,4 +301,52 @@ export async function completeTrip(
   })
 
   return completedTrip
+}
+
+export async function updateTripDeliveryProof(
+  companyId: string,
+  userId: string,
+  id: string,
+  input: {
+    delivery_confirmation?: string | null
+    delivery_recipient_name?: string | null
+    delivery_received_at?: string | null
+  },
+  client?: DbClient,
+) {
+  const supabase = await getDbClient(client)
+  const { data: trip, error: tripError } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', id).single()
+  if (tripError) throw tripError
+  const currentTrip = trip as TableRow<'trips'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, currentTrip.branch_id, 'trip')
+  }
+
+  const { data, error } = await supabase
+    .from('trips')
+    .update({
+      delivery_confirmation: input.delivery_confirmation ?? currentTrip.delivery_confirmation,
+      delivery_recipient_name: input.delivery_recipient_name ?? currentTrip.delivery_recipient_name,
+      delivery_received_at: input.delivery_received_at ?? currentTrip.delivery_received_at,
+    })
+    .eq('company_id', companyId)
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error) throw error
+  const updatedTrip = data as TableRow<'trips'>
+
+  await insertAuditLog(supabase, {
+    company_id: companyId,
+    user_id: userId,
+    entity_type: 'trip',
+    entity_id: id,
+    action: 'update_delivery_proof',
+    old_values: currentTrip,
+    new_values: updatedTrip,
+  })
+
+  return updatedTrip
 }

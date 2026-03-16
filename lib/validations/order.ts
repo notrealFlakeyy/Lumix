@@ -4,6 +4,7 @@ import { orderStatuses } from '@/types/app'
 import { optionalString, optionalUuid } from '@/lib/validations/shared'
 
 export const orderSchema = z.object({
+  branch_id: optionalUuid,
   customer_id: z.string().uuid(),
   assigned_vehicle_id: optionalUuid,
   assigned_driver_id: optionalUuid,

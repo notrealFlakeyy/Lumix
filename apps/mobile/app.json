@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Lumix Driver",
+    "slug": "lumix-driver",
+    "scheme": "lumix-driver",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fi.lumix.driver"
+    },
+    "android": {
+      "package": "fi.lumix.driver"
+    }
+  }
+}

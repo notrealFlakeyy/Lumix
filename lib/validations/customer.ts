@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
-import { optionalString } from '@/lib/validations/shared'
+import { optionalString, optionalUuid } from '@/lib/validations/shared'
 
 export const customerSchema = z.object({
+  branch_id: optionalUuid,
   name: z.string().trim().min(1, 'Name is required'),
   email: z.union([z.literal(''), z.string().email()]).optional().transform((value) => value || undefined),
   business_id: optionalString,

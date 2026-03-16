@@ -1,25 +1,29 @@
 'use client'
 
-import { ClipboardList, FileStack, House } from 'lucide-react'
+import { ClipboardList, Clock3, FileStack, House } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 import { Link, usePathname } from '@/i18n/navigation'
+import type { PlatformModuleKey } from '@/types/app'
 import { cn } from '@/lib/utils'
 
-const navItems = [
+const baseNavItems = [
   { href: '/driver', label: 'Home', icon: House },
   { href: '/driver/trips', label: 'Trips', icon: ClipboardList },
   { href: '/driver/documents', label: 'Docs', icon: FileStack },
 ]
 
-export function DriverBottomNav() {
+export function DriverBottomNav({ enabledModules }: { enabledModules: readonly PlatformModuleKey[] }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const previewDriver = searchParams?.get('driver')
+  const navItems = enabledModules.includes('time')
+    ? [...baseNavItems.slice(0, 2), { href: '/driver/time', label: 'Shift', icon: Clock3 }, baseNavItems[2]]
+    : baseNavItems
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-[rgba(255,255,255,0.96)] px-3 py-3 backdrop-blur">
-      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+      <div className={cn('mx-auto grid max-w-md gap-2', navItems.length === 4 ? 'grid-cols-4' : 'grid-cols-3')}>
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)

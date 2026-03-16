@@ -3,9 +3,12 @@ import createIntlMiddleware from 'next-intl/middleware'
 import { createServerClient } from '@supabase/ssr'
 
 import { defaultLocale, locales } from './i18n/routing'
+import { activeCompanyCookieName } from './lib/auth/constants'
 import { publicEnv } from './lib/env/public'
-import { canAccessModule, getAllowedModules } from './lib/auth/permissions'
-import type { AppModule, CompanyRole } from './types/app'
+import { canAccessModule } from './lib/auth/permissions'
+import { defaultEnabledPlatformModules, normalizeEnabledPlatformModules } from './lib/platform/modules'
+import { getAppModuleForRouteSegment, getDefaultAuthenticatedHref, isProtectedRouteSegment } from './lib/platform/routing'
+import type { CompanyRole } from './types/app'
 
 const intlMiddleware = createIntlMiddleware({
   locales: [...locales],
@@ -13,43 +16,18 @@ const intlMiddleware = createIntlMiddleware({
   localePrefix: 'always',
 })
 
-const pathModule = (pathname: string): AppModule | null => {
+const pathModule = (pathname: string) => {
   const parts = pathname.split('/').filter(Boolean)
   const maybeLocale = parts[0]
   if (!maybeLocale || !locales.includes(maybeLocale as any)) return null
-  const mod = parts[1]
-  if (!mod) return null
-  return ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings'].includes(mod)
-    ? (mod as AppModule)
-    : null
+  return getAppModuleForRouteSegment(parts[1])
 }
 
 const isProtectedPath = (pathname: string) => {
   const parts = pathname.split('/').filter(Boolean)
   const maybeLocale = parts[0]
   if (!maybeLocale || !locales.includes(maybeLocale as any)) return false
-
-  const rest = `/${parts.slice(1).join('/')}`
-  return (
-    rest === '/dashboard' ||
-    rest.startsWith('/dashboard/') ||
-    rest === '/customers' ||
-    rest.startsWith('/customers/') ||
-    rest === '/vehicles' ||
-    rest.startsWith('/vehicles/') ||
-    rest === '/drivers' ||
-    rest.startsWith('/drivers/') ||
-    rest === '/orders' ||
-    rest.startsWith('/orders/') ||
-    rest === '/trips' ||
-    rest.startsWith('/trips/') ||
-    rest === '/invoices' ||
-    rest.startsWith('/invoices/') ||
-    rest === '/reports' ||
-    rest.startsWith('/reports/') ||
-    rest === '/settings' ||
-    rest.startsWith('/settings/')
-  )
+  return isProtectedRouteSegment(parts[1])
 }
 
 const isAuthPath = (pathname: string) => {
@@ -85,17 +63,32 @@ export async function middleware(req: NextRequest) {
   const locale = locales.includes(parts[0] as any) ? parts[0] : defaultLocale
 
   let role: CompanyRole | null = null
+  let enabledModules = [...defaultEnabledPlatformModules]
   if (user) {
-    const { data: membership } = await supabase
+    const activeCompanyId = req.cookies.get(activeCompanyCookieName)?.value
+    const { data: memberships } = await supabase
       .from('company_users')
-      .select('company_id, role, is_active')
+      .select('company_id, role, is_active, created_at')
       .eq('user_id', user.id)
       .eq('is_active', true)
-      .limit(1)
-      .maybeSingle()
+      .order('created_at', { ascending: true })
 
-    if (membership) {
+    const membership =
+      memberships?.find((item) => item.company_id === activeCompanyId) ??
+      memberships?.[0] ??
+      null
+
+    if (membership?.company_id) {
       role = membership.role as CompanyRole
+
+      const { data: companyModules } = await supabase
+        .from('company_modules')
+        .select('module_key, is_enabled')
+        .eq('company_id', membership.company_id)
+
+      enabledModules = normalizeEnabledPlatformModules(
+        companyModules?.filter((item) => item.is_enabled).map((item) => item.module_key) ?? defaultEnabledPlatformModules,
+      )
     }
   }
 
@@ -108,16 +101,21 @@ export async function middleware(req: NextRequest) {
 
   if (isAuthPath(pathname) && isAuthed) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = `/${locale}/dashboard`
+    redirectUrl.pathname = role ? getDefaultAuthenticatedHref(locale, role, enabledModules) : `/${locale}/onboarding`
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  if (isProtectedPath(pathname) && isAuthed && !role) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = `/${locale}/onboarding`
     return NextResponse.redirect(redirectUrl)
   }
 
   if (isProtectedPath(pathname) && isAuthed && role) {
     const mod = pathModule(pathname)
-    if (mod && !canAccessModule(role, mod)) {
+    if (mod && !canAccessModule(role, mod, enabledModules)) {
       const redirectUrl = req.nextUrl.clone()
-      const fallback = getAllowedModules(role)[0] ?? 'dashboard'
-      redirectUrl.pathname = `/${locale}/${fallback}`
+      redirectUrl.pathname = getDefaultAuthenticatedHref(locale, role, enabledModules)
       return NextResponse.redirect(redirectUrl)
     }
   }

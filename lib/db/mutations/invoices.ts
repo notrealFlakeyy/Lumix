@@ -4,6 +4,8 @@ import type { TableRow } from '@/types/database'
 import type { InvoiceStatus } from '@/types/app'
 import type { InvoiceInput } from '@/lib/validations/invoice'
 
+import { getCurrentMembership } from '@/lib/auth/get-current-membership'
+import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { computeInvoiceTotals, createTripInvoiceItems, deriveInvoiceStatus, buildInvoicePdfFileName, buildInvoicePdfPath } from '@/lib/utils/invoice'
 import { getDbClient, getNextDocumentNumber, insertAuditLog, type DbClient } from '@/lib/db/shared'
 import { getCompanyAppSettings } from '@/lib/db/queries/company-settings'
@@ -15,6 +17,33 @@ import { toNumber } from '@/lib/utils/numbers'
 
 export async function createInvoice(companyId: string, userId: string, input: InvoiceInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  let branchId = input.branch_id ?? null
+  if (input.trip_id && !branchId) {
+    const { data: linkedTrip } = await supabase
+      .from('trips')
+      .select('branch_id')
+      .eq('company_id', companyId)
+      .eq('id', input.trip_id)
+      .maybeSingle()
+
+    branchId = linkedTrip?.branch_id ?? null
+  } else if (input.trip_id && branchId) {
+    const { data: linkedTrip } = await supabase
+      .from('trips')
+      .select('branch_id')
+      .eq('company_id', companyId)
+      .eq('id', input.trip_id)
+      .maybeSingle()
+
+    if (linkedTrip?.branch_id && linkedTrip.branch_id !== branchId) {
+      throw new Error('The selected invoice branch must match the linked trip branch.')
+    }
+  }
+
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, branchId, 'invoice')
+  }
   const invoiceNumber = await getNextDocumentNumber(supabase, 'invoices', companyId, 'INV')
   const normalizedItems = input.items.map((item) => ({
     description: item.description,
@@ -29,6 +58,7 @@ export async function createInvoice(companyId: string, userId: string, input: In
     .insert({
       company_id: companyId,
       created_by: userId,
+      branch_id: branchId,
       customer_id: input.customer_id,
       trip_id: input.trip_id ?? null,
       invoice_number: invoiceNumber,
@@ -94,6 +124,10 @@ export async function createInvoiceFromTrip(companyId: string, userId: string, t
   const { data: trip, error } = await supabase.from('trips').select('*').eq('company_id', companyId).eq('id', tripId).single()
   if (error) throw error
   const tripRow = trip as TableRow<'trips'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, tripRow.branch_id, 'invoice')
+  }
   const companySettings = await getCompanyAppSettings(companyId, supabase)
   const paymentTermsDays = companySettings?.default_payment_terms_days ?? 14
   const defaultVatRate = Number(companySettings?.default_vat_rate ?? 25.5)
@@ -107,6 +141,7 @@ export async function createInvoiceFromTrip(companyId: string, userId: string, t
     userId,
     {
       customer_id: tripRow.customer_id,
+      branch_id: tripRow.branch_id ?? undefined,
       trip_id: tripRow.id,
       issue_date: issueDate,
       due_date: dueDate,
@@ -128,6 +163,11 @@ export async function createInvoiceFromTrip(companyId: string, userId: string, t
 export async function updateInvoiceStatus(companyId: string, userId: string, id: string, status: InvoiceStatus, client?: DbClient) {
   const supabase = await getDbClient(client)
   const { data: previous } = await supabase.from('invoices').select('*').eq('company_id', companyId).eq('id', id).maybeSingle()
+  const previousInvoice = previous as TableRow<'invoices'> | null
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, previousInvoice?.branch_id ?? null, 'invoice')
+  }
   const { data, error } = await supabase
     .from('invoices')
     .update({ status })
@@ -146,7 +186,7 @@ export async function updateInvoiceStatus(companyId: string, userId: string, id:
     entity_type: 'invoice',
     entity_id: id,
     action: 'status_change',
-    old_values: previous,
+    old_values: previousInvoice,
     new_values: typedInvoice,
   })
 
@@ -161,6 +201,10 @@ export async function refreshInvoicePaymentStatus(companyId: string, userId: str
   ])
 
   const invoiceRow = invoice as TableRow<'invoices'>
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, invoiceRow.branch_id, 'invoice')
+  }
   const paidAmount = (payments ?? []).reduce((sum, payment) => sum + toNumber(payment.amount), 0)
   const status = deriveInvoiceStatus(invoiceRow.status as InvoiceStatus, toNumber(invoiceRow.total), paidAmount, invoiceRow.due_date)
 
@@ -172,6 +216,10 @@ export async function sendInvoiceToCustomer(companyId: string, userId: string, i
   const bundle = await getInvoiceById(companyId, invoiceId, supabase)
   if (!bundle) {
     throw new Error('Invoice not found.')
+  }
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, bundle.invoice.branch_id, 'invoice')
   }
 
   if (!bundle.customer?.email) {

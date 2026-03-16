@@ -3,11 +3,24 @@ import 'server-only'
 import type { TableRow } from '@/types/database'
 import type { PaymentInput } from '@/lib/validations/payment'
 
+import { getCurrentMembership } from '@/lib/auth/get-current-membership'
+import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { refreshInvoicePaymentStatus } from '@/lib/db/mutations/invoices'
 import { getDbClient, insertAuditLog, type DbClient } from '@/lib/db/shared'
 
 export async function registerPayment(companyId: string, userId: string, input: PaymentInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  const { data: invoice } = await supabase
+    .from('invoices')
+    .select('branch_id')
+    .eq('company_id', companyId)
+    .eq('id', input.invoice_id)
+    .maybeSingle()
+
+  const { membership } = await getCurrentMembership()
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, invoice?.branch_id ?? null, 'payment')
+  }
   const { data, error } = await supabase
     .from('payments')
     .insert({

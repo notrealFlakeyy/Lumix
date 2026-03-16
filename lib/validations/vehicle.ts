@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
-import { optionalNumber, optionalString } from '@/lib/validations/shared'
+import { optionalNumber, optionalString, optionalUuid } from '@/lib/validations/shared'
 
 export const vehicleSchema = z.object({
+  branch_id: optionalUuid,
   registration_number: z.string().trim().min(1, 'Registration number is required'),
   make: optionalString,
   model: optionalString,

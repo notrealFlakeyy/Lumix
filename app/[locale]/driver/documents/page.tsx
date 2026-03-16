@@ -22,7 +22,7 @@ export default async function DriverDocumentsPage({
     redirect(`/${locale}/driver`)
   }
 
-  const documents = await listDriverDocuments(membership.company_id, activeDriver.id, context.supabase)
+  const documents = await listDriverDocuments(membership.company_id, activeDriver.id, context.supabase, membership.branchIds)
   const documentFeed = await Promise.all(
     documents.map(async (document) => ({
       ...document,

@@ -13,7 +13,7 @@ export default async function DriverLayout({
   const { locale } = await params
   const { user, membership, memberships } = await requireCompany(locale)
 
-  if (!canUseDriverWorkflow(membership.role)) {
+  if (!canUseDriverWorkflow(membership.role) || !membership.enabledModules.includes('transport')) {
     redirect({ href: '/dashboard', locale })
   }
 

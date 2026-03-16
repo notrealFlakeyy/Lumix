@@ -21,7 +21,7 @@ export default async function OrderDetailPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const result = await getOrderById(membership.company_id, id)
+  const result = await getOrderById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
   async function changeStatus(status: 'assigned' | 'in_progress' | 'completed') {
@@ -43,7 +43,7 @@ export default async function OrderDetailPage({
     redirect(`/${locale}/trips/${getTripRouteId(trip)}`)
   }
 
-  const { order, customer, vehicle, driver, trip } = result
+  const { order, branch, customer, vehicle, driver, trip } = result
 
   return (
     <div className="space-y-6">
@@ -71,6 +71,7 @@ export default async function OrderDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div className="flex items-center gap-3"><span className="font-medium text-slate-900">Status:</span> <OrderStatusBadge status={order.status as any} /></div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {branch?.name ?? 'No branch assigned'}</div>
             <div><span className="font-medium text-slate-900">Customer:</span> {customer?.name ?? '-'}</div>
             <div><span className="font-medium text-slate-900">Pickup:</span> {order.pickup_location}</div>
             <div><span className="font-medium text-slate-900">Delivery:</span> {order.delivery_location}</div>

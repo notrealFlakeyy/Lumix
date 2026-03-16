@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, Building2, FileText, LayoutDashboard, Route, Settings, Truck, UserSquare2, Users } from 'lucide-react'
+import { BarChart3, Boxes, Building2, Calculator, ClipboardList, Clock3, FileText, LayoutDashboard, ReceiptText, Route, Settings, Truck, UserSquare2, Users } from 'lucide-react'
 
 import type { AppModule } from '@/types/app'
 import { Link, usePathname } from '@/i18n/navigation'
@@ -14,6 +14,11 @@ const navItems: Array<{ href: string; label: string; module: AppModule; icon: Re
   { href: '/orders', label: 'Orders', module: 'orders', icon: Route },
   { href: '/trips', label: 'Trips', module: 'trips', icon: Users },
   { href: '/invoices', label: 'Invoices', module: 'invoices', icon: FileText },
+  { href: '/inventory', label: 'Inventory', module: 'inventory', icon: Boxes },
+  { href: '/purchases', label: 'Purchases', module: 'purchases', icon: ClipboardList },
+  { href: '/time', label: 'Time', module: 'time', icon: Clock3 },
+  { href: '/payroll', label: 'Payroll', module: 'payroll', icon: ReceiptText },
+  { href: '/accounting', label: 'Accounting', module: 'accounting', icon: Calculator },
   { href: '/reports', label: 'Reports', module: 'reports', icon: BarChart3 },
   { href: '/settings', label: 'Settings', module: 'settings', icon: Settings },
 ]
@@ -25,8 +30,8 @@ export function AppSidebar({ allowedModules }: { allowedModules: readonly AppMod
     <aside className="hidden w-72 shrink-0 border-r border-border/20 bg-white/80 px-5 py-6 xl:block">
       <div className="rounded-2xl border border-slate-200/80 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
         <div className="text-xs uppercase tracking-[0.24em] text-sky-200/80">Lumix</div>
-        <div className="mt-2 text-lg font-semibold tracking-tight">Transport ERP</div>
-        <p className="mt-2 text-sm text-slate-300">Dispatch, trips, invoicing, and reporting in one workspace.</p>
+        <div className="mt-2 text-lg font-semibold tracking-tight">Modular Operations Platform</div>
+        <p className="mt-2 text-sm text-slate-300">Turn on transport, inventory, purchasing, finance, and workforce modules per client.</p>
       </div>
 
       <nav className="mt-8 space-y-1.5">

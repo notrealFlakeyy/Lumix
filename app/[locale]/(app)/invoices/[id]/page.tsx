@@ -38,7 +38,7 @@ export default async function InvoiceDetailPage({
   const { locale, id } = await params
   const { success, error } = await searchParams
   const { membership } = await requireCompany(locale)
-  const result = await getInvoiceById(membership.company_id, id)
+  const result = await getInvoiceById(membership.company_id, id, undefined, membership.branchIds)
   if (!result) return null
 
   async function markStatus(status: 'sent' | 'cancelled') {
@@ -87,7 +87,7 @@ export default async function InvoiceDetailPage({
     redirect(buildInvoiceDetailHref(locale, id, { success: 'Invoice email sent successfully.' }))
   }
 
-  const { company, invoice, customer, items, payments, trip } = result
+  const { company, invoice, branch, customer, items, payments, trip } = result
   const paidAmount = payments.reduce((sum, payment) => sum + toNumber(payment.amount), 0)
   const balanceDue = Math.max(0, toNumber(invoice.total) - paidAmount)
   const pdfPath = buildInvoicePdfPath(locale, invoice.id)
@@ -135,6 +135,7 @@ export default async function InvoiceDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             <div className="flex items-center gap-3"><span className="font-medium text-slate-900">Status:</span> <InvoiceStatusBadge status={invoice.status as any} /></div>
+            <div><span className="font-medium text-slate-900">Branch:</span> {branch?.name ?? 'No branch assigned'}</div>
             <div><span className="font-medium text-slate-900">Issue Date:</span> {formatDate(invoice.issue_date)}</div>
             <div><span className="font-medium text-slate-900">Due Date:</span> {formatDate(invoice.due_date)}</div>
             <div><span className="font-medium text-slate-900">Reference Number:</span> {invoice.reference_number ?? '-'}</div>

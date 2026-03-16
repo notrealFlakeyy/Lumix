@@ -6,6 +6,7 @@ import { TripForm } from '@/components/trips/trip-form'
 import { canManageOrders } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { createTrip } from '@/lib/db/mutations/trips'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { listCustomers } from '@/lib/db/queries/customers'
 import { listDrivers } from '@/lib/db/queries/drivers'
 import { listOrders } from '@/lib/db/queries/orders'
@@ -16,11 +17,12 @@ import { datetimeLocalToIso, getOptionalString, getString } from '@/lib/utils/fo
 export default async function NewTripPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const { membership } = await requireCompany(locale)
-  const [orders, customers, vehicles, drivers] = await Promise.all([
-    listOrders(membership.company_id),
-    listCustomers(membership.company_id),
-    listVehicles(membership.company_id),
-    listDrivers(membership.company_id),
+  const [branches, orders, customers, vehicles, drivers] = await Promise.all([
+    listActiveBranches(membership.company_id, membership),
+    listOrders(membership.company_id, undefined, membership.branchIds),
+    listCustomers(membership.company_id, undefined, membership.branchIds),
+    listVehicles(membership.company_id, undefined, membership.branchIds),
+    listDrivers(membership.company_id, undefined, membership.branchIds),
   ])
 
   async function action(formData: FormData) {
@@ -30,6 +32,7 @@ export default async function NewTripPage({ params }: { params: Promise<{ locale
     if (!canManageOrders(membership.role)) throw new Error('Insufficient permissions.')
 
     const input = tripSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       transport_order_id: getOptionalString(formData, 'transport_order_id'),
       customer_id: getString(formData, 'customer_id'),
       vehicle_id: getOptionalString(formData, 'vehicle_id'),
@@ -55,6 +58,7 @@ export default async function NewTripPage({ params }: { params: Promise<{ locale
       <PageHeader title="New Trip" description="Create a trip manually or prepare it before final assignment and execution." />
       <TripForm
         action={action}
+        branches={branches.map((row) => ({ value: row.id, label: row.name }))}
         orders={orders.map((row) => ({ value: row.id, label: row.order_number }))}
         customers={customers.map((row) => ({ value: row.id, label: row.name }))}
         vehicles={vehicles.map((row) => ({ value: row.id, label: row.registration_number }))}

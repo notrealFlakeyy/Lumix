@@ -6,6 +6,7 @@ import type { Membership } from '@/types/app'
 import { CompanySwitcher } from '@/components/auth/company-switcher'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { DriverBottomNav } from '@/components/driver/driver-bottom-nav'
+import { DriverOfflineSync } from '@/components/driver/offline-sync'
 import { Button } from '@/components/ui/button'
 
 export function DriverMobileShell({
@@ -49,8 +50,11 @@ export function DriverMobileShell({
         </div>
       </header>
 
-      <div className="mx-auto max-w-md px-4 pb-24 pt-5">{children}</div>
-      <DriverBottomNav />
+      <div className="mx-auto max-w-md space-y-4 px-4 pb-24 pt-5">
+        <DriverOfflineSync />
+        {children}
+      </div>
+      <DriverBottomNav enabledModules={membership.enabledModules} />
     </div>
   )
 }

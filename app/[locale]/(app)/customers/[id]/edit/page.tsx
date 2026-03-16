@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { canEditMasterData } from '@/lib/auth/permissions'
 import { requireCompany } from '@/lib/auth/require-company'
 import { updateCustomer } from '@/lib/db/mutations/customers'
+import { listActiveBranches } from '@/lib/db/queries/branches'
 import { getCustomerById } from '@/lib/db/queries/customers'
 import { customerSchema } from '@/lib/validations/customer'
 import { getOptionalString, getString } from '@/lib/utils/forms'
@@ -17,7 +18,10 @@ export default async function EditCustomerPage({
 }) {
   const { locale, id } = await params
   const { membership } = await requireCompany(locale)
-  const result = await getCustomerById(membership.company_id, id)
+  const [result, branches] = await Promise.all([
+    getCustomerById(membership.company_id, id, undefined, membership.branchIds),
+    listActiveBranches(membership.company_id, membership),
+  ])
   if (!result) return null
 
   async function action(formData: FormData) {
@@ -29,6 +33,7 @@ export default async function EditCustomerPage({
     }
 
     const input = customerSchema.parse({
+      branch_id: getOptionalString(formData, 'branch_id'),
       name: getString(formData, 'name'),
       email: getOptionalString(formData, 'email'),
       business_id: getOptionalString(formData, 'business_id'),
@@ -42,7 +47,7 @@ export default async function EditCustomerPage({
       notes: getOptionalString(formData, 'notes'),
     })
 
-    await updateCustomer(membership.company_id, user.id, id, input)
+    await updateCustomer(membership.company_id, user.id, id, input, membership)
     revalidatePath(`/${locale}/customers`)
     revalidatePath(`/${locale}/customers/${id}`)
     redirect(`/${locale}/customers/${id}`)
@@ -51,7 +56,7 @@ export default async function EditCustomerPage({
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Customer" description="Update billing and account information for this customer." />
-      <CustomerForm action={action} defaults={result.customer} submitLabel="Save customer" />
+      <CustomerForm action={action} defaults={result.customer} branches={branches.map((branch) => ({ value: branch.id, label: branch.name }))} submitLabel="Save customer" />
     </div>
   )
 }
