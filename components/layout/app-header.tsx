@@ -34,6 +34,7 @@ export function AppHeader({
         </div>
         <div className="flex items-center gap-3">
           <CompanySwitcher locale={locale} memberships={memberships} currentCompanyId={membership.company_id} redirectTo={`/${locale}/dashboard`} />
+          <GlobalSearch locale={locale} />
           <div className="hidden items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 md:flex">
             <BellDot className="h-4 w-4 text-sky-600" />
             <div>

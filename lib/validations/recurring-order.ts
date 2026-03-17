@@ -7,7 +7,7 @@ export type RecurrenceRule = (typeof recurrenceRules)[number]
 
 export const recurringOrderSchema = z.object({
   branch_id: optionalUuid,
-  customer_id: optionalUuid,
+  customer_id: z.string().uuid('Customer is required'),
   vehicle_id: optionalUuid,
   driver_id: optionalUuid,
   pickup_location: z.string().trim().min(1, 'Pickup location is required'),
@@ -33,6 +33,22 @@ export const recurringOrderSchema = z.object({
   ),
   next_occurrence_date: z.string().trim().min(1, 'Next occurrence date is required'),
   is_active: z.boolean().default(true),
+}).superRefine((input, ctx) => {
+  if ((input.recurrence_rule === 'weekly' || input.recurrence_rule === 'biweekly') && input.recurrence_day_of_week === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['recurrence_day_of_week'],
+      message: 'Choose a day of week for weekly recurrences.',
+    })
+  }
+
+  if (input.recurrence_rule === 'monthly' && input.recurrence_day_of_month === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['recurrence_day_of_month'],
+      message: 'Choose a day of month for monthly recurrences.',
+    })
+  }
 })
 
 export type RecurringOrderInput = z.infer<typeof recurringOrderSchema>

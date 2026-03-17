@@ -583,6 +583,8 @@ export type Database = {
           default_currency: string
           invoice_footer: string | null
           brand_accent: string
+          invoice_payment_instructions: string | null
+          invoice_logo_url: string | null
           created_at: string
           updated_at: string
         }
@@ -601,6 +603,8 @@ export type Database = {
           default_currency?: string
           invoice_footer?: string | null
           brand_accent?: string
+          invoice_payment_instructions?: string | null
+          invoice_logo_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -977,6 +981,120 @@ export type Database = {
           created_at?: string
         }
         Update: Partial<Omit<Database['public']['Tables']['documents']['Insert'], 'company_id' | 'file_name' | 'file_path'>>
+        Relationships: Relationship[]
+      }
+      recurring_order_templates: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string | null
+          customer_id: string | null
+          vehicle_id: string | null
+          driver_id: string | null
+          pickup_location: string
+          delivery_location: string
+          cargo_description: string | null
+          notes: string | null
+          recurrence_rule: string
+          recurrence_day_of_week: number | null
+          recurrence_day_of_month: number | null
+          next_occurrence_date: string
+          is_active: boolean
+          last_generated_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id?: string | null
+          customer_id?: string | null
+          vehicle_id?: string | null
+          driver_id?: string | null
+          pickup_location: string
+          delivery_location: string
+          cargo_description?: string | null
+          notes?: string | null
+          recurrence_rule: string
+          recurrence_day_of_week?: number | null
+          recurrence_day_of_month?: number | null
+          next_occurrence_date: string
+          is_active?: boolean
+          last_generated_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['recurring_order_templates']['Insert'], 'company_id'>>
+        Relationships: Relationship[]
+      }
+      sales_quotes: {
+        Row: {
+          id: string
+          company_id: string
+          branch_id: string | null
+          customer_id: string
+          quote_number: string
+          title: string
+          pickup_location: string
+          delivery_location: string
+          cargo_description: string | null
+          issue_date: string
+          valid_until: string | null
+          status: string
+          subtotal: string
+          vat_total: string
+          total: string
+          notes: string | null
+          converted_order_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          branch_id?: string | null
+          customer_id: string
+          quote_number: string
+          title: string
+          pickup_location: string
+          delivery_location: string
+          cargo_description?: string | null
+          issue_date: string
+          valid_until?: string | null
+          status?: string
+          subtotal?: number | string
+          vat_total?: number | string
+          total?: number | string
+          notes?: string | null
+          converted_order_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['sales_quotes']['Insert'], 'company_id' | 'created_by'>>
+        Relationships: Relationship[]
+      }
+      sales_quote_items: {
+        Row: {
+          id: string
+          quote_id: string
+          description: string
+          quantity: string
+          unit_price: string
+          vat_rate: string
+          line_total: string
+        }
+        Insert: {
+          id?: string
+          quote_id: string
+          description: string
+          quantity: number | string
+          unit_price: number | string
+          vat_rate?: number | string
+          line_total: number | string
+        }
+        Update: Partial<Omit<Database['public']['Tables']['sales_quote_items']['Insert'], 'quote_id'>>
         Relationships: Relationship[]
       }
       audit_logs: {

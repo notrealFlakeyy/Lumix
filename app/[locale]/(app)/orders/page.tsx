@@ -1,4 +1,4 @@
-import { LayoutGrid, Plus } from 'lucide-react'
+import { FileText, LayoutGrid, Plus, Repeat } from 'lucide-react'
 import { Suspense } from 'react'
 
 import { Link } from '@/i18n/navigation'
@@ -47,6 +47,18 @@ export default async function OrdersPage({
               <Link href="/orders/board">
                 <LayoutGrid className="mr-2 h-4 w-4" />
                 Board
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/orders/recurring">
+                <Repeat className="mr-2 h-4 w-4" />
+                Recurring
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/orders/quotes">
+                <FileText className="mr-2 h-4 w-4" />
+                Quotes
               </Link>
             </Button>
             <Button asChild>

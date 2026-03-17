@@ -119,7 +119,7 @@ export async function POST(
     .select('id, code')
     .eq('company_id', companyId)
   const branchMap = new Map(
-    (branches ?? []).map((row) => [row.code.toUpperCase(), row.id]),
+    (branches ?? []).flatMap((row) => (row.code ? [[row.code.toUpperCase(), row.id] as const] : [])),
   )
 
   const schema = schemas[resource]

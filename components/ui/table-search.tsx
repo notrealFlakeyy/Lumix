@@ -10,11 +10,11 @@ export function TableSearch({ placeholder = 'Search...' }: { placeholder?: strin
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [value, setValue] = useState(searchParams.get('q') ?? '')
+  const [value, setValue] = useState(searchParams?.get('q') ?? '')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setValue(searchParams.get('q') ?? '')
+    setValue(searchParams?.get('q') ?? '')
   }, [searchParams])
 
   const handleChange = useCallback(
@@ -22,7 +22,7 @@ export function TableSearch({ placeholder = 'Search...' }: { placeholder?: strin
       setValue(term)
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
-        const params = new URLSearchParams(searchParams.toString())
+        const params = new URLSearchParams(searchParams?.toString() ?? '')
         if (term) {
           params.set('q', term)
         } else {

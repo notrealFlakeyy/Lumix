@@ -1,37 +1,62 @@
 import 'server-only'
 
+import type { TableInsert, TableRow } from '@/types/database'
 import type { RecurringOrderInput } from '@/lib/validations/recurring-order'
 
+import { getCurrentMembership } from '@/lib/auth/get-current-membership'
+import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { getDbClient, getNextDocumentNumber, insertAuditLog, type DbClient } from '@/lib/db/shared'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
+
+type RecurringOrderTemplate = TableRow<'recurring_order_templates'>
+
+function sanitizeRecurringOrderInput(input: RecurringOrderInput): RecurringOrderInput {
+  return {
+    ...input,
+    pickup_location: sanitizeHtml(input.pickup_location),
+    delivery_location: sanitizeHtml(input.delivery_location),
+    cargo_description: input.cargo_description ? sanitizeHtml(input.cargo_description) : undefined,
+    notes: input.notes ? sanitizeHtml(input.notes) : undefined,
+  }
+}
 
 export async function createRecurringOrderTemplate(companyId: string, userId: string, input: RecurringOrderInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  const { membership } = await getCurrentMembership()
+  const sanitizedInput = sanitizeRecurringOrderInput(input)
+
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, sanitizedInput.branch_id ?? null, 'order')
+  }
 
   const { data, error } = await supabase
     .from('recurring_order_templates')
     .insert({
       company_id: companyId,
-      ...input,
+      ...sanitizedInput,
     })
     .select('*')
     .single()
 
   if (error) throw error
+  const template = data as RecurringOrderTemplate
 
   await insertAuditLog(supabase, {
     company_id: companyId,
     user_id: userId,
     entity_type: 'recurring_order_template',
-    entity_id: data.id,
+    entity_id: template.id,
     action: 'create',
-    new_values: data,
+    new_values: template,
   })
 
-  return data
+  return template
 }
 
 export async function updateRecurringOrderTemplate(companyId: string, userId: string, templateId: string, input: RecurringOrderInput, client?: DbClient) {
   const supabase = await getDbClient(client)
+  const { membership } = await getCurrentMembership()
+  const sanitizedInput = sanitizeRecurringOrderInput(input)
 
   const { data: previous } = await supabase
     .from('recurring_order_templates')
@@ -39,16 +64,22 @@ export async function updateRecurringOrderTemplate(companyId: string, userId: st
     .eq('company_id', companyId)
     .eq('id', templateId)
     .maybeSingle()
+  const previousTemplate = previous as RecurringOrderTemplate | null
+
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, sanitizedInput.branch_id ?? previousTemplate?.branch_id ?? null, 'order')
+  }
 
   const { data, error } = await supabase
     .from('recurring_order_templates')
-    .update(input)
+    .update(sanitizedInput)
     .eq('company_id', companyId)
     .eq('id', templateId)
     .select('*')
     .single()
 
   if (error) throw error
+  const template = data as RecurringOrderTemplate
 
   await insertAuditLog(supabase, {
     company_id: companyId,
@@ -56,15 +87,16 @@ export async function updateRecurringOrderTemplate(companyId: string, userId: st
     entity_type: 'recurring_order_template',
     entity_id: templateId,
     action: 'update',
-    old_values: previous,
-    new_values: data,
+    old_values: previousTemplate,
+    new_values: template,
   })
 
-  return data
+  return template
 }
 
 export async function deleteRecurringOrderTemplate(companyId: string, userId: string, templateId: string, client?: DbClient) {
   const supabase = await getDbClient(client)
+  const { membership } = await getCurrentMembership()
 
   const { data: previous } = await supabase
     .from('recurring_order_templates')
@@ -72,6 +104,11 @@ export async function deleteRecurringOrderTemplate(companyId: string, userId: st
     .eq('company_id', companyId)
     .eq('id', templateId)
     .maybeSingle()
+  const previousTemplate = previous as RecurringOrderTemplate | null
+
+  if (membership?.company_id === companyId) {
+    ensureBranchAccess(membership, previousTemplate?.branch_id ?? null, 'order')
+  }
 
   const { error } = await supabase
     .from('recurring_order_templates')
@@ -87,7 +124,7 @@ export async function deleteRecurringOrderTemplate(companyId: string, userId: st
     entity_type: 'recurring_order_template',
     entity_id: templateId,
     action: 'delete',
-    old_values: previous,
+    old_values: previousTemplate,
   })
 }
 
@@ -130,31 +167,39 @@ export async function generateOrdersFromTemplates(companyId: string, client?: Db
 
   if (fetchError) throw fetchError
   if (!templates || templates.length === 0) return 0
+  const recurringTemplates = templates as RecurringOrderTemplate[]
 
   let generated = 0
 
-  for (const template of templates) {
+  for (const template of recurringTemplates) {
     const orderNumber = await getNextDocumentNumber(supabase, 'transport_orders', companyId, 'ORD')
 
-    const orderInput: Record<string, unknown> = {
+    if (!template.customer_id) {
+      console.error(`Skipping recurring template ${template.id} because it has no customer.`)
+      continue
+    }
+
+    const orderInput: TableInsert<'transport_orders'> = {
       company_id: companyId,
+      customer_id: template.customer_id,
       order_number: orderNumber,
       pickup_location: template.pickup_location,
       delivery_location: template.delivery_location,
-      cargo_description: template.cargo_description,
-      notes: template.notes,
+      cargo_description: template.cargo_description ?? null,
+      notes: template.notes ?? null,
       status: 'planned',
       scheduled_at: new Date(template.next_occurrence_date + 'T08:00:00Z').toISOString(),
     }
 
-    if (template.customer_id) orderInput.customer_id = template.customer_id
     if (template.branch_id) orderInput.branch_id = template.branch_id
     if (template.vehicle_id) orderInput.assigned_vehicle_id = template.vehicle_id
     if (template.driver_id) orderInput.assigned_driver_id = template.driver_id
 
-    const { error: insertError } = await supabase
+    const { data: createdOrder, error: insertError } = await supabase
       .from('transport_orders')
       .insert(orderInput)
+      .select('*')
+      .single()
 
     if (insertError) {
       console.error(`Failed to generate order from template ${template.id}:`, insertError.message)
@@ -175,6 +220,15 @@ export async function generateOrdersFromTemplates(companyId: string, client?: Db
         last_generated_at: new Date().toISOString(),
       })
       .eq('id', template.id)
+
+    await insertAuditLog(supabase, {
+      company_id: companyId,
+      user_id: null,
+      entity_type: 'transport_order',
+      entity_id: (createdOrder as TableRow<'transport_orders'>).id,
+      action: 'create_from_recurring_template',
+      new_values: createdOrder,
+    })
 
     generated++
   }

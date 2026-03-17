@@ -2,12 +2,19 @@ import type { TableRow } from '@/types/database'
 
 import { byId, getDbClient, type DbClient } from '@/lib/db/shared'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
+import { defaultCompanyAppSettings } from '@/lib/db/queries/company-settings'
 import { toNumber } from '@/lib/utils/numbers'
+
+export type InvoiceTemplateSettings = Pick<
+  TableRow<'company_app_settings'>,
+  'default_currency' | 'invoice_footer' | 'brand_accent' | 'invoice_payment_instructions' | 'invoice_logo_url'
+>
 
 export type InvoiceDetailBundle = {
   company: TableRow<'companies'>
   invoice: TableRow<'invoices'>
   branch: Pick<TableRow<'branches'>, 'id' | 'name'> | null
+  settings: InvoiceTemplateSettings
   customer: TableRow<'customers'> | null
   items: TableRow<'invoice_items'>[]
   payments: TableRow<'payments'>[]
@@ -91,7 +98,7 @@ export async function getInvoiceById(companyId: string, id: string, client?: DbC
     tripQuery = tripQuery.in('branch_id', branchScope)
   }
 
-  const [{ data: company }, { data: invoice }, { data: customers }, { data: items }, { data: payments }, { data: trips }, { data: branches }] = await Promise.all([
+  const [{ data: company }, { data: invoice }, { data: customers }, { data: items }, { data: payments }, { data: trips }, { data: branches }, { data: settings }] = await Promise.all([
     supabase.from('companies').select('*').eq('id', companyId).maybeSingle(),
     invoiceQuery.maybeSingle(),
     supabase.from('customers').select('*').eq('company_id', companyId),
@@ -99,6 +106,11 @@ export async function getInvoiceById(companyId: string, id: string, client?: DbC
     supabase.from('payments').select('*').eq('company_id', companyId).eq('invoice_id', id).order('payment_date', { ascending: false }),
     tripQuery,
     supabase.from('branches').select('id, name').eq('company_id', companyId),
+    supabase
+      .from('company_app_settings')
+      .select('default_currency, invoice_footer, brand_accent, invoice_payment_instructions, invoice_logo_url')
+      .eq('company_id', companyId)
+      .maybeSingle(),
   ])
 
   const typedCompany = company as TableRow<'companies'> | null
@@ -113,6 +125,14 @@ export async function getInvoiceById(companyId: string, id: string, client?: DbC
     company: typedCompany,
     invoice: typedInvoice,
     branch: typedInvoice.branch_id ? branchMap.get(typedInvoice.branch_id) ?? null : null,
+    settings: {
+      default_currency: settings?.default_currency ?? defaultCompanyAppSettings.default_currency,
+      invoice_footer: settings?.invoice_footer ?? defaultCompanyAppSettings.invoice_footer,
+      brand_accent: settings?.brand_accent ?? defaultCompanyAppSettings.brand_accent,
+      invoice_payment_instructions:
+        settings?.invoice_payment_instructions ?? defaultCompanyAppSettings.invoice_payment_instructions,
+      invoice_logo_url: settings?.invoice_logo_url ?? defaultCompanyAppSettings.invoice_logo_url,
+    },
     customer: customerMap.get(typedInvoice.customer_id) ?? null,
     items: (items ?? []) as TableRow<'invoice_items'>[],
     payments: (payments ?? []) as TableRow<'payments'>[],

@@ -69,8 +69,14 @@ export function RecurringOrderForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="customer_id">Customer</Label>
-            <select id="customer_id" name="customer_id" defaultValue={defaults?.customer_id ?? ''} className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm">
-              <option value="">No customer</option>
+            <select
+              id="customer_id"
+              name="customer_id"
+              defaultValue={defaults?.customer_id ?? ''}
+              required
+              className="flex h-11 w-full rounded-lg border border-border/35 bg-background px-4 text-sm"
+            >
+              <option value="">Select customer</option>
               {customers.map((customer) => (
                 <option key={customer.value} value={customer.value}>
                   {customer.label}
@@ -151,6 +157,9 @@ export function RecurringOrderForm({
           <div className="space-y-2">
             <Label htmlFor="recurrence_day_of_month">Day of Month (for monthly)</Label>
             <Input id="recurrence_day_of_month" name="recurrence_day_of_month" type="number" min={1} max={31} defaultValue={defaults?.recurrence_day_of_month ?? ''} />
+          </div>
+          <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Weekly and biweekly templates need a weekday. Monthly templates need a day of month.
           </div>
           <div className="flex items-center gap-3">
             <input id="is_active" name="is_active" type="checkbox" defaultChecked={defaults?.is_active ?? true} className="h-4 w-4 rounded border-border/35" />

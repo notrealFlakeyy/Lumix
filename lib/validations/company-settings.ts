@@ -20,6 +20,12 @@ const optionalHexColor = z.preprocess((value) => {
   return trimmed.length === 0 ? undefined : trimmed
 }, z.string().regex(/^#(?:[0-9a-fA-F]{6})$/, 'Enter a valid hex color.').optional())
 
+const optionalUrl = z.preprocess((value) => {
+  if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? undefined : trimmed
+}, z.string().url('Enter a valid URL.').optional())
+
 export const companyAppSettingsSchema = z.object({
   order_prefix: z.string().trim().min(2).max(10).default('ORD'),
   order_next_number: optionalInteger.default(1),
@@ -34,6 +40,8 @@ export const companyAppSettingsSchema = z.object({
   default_currency: z.string().trim().min(3).max(3).default('EUR'),
   invoice_footer: optionalString,
   brand_accent: optionalHexColor.default('#0f172a'),
+  invoice_payment_instructions: optionalString,
+  invoice_logo_url: optionalUrl,
 })
 
 export type CompanyAppSettingsInput = z.infer<typeof companyAppSettingsSchema>

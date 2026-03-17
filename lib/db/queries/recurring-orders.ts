@@ -1,13 +1,18 @@
 import 'server-only'
 
+import type { TableRow } from '@/types/database'
+
 import { byId, getDbClient, type DbClient } from '@/lib/db/shared'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
+
+type RecurringOrderTemplate = TableRow<'recurring_order_templates'>
+type RecurringOrderTemplateWithCustomerName = RecurringOrderTemplate & { customer_name: string }
 
 export async function getRecurringOrderTemplates(
   companyId: string,
   client?: DbClient,
   branchIds?: readonly string[] | null,
-) {
+): Promise<RecurringOrderTemplateWithCustomerName[]> {
   const supabase = await getDbClient(client)
   const branchScope = normalizeBranchScope(branchIds)
 
@@ -27,10 +32,11 @@ export async function getRecurringOrderTemplates(
   ])
 
   const customerMap = byId(customers ?? [])
+  const recurringTemplates = (templates ?? []) as RecurringOrderTemplate[]
 
-  return (templates ?? []).map((template) => ({
+  return recurringTemplates.map((template) => ({
     ...template,
-    customer_name: template.customer_id ? (customerMap.get(template.customer_id)?.name ?? '—') : '—',
+    customer_name: template.customer_id ? (customerMap.get(template.customer_id)?.name ?? '-') : '-',
   }))
 }
 
@@ -38,15 +44,22 @@ export async function getRecurringOrderTemplate(
   companyId: string,
   templateId: string,
   client?: DbClient,
-) {
+  branchIds?: readonly string[] | null,
+): Promise<RecurringOrderTemplate | null> {
   const supabase = await getDbClient(client)
+  const branchScope = normalizeBranchScope(branchIds)
 
-  const { data: template } = await supabase
+  let query = supabase
     .from('recurring_order_templates')
     .select('*')
     .eq('company_id', companyId)
     .eq('id', templateId)
-    .maybeSingle()
 
-  return template ?? null
+  if (branchScope) {
+    query = query.in('branch_id', branchScope)
+  }
+
+  const { data: template } = await query.maybeSingle()
+
+  return (template as RecurringOrderTemplate | null) ?? null
 }

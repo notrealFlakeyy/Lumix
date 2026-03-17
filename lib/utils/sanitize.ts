@@ -1,6 +1,6 @@
 /**
  * Input sanitization utilities for XSS protection on free-text fields.
- * Zero external dependencies — pure string manipulation only.
+ * Zero external dependencies - pure string manipulation only.
  */
 
 /**
@@ -10,19 +10,19 @@
 export function sanitizeHtml(input: string): string {
   let value = input
 
-  // Remove <script>...</script> blocks (including multiline)
-  value = value.replace(/<script[\s>][\s\S]*?<\/script\s*>/gi, '')
+  // Remove <script>...</script> blocks (including multiline).
+  value = value.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
 
-  // Remove <style>...</style> blocks
-  value = value.replace(/<style[\s>][\s\S]*?<\/style\s*>/gi, '')
+  // Remove <style>...</style> blocks.
+  value = value.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '')
 
-  // Remove all HTML tags
-  value = value.replace(/<\/?[^>]+(>|$)/g, '')
+  // Remove actual HTML tags while preserving plain-text angle brackets.
+  value = value.replace(/<\/?[a-z][^>]*>/gi, '')
 
-  // Remove javascript: protocol URIs (with optional whitespace/encoding tricks)
+  // Remove javascript: protocol URIs (with optional whitespace).
   value = value.replace(/javascript\s*:/gi, '')
 
-  // Escape HTML-significant characters to their entity equivalents
+  // Escape HTML-significant characters to their entity equivalents.
   value = value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

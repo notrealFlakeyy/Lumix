@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { normalizeBranchScope } from '@/lib/db/queries/branch-scope'
 
-export type SearchResultType = 'customer' | 'order' | 'invoice' | 'vehicle' | 'driver'
+export type SearchResultType = 'customer' | 'order' | 'quote' | 'invoice' | 'vehicle' | 'driver'
 
 export interface SearchResult {
   type: SearchResultType
@@ -48,6 +48,17 @@ export async function globalSearch(
     ordersQuery = ordersQuery.in('branch_id', branchScope)
   }
 
+  // Quotes
+  let quotesQuery = supabase
+    .from('sales_quotes')
+    .select('id, quote_number, title, pickup_location, delivery_location')
+    .eq('company_id', companyId)
+    .or(`quote_number.ilike.${pattern},title.ilike.${pattern},pickup_location.ilike.${pattern},delivery_location.ilike.${pattern}`)
+    .limit(5)
+  if (branchScope) {
+    quotesQuery = quotesQuery.in('branch_id', branchScope)
+  }
+
   // Invoices
   let invoicesQuery = supabase
     .from('invoices')
@@ -81,8 +92,8 @@ export async function globalSearch(
     driversQuery = driversQuery.in('branch_id', branchScope)
   }
 
-  const [{ data: customers }, { data: orders }, { data: invoices }, { data: vehicles }, { data: drivers }] =
-    await Promise.all([customersQuery, ordersQuery, invoicesQuery, vehiclesQuery, driversQuery])
+  const [{ data: customers }, { data: orders }, { data: quotes }, { data: invoices }, { data: vehicles }, { data: drivers }] =
+    await Promise.all([customersQuery, ordersQuery, quotesQuery, invoicesQuery, vehiclesQuery, driversQuery])
 
   const results: SearchResult[] = []
 
@@ -103,6 +114,16 @@ export async function globalSearch(
       title: o.order_number,
       subtitle: [o.pickup_location, o.delivery_location].filter(Boolean).join(' -> '),
       href: `/${locale}/orders/${o.id}`,
+    })
+  }
+
+  for (const q of quotes ?? []) {
+    results.push({
+      type: 'quote',
+      id: q.id,
+      title: q.quote_number,
+      subtitle: [q.title, q.pickup_location, q.delivery_location].filter(Boolean).join(' | '),
+      href: `/${locale}/orders/quotes/${q.id}`,
     })
   }
 

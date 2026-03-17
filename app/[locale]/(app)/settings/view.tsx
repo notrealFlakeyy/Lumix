@@ -1507,6 +1507,8 @@ export async function SettingsView({
       default_currency: getString(formData, 'default_currency').toUpperCase(),
       invoice_footer: getOptionalString(formData, 'invoice_footer'),
       brand_accent: getString(formData, 'brand_accent'),
+      invoice_payment_instructions: getOptionalString(formData, 'invoice_payment_instructions'),
+      invoice_logo_url: getOptionalString(formData, 'invoice_logo_url'),
     })
 
     if (!parsed.success) {
@@ -2128,6 +2130,27 @@ export async function SettingsView({
                 <Input id="brand_accent" name="brand_accent" type="color" defaultValue={resolvedCompanyAppSettings.brand_accent} className="h-11 w-24 p-1" />
                 <Input defaultValue={resolvedCompanyAppSettings.brand_accent} readOnly className="font-mono text-xs" />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice_logo_url">Invoice Logo URL</Label>
+              <Input
+                id="invoice_logo_url"
+                name="invoice_logo_url"
+                type="url"
+                defaultValue={resolvedCompanyAppSettings.invoice_logo_url ?? ''}
+                placeholder="https://cdn.example.com/logo.png"
+              />
+              <p className="text-xs text-slate-500">Use a public PNG or JPEG image URL for invoice PDFs.</p>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="invoice_payment_instructions">Payment Instructions</Label>
+              <textarea
+                id="invoice_payment_instructions"
+                name="invoice_payment_instructions"
+                defaultValue={resolvedCompanyAppSettings.invoice_payment_instructions ?? ''}
+                className="min-h-28 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900"
+                placeholder="Bank account, reference instructions, early-payment note, or remittance details."
+              />
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="invoice_footer">Invoice Footer</Label>

@@ -16,6 +16,8 @@ export const defaultCompanyAppSettings = {
   default_currency: 'EUR',
   invoice_footer: null,
   brand_accent: '#0f172a',
+  invoice_payment_instructions: null,
+  invoice_logo_url: null,
 } as const
 
 export async function getCompanyAppSettings(companyId: string, supabase: SupabaseClient<Database>) {

@@ -18,6 +18,9 @@ export type TripStatus = (typeof tripStatuses)[number]
 export const invoiceStatuses = ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'] as const
 export type InvoiceStatus = (typeof invoiceStatuses)[number]
 
+export const quoteStatuses = ['draft', 'sent', 'accepted', 'rejected', 'expired'] as const
+export type QuoteStatus = (typeof quoteStatuses)[number]
+
 export const inventoryMovementTypes = ['receipt', 'issue', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'] as const
 export type InventoryMovementType = (typeof inventoryMovementTypes)[number]
 

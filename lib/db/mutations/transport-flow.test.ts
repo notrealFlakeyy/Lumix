@@ -12,6 +12,17 @@ vi.mock('@/lib/db/shared', async () => {
   }
 })
 
+vi.mock('@/lib/auth/get-current-membership', async () => {
+  return {
+    getCurrentMembership: vi.fn(async () => ({
+      membership: null,
+      memberships: [],
+      user: null,
+      supabase: null,
+    })),
+  }
+})
+
 import { createOrder } from '@/lib/db/mutations/orders'
 import { completeTrip, createTripFromOrder, startTrip } from '@/lib/db/mutations/trips'
 import { createInvoiceFromTrip } from '@/lib/db/mutations/invoices'
@@ -24,6 +35,7 @@ type TableName =
   | 'invoice_items'
   | 'payments'
   | 'audit_logs'
+  | 'company_app_settings'
   | 'customers'
 
 type DatabaseState = Record<TableName, Array<Record<string, any>>>
@@ -198,6 +210,7 @@ function createClient(seed?: Partial<DatabaseState>) {
     invoice_items: [],
     payments: [],
     audit_logs: [],
+    company_app_settings: [],
     customers: [],
     ...seed,
   }

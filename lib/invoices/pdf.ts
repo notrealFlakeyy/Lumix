@@ -12,17 +12,37 @@ function writeLabelValue(doc: PDFKit.PDFDocument, label: string, value: string) 
   doc.font('Helvetica').text(value)
 }
 
-function writeSectionTitle(doc: PDFKit.PDFDocument, title: string) {
+function writeSectionTitle(doc: PDFKit.PDFDocument, title: string, accentColor: string) {
   doc.moveDown(0.6)
-  doc.font('Helvetica-Bold').fontSize(12).fillColor('#0f172a').text(title)
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(accentColor).text(title)
   doc.moveDown(0.3)
   doc.font('Helvetica').fontSize(10).fillColor('#334155')
 }
 
+async function loadInvoiceLogo(logoUrl: string | null): Promise<Buffer | null> {
+  if (!logoUrl) return null
+
+  try {
+    const response = await fetch(logoUrl, { cache: 'no-store' })
+    if (!response.ok) return null
+
+    const contentType = response.headers.get('content-type') ?? ''
+    if (!contentType.includes('image/png') && !contentType.includes('image/jpeg')) {
+      return null
+    }
+
+    return Buffer.from(await response.arrayBuffer())
+  } catch {
+    return null
+  }
+}
+
 export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
-  const { company, invoice, customer, items, payments, trip } = bundle
+  const { company, invoice, settings, customer, items, payments, trip } = bundle
   const paidAmount = payments.reduce((sum, payment) => sum + toNumber(payment.amount), 0)
   const balanceDue = Math.max(0, toNumber(invoice.total) - paidAmount)
+  const accentColor = settings.brand_accent || '#0f172a'
+  const logoBuffer = await loadInvoiceLogo(settings.invoice_logo_url)
 
   return new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({
@@ -40,8 +60,16 @@ export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
 
-    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f172a').text(company.name)
-    doc.moveDown(0.2)
+    const companyBlockX = logoBuffer ? 132 : 48
+    if (logoBuffer) {
+      try {
+        doc.image(logoBuffer, 48, 48, { fit: [64, 64] })
+      } catch {
+        // Ignore invalid image buffers and continue rendering text-only branding.
+      }
+    }
+
+    doc.font('Helvetica-Bold').fontSize(22).fillColor(accentColor).text(company.name, companyBlockX, 48)
     doc.font('Helvetica').fontSize(10).fillColor('#475569')
     if (company.address_line1) doc.text(company.address_line1)
     if (company.address_line2) doc.text(company.address_line2)
@@ -53,18 +81,18 @@ export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
     if (company.email) doc.text(`Email: ${company.email}`)
     if (company.phone) doc.text(`Phone: ${company.phone}`)
 
-    doc.font('Helvetica-Bold').fontSize(26).fillColor('#0f172a').text('INVOICE', 370, 48, { align: 'right' })
+    doc.font('Helvetica-Bold').fontSize(26).fillColor(accentColor).text('INVOICE', 370, 48, { align: 'right' })
     doc.font('Helvetica').fontSize(10).fillColor('#334155')
     doc.text(invoice.invoice_number, 370, 82, { align: 'right' })
 
-    writeSectionTitle(doc, 'Invoice Details')
+    writeSectionTitle(doc, 'Invoice Details', accentColor)
     writeLabelValue(doc, 'Issue date', formatDate(invoice.issue_date))
     writeLabelValue(doc, 'Due date', formatDate(invoice.due_date))
     writeLabelValue(doc, 'Status', invoice.status)
     writeLabelValue(doc, 'Reference', invoice.reference_number ?? '-')
     writeLabelValue(doc, 'Linked trip', trip?.public_id ?? trip?.id.slice(0, 8).toUpperCase() ?? '-')
 
-    writeSectionTitle(doc, 'Bill To')
+    writeSectionTitle(doc, 'Bill To', accentColor)
     doc.font('Helvetica-Bold').text(customer?.name ?? 'Unknown customer')
     doc.font('Helvetica').text(customer?.billing_address_line1 ?? '-')
     if (customer?.billing_address_line2) doc.text(customer.billing_address_line2)
@@ -75,7 +103,7 @@ export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
     if (customer?.vat_number) doc.text(`VAT: ${customer.vat_number}`)
     if (customer?.email) doc.text(`Email: ${customer.email}`)
 
-    writeSectionTitle(doc, 'Invoice Items')
+    writeSectionTitle(doc, 'Invoice Items', accentColor)
     const tableStartY = doc.y + 4
     const columns = {
       description: 48,
@@ -115,8 +143,18 @@ export async function buildInvoicePdf(bundle: InvoiceDetailBundle) {
     writeLabelValue(doc, 'Balance due', formatCurrency(balanceDue))
 
     if (invoice.notes) {
-      writeSectionTitle(doc, 'Notes')
+      writeSectionTitle(doc, 'Notes', accentColor)
       doc.font('Helvetica').text(invoice.notes)
+    }
+
+    if (settings.invoice_payment_instructions) {
+      writeSectionTitle(doc, 'Payment Instructions', accentColor)
+      doc.font('Helvetica').text(settings.invoice_payment_instructions)
+    }
+
+    if (settings.invoice_footer) {
+      writeSectionTitle(doc, 'Footer', accentColor)
+      doc.font('Helvetica').text(settings.invoice_footer)
     }
 
     doc.moveDown(2)
