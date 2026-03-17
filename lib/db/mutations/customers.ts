@@ -5,6 +5,7 @@ import type { CustomerInput } from '@/lib/validations/customer'
 
 import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { getDbClient, insertAuditLog, type DbClient } from '@/lib/db/shared'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 export async function createCustomer(
   companyId: string,
@@ -17,6 +18,18 @@ export async function createCustomer(
   if (membership) {
     ensureBranchAccess(membership, input.branch_id, 'customer')
   }
+
+  // Sanitize free-text fields
+  if (input.name) input.name = sanitizeHtml(input.name)
+  if (input.phone) input.phone = sanitizeHtml(input.phone)
+  if (input.billing_address_line1) input.billing_address_line1 = sanitizeHtml(input.billing_address_line1)
+  if (input.billing_address_line2) input.billing_address_line2 = sanitizeHtml(input.billing_address_line2)
+  if (input.billing_postal_code) input.billing_postal_code = sanitizeHtml(input.billing_postal_code)
+  if (input.billing_city) input.billing_city = sanitizeHtml(input.billing_city)
+  if (input.business_id) input.business_id = sanitizeHtml(input.business_id)
+  if (input.vat_number) input.vat_number = sanitizeHtml(input.vat_number)
+  if (input.notes) input.notes = sanitizeHtml(input.notes)
+
   const payload = {
     company_id: companyId,
     ...input,
@@ -53,6 +66,18 @@ export async function updateCustomer(
   if (membership) {
     ensureBranchAccess(membership, input.branch_id, 'customer')
   }
+
+  // Sanitize free-text fields
+  if (input.name) input.name = sanitizeHtml(input.name)
+  if (input.phone) input.phone = sanitizeHtml(input.phone)
+  if (input.billing_address_line1) input.billing_address_line1 = sanitizeHtml(input.billing_address_line1)
+  if (input.billing_address_line2) input.billing_address_line2 = sanitizeHtml(input.billing_address_line2)
+  if (input.billing_postal_code) input.billing_postal_code = sanitizeHtml(input.billing_postal_code)
+  if (input.billing_city) input.billing_city = sanitizeHtml(input.billing_city)
+  if (input.business_id) input.business_id = sanitizeHtml(input.business_id)
+  if (input.vat_number) input.vat_number = sanitizeHtml(input.vat_number)
+  if (input.notes) input.notes = sanitizeHtml(input.notes)
+
   const { data, error } = await supabase
     .from('customers')
     .update({

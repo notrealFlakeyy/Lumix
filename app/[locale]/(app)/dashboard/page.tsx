@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 
+import { AlertsPanel } from '@/components/dashboard/alerts-panel'
 import { PageHeader } from '@/components/layout/page-header'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
@@ -7,6 +8,7 @@ import { StatCard } from '@/components/dashboard/stat-card'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireCompany } from '@/lib/auth/require-company'
+import { getDashboardAlerts } from '@/lib/db/queries/alerts'
 import {
   getDashboardStats,
   getRecentInvoices,
@@ -98,13 +100,14 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     )
   }
 
-  const [stats, revenueByCustomer, revenueByVehicle, revenueByDriver, recentOrders, recentInvoices] = await Promise.all([
+  const [stats, revenueByCustomer, revenueByVehicle, revenueByDriver, recentOrders, recentInvoices, alerts] = await Promise.all([
     getDashboardStats(companyId, undefined, membership.branchIds),
     getRevenueByCustomer(companyId, undefined, membership.branchIds),
     getRevenueByVehicle(companyId, undefined, membership.branchIds),
     getRevenueByDriver(companyId, undefined, membership.branchIds),
     getRecentOrders(companyId, undefined, membership.branchIds),
     getRecentInvoices(companyId, undefined, membership.branchIds),
+    getDashboardAlerts(supabase, companyId, locale, membership.branchIds as string[] | null),
   ])
 
   return (
@@ -113,6 +116,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         title="Dashboard"
         description="Transportation operations overview focused on dispatch load, monthly revenue, estimated margin, completed trips, and invoice follow-up."
       />
+
+      <AlertsPanel alerts={alerts} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <StatCard label="Revenue This Month" value={formatCurrency(stats.revenueThisMonth)} hint="Issued invoice total in the current month." />

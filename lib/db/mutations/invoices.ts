@@ -14,6 +14,7 @@ import { buildInvoicePdf } from '@/lib/invoices/pdf'
 import { sendInvoiceEmail } from '@/lib/invoices/email'
 import { getServiceRoleEnv } from '@/lib/env/service-role'
 import { toNumber } from '@/lib/utils/numbers'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 export async function createInvoice(companyId: string, userId: string, input: InvoiceInput, client?: DbClient) {
   const supabase = await getDbClient(client)
@@ -44,6 +45,14 @@ export async function createInvoice(companyId: string, userId: string, input: In
   if (membership?.company_id === companyId) {
     ensureBranchAccess(membership, branchId, 'invoice')
   }
+
+  // Sanitize free-text fields
+  if (input.reference_number) input.reference_number = sanitizeHtml(input.reference_number)
+  if (input.notes) input.notes = sanitizeHtml(input.notes)
+  for (const item of input.items) {
+    item.description = sanitizeHtml(item.description)
+  }
+
   const invoiceNumber = await getNextDocumentNumber(supabase, 'invoices', companyId, 'INV')
   const normalizedItems = input.items.map((item) => ({
     description: item.description,

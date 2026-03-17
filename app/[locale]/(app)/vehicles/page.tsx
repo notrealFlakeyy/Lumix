@@ -7,6 +7,7 @@ import { VehicleTable } from '@/components/vehicles/vehicle-table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CsvExportButton } from '@/components/ui/csv-export-button'
+import { CsvImportButton } from '@/components/common/csv-import-button'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { TableSearch } from '@/components/ui/table-search'
 import { requireCompany } from '@/lib/auth/require-company'
@@ -47,7 +48,10 @@ export default async function VehiclesPage({
             <Suspense>
               <TableSearch placeholder="Search registration, make, model..." />
             </Suspense>
-            <CsvExportButton resource="vehicles" />
+            <div className="flex items-center gap-2">
+              <CsvImportButton resource="vehicles" companyId={membership.company_id} />
+              <CsvExportButton resource="vehicles" />
+            </div>
           </div>
           {vehicles.length > 0 ? (
             <>

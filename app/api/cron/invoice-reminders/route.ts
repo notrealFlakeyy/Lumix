@@ -4,17 +4,27 @@ import nodemailer from 'nodemailer'
 
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { getEmailEnv, hasEmailDeliveryConfig } from '@/lib/env/email'
+import { cronRateLimiter } from '@/lib/api/rate-limit'
 import { formatCurrency } from '@/lib/utils/currency'
 import { formatDate } from '@/lib/utils/dates'
 import { toNumber } from '@/lib/utils/numbers'
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = request.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!secret) {
+    return Response.json({ error: 'CRON_SECRET is not configured' }, { status: 401 })
+  }
+
+  const auth = request.headers.get('authorization')
+  if (auth !== `Bearer ${secret}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    await cronRateLimiter.check(5, 'cron-invoice-reminders')
+  } catch (err) {
+    if (err instanceof Response) return err
+    throw err
   }
 
   if (!hasEmailDeliveryConfig()) {

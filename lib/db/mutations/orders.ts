@@ -7,6 +7,7 @@ import type { OrderInput } from '@/lib/validations/order'
 import { getCurrentMembership } from '@/lib/auth/get-current-membership'
 import { ensureBranchAccess } from '@/lib/auth/branch-access'
 import { getDbClient, getNextDocumentNumber, insertAuditLog, type DbClient } from '@/lib/db/shared'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 export async function createOrder(companyId: string, userId: string, input: OrderInput, client?: DbClient) {
   const supabase = await getDbClient(client)
@@ -14,6 +15,13 @@ export async function createOrder(companyId: string, userId: string, input: Orde
   if (membership?.company_id === companyId) {
     ensureBranchAccess(membership, input.branch_id, 'order')
   }
+
+  // Sanitize free-text fields
+  input.pickup_location = sanitizeHtml(input.pickup_location)
+  input.delivery_location = sanitizeHtml(input.delivery_location)
+  if (input.cargo_description) input.cargo_description = sanitizeHtml(input.cargo_description)
+  if (input.notes) input.notes = sanitizeHtml(input.notes)
+
   const orderNumber = await getNextDocumentNumber(supabase, 'transport_orders', companyId, 'ORD')
   const { data, error } = await supabase
     .from('transport_orders')
@@ -48,6 +56,13 @@ export async function updateOrder(companyId: string, userId: string, id: string,
   if (membership?.company_id === companyId) {
     ensureBranchAccess(membership, input.branch_id, 'order')
   }
+
+  // Sanitize free-text fields
+  input.pickup_location = sanitizeHtml(input.pickup_location)
+  input.delivery_location = sanitizeHtml(input.delivery_location)
+  if (input.cargo_description) input.cargo_description = sanitizeHtml(input.cargo_description)
+  if (input.notes) input.notes = sanitizeHtml(input.notes)
+
   const { data: previous } = await supabase.from('transport_orders').select('*').eq('company_id', companyId).eq('id', id).maybeSingle()
   const { data, error } = await supabase
     .from('transport_orders')

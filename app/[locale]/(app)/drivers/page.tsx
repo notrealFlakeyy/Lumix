@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CsvExportButton } from '@/components/ui/csv-export-button'
+import { CsvImportButton } from '@/components/common/csv-import-button'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { TableSearch } from '@/components/ui/table-search'
 import { requireCompany } from '@/lib/auth/require-company'
@@ -47,7 +48,10 @@ export default async function DriversPage({
             <Suspense>
               <TableSearch placeholder="Search name, email, phone..." />
             </Suspense>
-            <CsvExportButton resource="drivers" />
+            <div className="flex items-center gap-2">
+              <CsvImportButton resource="drivers" companyId={membership.company_id} />
+              <CsvExportButton resource="drivers" />
+            </div>
           </div>
           {drivers.length > 0 ? (
             <>

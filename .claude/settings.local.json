@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(ls -la /c/Users/svens/Documents/Code/Lumix/app/[locale]/)",
-      "Bash(ls -la /c/Users/svens/Documents/Code/Lumix/app/[locale]/\\\\\\(app\\\\\\)/dashboard/)"
+      "Bash(ls -la /c/Users/svens/Documents/Code/Lumix/app/[locale]/\\\\\\(app\\\\\\)/dashboard/)",
+      "Bash(find /c/Users/svens/Documents/Code/Lumix/.claude/worktrees/frosty-bhaskara/app/[locale] -type f -name \"*.tsx\")"
     ]
   }
 }

@@ -5,6 +5,7 @@ import { platformModuleDefinitions } from '@/lib/platform/modules'
 import { Link } from '@/i18n/navigation'
 import { CompanySwitcher } from '@/components/auth/company-switcher'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { GlobalSearch } from '@/components/layout/global-search'
 import { Button } from '@/components/ui/button'
 import { canUseDriverWorkflow } from '@/lib/auth/permissions'
 
