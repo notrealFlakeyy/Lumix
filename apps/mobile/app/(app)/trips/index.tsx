@@ -58,7 +58,7 @@ export default function TripsScreen() {
       <Section title="Trip summary" subtitle="Each row is backed by `/api/mobile/v1/trips`.">
         {data?.trips.map((trip) => (
           <Text key={`summary-${trip.id}`} style={{ color: '#334155' }}>
-            {trip.order_number ?? 'No order'} - {trip.pickup_location ?? 'Pickup TBD'} -> {trip.delivery_location ?? 'Delivery TBD'} -{' '}
+            {trip.order_number ?? 'No order'} - {trip.pickup_location ?? 'Pickup TBD'} {'->'} {trip.delivery_location ?? 'Delivery TBD'} -{' '}
             {formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)}
           </Text>
         ))}

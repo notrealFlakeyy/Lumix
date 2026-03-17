@@ -357,7 +357,7 @@ export function getMobileOpenApiSpec() {
         properties: {
           delivery_recipient_name: { type: 'string', minLength: 1 },
           delivery_confirmation: { type: 'string', minLength: 1 },
-          signature_data_url: { type: 'string', pattern: '^data:image/png;base64,' },
+          signature_data_url: { type: 'string', pattern: '^data:image\\/(png|jpeg|jpg);base64,' },
         },
       },
       ClockOutRequest: {

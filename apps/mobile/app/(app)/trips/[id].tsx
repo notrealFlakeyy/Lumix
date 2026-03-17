@@ -1,6 +1,8 @@
+import * as ImagePicker from 'expo-image-picker'
+import * as Location from 'expo-location'
 import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Alert, Text, View } from 'react-native'
 
 import { AppText, Button, EmptyState, Field, Label, LoadingState, Screen, Section } from '@/src/components/ui'
 import { formatDateTime, formatNumber, formatTripStatus, formatMinutes } from '@/src/lib/format'
@@ -18,6 +20,7 @@ export default function TripDetailScreen() {
   const [endKm, setEndKm] = useState('')
   const [waitingMinutes, setWaitingMinutes] = useState('')
   const [deliveryConfirmation, setDeliveryConfirmation] = useState('')
+  const [recipientName, setRecipientName] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function load() {
@@ -29,6 +32,8 @@ export default function TripDetailScreen() {
       if ('ok' in response && response.ok) {
         setData(response)
         setError(null)
+        setDeliveryConfirmation((current) => current || response.trip.delivery_confirmation || '')
+        setRecipientName((current) => current || response.trip.delivery_recipient_name || '')
       }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to load trip detail.')
@@ -83,20 +88,99 @@ export default function TripDetailScreen() {
 
     try {
       setSubmitting(true)
+      const permission = await Location.requestForegroundPermissionsAsync()
+      if (!permission.granted) {
+        throw new Error('Location permission is required to capture checkpoints.')
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
       await mobileApi.checkpoint(
         session,
         id,
         {
           checkpoint_type: type,
-          latitude: 60.1699,
-          longitude: 24.9384,
-          accuracy_meters: 15,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy_meters: position.coords.accuracy ?? null,
         },
         companyId,
       )
       await load()
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to save checkpoint.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function submitDeliveryProof(source: 'camera' | 'library') {
+    if (!session || !id) return
+
+    if (!recipientName.trim()) {
+      setError('Recipient name is required before uploading proof of delivery.')
+      return
+    }
+
+    if (!deliveryConfirmation.trim()) {
+      setError('Delivery confirmation is required before uploading proof of delivery.')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+
+      const permission =
+        source === 'camera'
+          ? await ImagePicker.requestCameraPermissionsAsync()
+          : await ImagePicker.requestMediaLibraryPermissionsAsync()
+
+      if (!permission.granted) {
+        throw new Error(source === 'camera' ? 'Camera permission is required.' : 'Photo library permission is required.')
+      }
+
+      const pickerResult =
+        source === 'camera'
+          ? await ImagePicker.launchCameraAsync({
+              allowsEditing: false,
+              base64: true,
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.7,
+            })
+          : await ImagePicker.launchImageLibraryAsync({
+              allowsEditing: false,
+              base64: true,
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.7,
+            })
+
+      if (pickerResult.canceled) {
+        return
+      }
+
+      const asset = pickerResult.assets[0]
+      if (!asset?.base64) {
+        throw new Error('The selected image could not be prepared for upload.')
+      }
+
+      const mimeType = asset.mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
+      await mobileApi.deliveryProof(
+        session,
+        id,
+        {
+          delivery_recipient_name: recipientName.trim(),
+          delivery_confirmation: deliveryConfirmation.trim(),
+          signature_data_url: `data:${mimeType};base64,${asset.base64}`,
+        },
+        companyId,
+      )
+
+      await load()
+      Alert.alert('Proof uploaded', 'Delivery proof has been saved to the trip.')
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to upload proof of delivery.')
     } finally {
       setSubmitting(false)
     }
@@ -123,7 +207,7 @@ export default function TripDetailScreen() {
   return (
     <Screen>
       <Section title={trip.customer_name ?? 'Trip'} subtitle={`${formatTripStatus(trip.status)} - ${trip.order_number ?? trip.public_id}`}>
-        <AppText muted>{trip.pickup_location ?? 'Pickup TBD'} -> {trip.delivery_location ?? 'Delivery TBD'}</AppText>
+        <AppText muted>{trip.pickup_location ?? 'Pickup TBD'} {'->'} {trip.delivery_location ?? 'Delivery TBD'}</AppText>
         <AppText muted>Scheduled {formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)}</AppText>
         <AppText muted>Distance {formatNumber(trip.distance_km, 1)} km - Waiting {formatMinutes(trip.waiting_time_minutes)}</AppText>
       </Section>
@@ -173,6 +257,21 @@ export default function TripDetailScreen() {
         )}
       </Section>
 
+      <Section title="Proof of delivery" subtitle="Capture a delivery image and attach the recipient confirmation directly from the phone.">
+        {trip.delivery_received_at ? (
+          <AppText muted>
+            Existing proof captured for {trip.delivery_recipient_name ?? 'recipient'} at {formatDateTime(trip.delivery_received_at)}.
+          </AppText>
+        ) : null}
+        <Label>Recipient name</Label>
+        <Field value={recipientName} onChangeText={setRecipientName} />
+        <Label>Delivery confirmation</Label>
+        <Field value={deliveryConfirmation} onChangeText={setDeliveryConfirmation} />
+        <Button title={submitting ? 'Opening camera...' : 'Capture delivery proof'} onPress={() => void submitDeliveryProof('camera')} disabled={submitting} />
+        <Button title={submitting ? 'Selecting photo...' : 'Choose proof from photos'} variant="secondary" onPress={() => void submitDeliveryProof('library')} disabled={submitting} />
+        <AppText muted>The uploaded proof is stored in trip documents and updates the delivery confirmation on the trip.</AppText>
+      </Section>
+
       <Section title="Documents" subtitle="Proof and receipts already linked to this trip.">
         {data.documents.length ? (
           data.documents.map((document) => (
@@ -181,7 +280,7 @@ export default function TripDetailScreen() {
             </Text>
           ))
         ) : (
-          <EmptyState title="No trip documents yet" detail="Document uploads will show here once added from the web mobile flow or later native capture." />
+          <EmptyState title="No trip documents yet" detail="Delivery proof and receipts uploaded from mobile will show here." />
         )}
       </Section>
     </Screen>
