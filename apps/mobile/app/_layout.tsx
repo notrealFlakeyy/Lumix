@@ -9,9 +9,12 @@ export default function RootLayout() {
         screenOptions={{
           headerShadowVisible: false,
           headerStyle: {
-            backgroundColor: '#eef3f7',
+            backgroundColor: '#f7efe4',
           },
-          headerTintColor: '#0f172a',
+          headerTintColor: '#19263f',
+          headerTitleStyle: {
+            fontWeight: '800',
+          },
         }}
       />
     </AuthProvider>

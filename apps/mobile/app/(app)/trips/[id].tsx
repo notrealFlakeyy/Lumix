@@ -4,7 +4,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Alert, Text, View } from 'react-native'
 
-import { AppText, Button, EmptyState, Field, Label, LoadingState, Screen, Section } from '@/src/components/ui'
+import { AppText, Badge, Button, EmptyState, HeroCard, Label, Field, LoadingState, Screen, Section, uiStyles } from '@/src/components/ui'
 import { formatDateTime, formatNumber, formatTripStatus, formatMinutes } from '@/src/lib/format'
 import { mobileApi } from '@/src/lib/mobile-api'
 import { useAuth } from '@/src/providers/auth-provider'
@@ -200,7 +200,7 @@ export default function TripDetailScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen showDock>
         <LoadingState label="Loading trip detail" />
       </Screen>
     )
@@ -208,7 +208,7 @@ export default function TripDetailScreen() {
 
   if (!data) {
     return (
-      <Screen>
+      <Screen showDock>
         <EmptyState title="Trip not found" detail={error ?? 'No trip detail was returned.'} />
       </Screen>
     )
@@ -217,15 +217,22 @@ export default function TripDetailScreen() {
   const trip = data.trip
 
   return (
-    <Screen>
-      <Section title={trip.customer_name ?? 'Trip'} subtitle={`${formatTripStatus(trip.status)} - ${trip.order_number ?? trip.public_id}`}>
-        <AppText muted>{trip.pickup_location ?? 'Pickup TBD'} {'->'} {trip.delivery_location ?? 'Delivery TBD'}</AppText>
+    <Screen showDock>
+      <HeroCard
+        eyebrow={trip.order_number ?? trip.public_id}
+        title={trip.customer_name ?? 'Trip'}
+        subtitle={`${trip.pickup_location ?? 'Pickup TBD'} -> ${trip.delivery_location ?? 'Delivery TBD'}`}
+      >
+        <View style={uiStyles.row}>
+          <Badge label={formatTripStatus(trip.status)} tone="accent" />
+          <Badge label={`Waiting ${formatMinutes(trip.waiting_time_minutes)}`} tone="success" />
+        </View>
         <AppText muted>Scheduled {formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)}</AppText>
-        <AppText muted>Distance {formatNumber(trip.distance_km, 1)} km - Waiting {formatMinutes(trip.waiting_time_minutes)}</AppText>
-      </Section>
+        <AppText muted>Distance {formatNumber(trip.distance_km, 1)} km</AppText>
+      </HeroCard>
 
       <Section title="Driver actions" subtitle="These actions use the versioned native-ready write endpoints.">
-        {error ? <AppText>{error}</AppText> : null}
+        {error ? <AppText danger>{error}</AppText> : null}
         {me?.membership.role === 'driver' && trip.status === 'planned' ? (
           <>
             <Label>Start odometer</Label>
@@ -270,7 +277,7 @@ export default function TripDetailScreen() {
       </Section>
 
       <Section title="Proof of delivery" subtitle="Capture a delivery image and attach the recipient confirmation directly from the phone.">
-        {proofError ? <AppText>{proofError}</AppText> : null}
+        {proofError ? <AppText danger>{proofError}</AppText> : null}
         {trip.delivery_received_at ? (
           <AppText muted>
             Existing proof captured for {trip.delivery_recipient_name ?? 'recipient'} at {formatDateTime(trip.delivery_received_at)}.

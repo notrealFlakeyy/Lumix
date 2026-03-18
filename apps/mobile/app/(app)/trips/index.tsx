@@ -1,8 +1,8 @@
 import { Link } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Text } from 'react-native'
+import { View } from 'react-native'
 
-import { AppText, Button, EmptyState, LoadingState, Screen, Section } from '@/src/components/ui'
+import { AppText, Badge, Button, EmptyState, HeroCard, ListCard, LoadingState, Screen, Section } from '@/src/components/ui'
 import { formatDateTime, formatTripStatus } from '@/src/lib/format'
 import { mobileApi } from '@/src/lib/mobile-api'
 import { useAuth } from '@/src/providers/auth-provider'
@@ -31,36 +31,60 @@ export default function TripsScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen showDock>
         <LoadingState label="Loading trips" />
       </Screen>
     )
   }
 
+  const liveTrips = data?.trips.filter((trip) => trip.status === 'started').length ?? 0
+  const plannedTrips = data?.trips.filter((trip) => trip.status === 'planned').length ?? 0
+
   return (
-    <Screen>
-      <Section title="Trips" subtitle={data ? `${data.trips.length} trip(s) assigned` : 'Assigned work for the signed-in driver'}>
-        {error ? <AppText>{error}</AppText> : null}
+    <Screen showDock>
+      <HeroCard
+        eyebrow="Trip board"
+        title={data ? `${data.trips.length} assigned trip${data.trips.length === 1 ? '' : 's'}` : 'Trips'}
+        subtitle={`${liveTrips} active and ${plannedTrips} still planned. Tap any card to open the full transport flow.`}
+      >
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <Badge label={`${liveTrips} live`} tone="accent" />
+          <Badge label={`${plannedTrips} planned`} tone="success" />
+        </View>
+      </HeroCard>
+
+      <Section title="Assigned routes" subtitle="Each route opens the full trip detail workflow.">
+        {error ? <AppText danger>{error}</AppText> : null}
         {data?.trips.length ? (
           data.trips.map((trip) => (
-            <Link key={trip.route_id ?? trip.id} href={`/(app)/trips/${trip.route_id ?? trip.id}`} asChild>
-              <Button
-                title={`${trip.customer_name ?? 'Customer'} - ${formatTripStatus(trip.status)}`}
-                variant={trip.status === 'started' ? 'primary' : 'secondary'}
-              />
-            </Link>
+            <ListCard
+              key={trip.route_id ?? trip.id}
+              title={trip.customer_name ?? 'Customer'}
+              subtitle={`${trip.pickup_location ?? 'Pickup TBD'} -> ${trip.delivery_location ?? 'Delivery TBD'}`}
+              tone={trip.status === 'started' ? 'accent' : 'default'}
+              right={
+                <View style={{ gap: 8, alignItems: 'flex-end' }}>
+                  <Badge label={formatTripStatus(trip.status)} tone={trip.status === 'started' ? 'accent' : 'ink'} />
+                  <Link href={`/(app)/trips/${trip.route_id ?? trip.id}`} asChild>
+                    <Button title="Open" variant="ghost" />
+                  </Link>
+                </View>
+              }
+            />
           ))
         ) : (
           <EmptyState title="No assigned trips" detail="Trips assigned to the current driver will appear here." />
         )}
       </Section>
 
-      <Section title="Trip summary" subtitle="Each row is backed by `/api/mobile/v1/trips`.">
+      <Section title="Trip summary" subtitle="A lighter overview for route planning at a glance.">
         {data?.trips.map((trip) => (
-          <Text key={`summary-${trip.id}`} style={{ color: '#334155' }}>
-            {trip.order_number ?? 'No order'} - {trip.pickup_location ?? 'Pickup TBD'} {'->'} {trip.delivery_location ?? 'Delivery TBD'} -{' '}
-            {formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)}
-          </Text>
+          <ListCard
+            key={`summary-${trip.id}`}
+            title={trip.order_number ?? 'No order number'}
+            subtitle={`${formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)} • ${trip.pickup_location ?? 'Pickup TBD'} -> ${trip.delivery_location ?? 'Delivery TBD'}`}
+            right={<Badge label={formatTripStatus(trip.status)} />}
+          />
         ))}
       </Section>
     </Screen>

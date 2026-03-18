@@ -7,8 +7,18 @@ function SignOutButton() {
   const { signOut } = useAuth()
 
   return (
-    <Pressable onPress={() => void signOut()} style={{ paddingHorizontal: 8, paddingVertical: 4 }}>
-      <Text style={{ color: '#0f172a', fontWeight: '600' }}>Sign out</Text>
+    <Pressable
+      onPress={() => void signOut()}
+      style={{
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 999,
+        backgroundColor: '#fff7ec',
+        borderWidth: 1,
+        borderColor: '#eadbc7',
+      }}
+    >
+      <Text style={{ color: '#19263f', fontWeight: '700' }}>Sign out</Text>
     </Pressable>
   )
 }
@@ -24,9 +34,17 @@ export default function AppLayout() {
     <Stack
       screenOptions={{
         headerRight: () => <SignOutButton />,
+        headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: '#f7efe4',
+        },
+        headerTintColor: '#19263f',
+        headerTitleStyle: {
+          fontWeight: '800',
+        },
       }}
     >
-      <Stack.Screen name="home" options={{ title: 'Driver Home' }} />
+      <Stack.Screen name="home" options={{ title: 'Today' }} />
       <Stack.Screen name="documents" options={{ title: 'Documents' }} />
       <Stack.Screen name="time" options={{ title: 'Time' }} />
       <Stack.Screen name="trips/index" options={{ title: 'Trips' }} />

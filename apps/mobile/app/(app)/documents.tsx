@@ -1,8 +1,8 @@
 import * as Linking from 'expo-linking'
 import { useEffect, useState } from 'react'
-import { Text } from 'react-native'
+import { View } from 'react-native'
 
-import { AppText, Button, EmptyState, LoadingState, Screen, Section } from '@/src/components/ui'
+import { AppText, Badge, Button, EmptyState, HeroCard, ListCard, LoadingState, Screen, Section } from '@/src/components/ui'
 import { formatDateTime } from '@/src/lib/format'
 import { mobileApi } from '@/src/lib/mobile-api'
 import { useAuth } from '@/src/providers/auth-provider'
@@ -31,27 +31,43 @@ export default function DocumentsScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen showDock>
         <LoadingState label="Loading documents" />
       </Screen>
     )
   }
 
   return (
-    <Screen>
-      <Section title="Documents" subtitle="Signed URLs from `/api/mobile/v1/documents`.">
-        {error ? <AppText>{error}</AppText> : null}
+    <Screen showDock>
+      <HeroCard
+        eyebrow="Documents"
+        title={`${data?.documents.length ?? 0} file${(data?.documents.length ?? 0) === 1 ? '' : 's'} ready`}
+        subtitle="Proof of delivery, receipts, and trip files stay in one place with clean access from the phone."
+      >
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <Badge label={`${data?.documents.filter((document) => Boolean(document.access_url)).length ?? 0} openable`} tone="success" />
+        </View>
+      </HeroCard>
+
+      <Section title="Document library" subtitle="Signed URLs from the mobile API when storage access is available.">
+        {error ? <AppText danger>{error}</AppText> : null}
         {data?.documents.length ? (
           data.documents.map((document) => (
-            <Button
+            <ListCard
               key={document.id}
-              title={`${document.file_name} - ${formatDateTime(document.created_at)}`}
-              variant="secondary"
-              onPress={() => {
-                if (document.access_url) {
-                  void Linking.openURL(document.access_url)
-                }
-              }}
+              title={document.file_name}
+              subtitle={formatDateTime(document.created_at)}
+              right={
+                <Button
+                  title={document.access_url ? 'Open' : 'Locked'}
+                  variant={document.access_url ? 'secondary' : 'ghost'}
+                  onPress={() => {
+                    if (document.access_url) {
+                      void Linking.openURL(document.access_url)
+                    }
+                  }}
+                />
+              }
             />
           ))
         ) : (
@@ -59,7 +75,7 @@ export default function DocumentsScreen() {
         )}
       </Section>
       {!data?.documents.some((document) => document.access_url) ? (
-        <Text style={{ color: '#64748b' }}>No signed access URLs were returned for the current document set.</Text>
+        <AppText muted>No signed access URLs were returned for the current document set.</AppText>
       ) : null}
     </Screen>
   )
