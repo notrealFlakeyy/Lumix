@@ -268,7 +268,9 @@ export const mobileTripCheckpointRequestSchema = z.object({
 export const mobileDeliveryProofRequestSchema = z.object({
   delivery_recipient_name: z.string().min(1),
   delivery_confirmation: z.string().min(1),
-  signature_data_url: z.string().startsWith('data:image/png;base64,'),
+  signature_data_url: z
+    .string()
+    .regex(/^data:image\/(png|jpeg|jpg);base64,/, 'Proof image must be a PNG or JPEG data URL.'),
 })
 
 export const mobileShiftClockOutRequestSchema = z.object({

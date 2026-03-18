@@ -7,11 +7,11 @@ export function StatusFilter({ options }: { options: Array<{ value: string; labe
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const current = searchParams.get('status') ?? ''
+  const current = searchParams?.get('status') ?? ''
 
   const handleChange = useCallback(
     (status: string) => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(searchParams?.toString() ?? '')
       if (status) {
         params.set('status', status)
       } else {

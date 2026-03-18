@@ -6,10 +6,12 @@ import { uploadGeneratedTripDocument } from '@/lib/documents/storage'
 import { updateTripDeliveryProof } from '@/lib/db/mutations/trips'
 import { getDriverMobileTripById } from '@/lib/db/queries/driver-mobile'
 
+const MAX_PROOF_IMAGE_BYTES = 8 * 1024 * 1024
+
 function parseDataUrl(dataUrl: string) {
   const match = /^data:(.+);base64,(.+)$/.exec(dataUrl)
   if (!match) {
-    throw new Error('Invalid signature payload.')
+    throw new Error('Invalid proof image payload.')
   }
 
   return {
@@ -57,26 +59,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       throw new Error('Recipient signature is required.')
     }
 
-    const signature = parseDataUrl(signatureDataUrl)
-    if (signature.mimeType !== 'image/png') {
-      throw new Error('Signature must be captured as a PNG image.')
+    const proofImage = parseDataUrl(signatureDataUrl)
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(proofImage.mimeType)) {
+      throw new Error('Proof image must be captured as a PNG or JPEG image.')
     }
-    if (signature.bytes.length === 0) {
-      throw new Error('Recipient signature is empty.')
+    if (proofImage.bytes.length === 0) {
+      throw new Error('Proof image is empty.')
     }
-    if (signature.bytes.length > 2 * 1024 * 1024) {
-      throw new Error('Signature image is too large.')
+    if (proofImage.bytes.length > MAX_PROOF_IMAGE_BYTES) {
+      throw new Error('Proof image is too large. Maximum size is 8 MB.')
     }
 
     const receivedAt = new Date().toISOString()
+    const extension = proofImage.mimeType === 'image/png' ? 'png' : 'jpg'
 
     await uploadGeneratedTripDocument({
       companyId: context.membership.company_id,
       tripId: trip.id,
       userId: context.user.id,
-      fileName: `delivery-signature-${trip.public_id ?? trip.id}.png`,
-      bytes: signature.bytes,
-      mimeType: signature.mimeType,
+      fileName: `delivery-proof-${trip.public_id ?? trip.id}.${extension}`,
+      bytes: proofImage.bytes,
+      mimeType: proofImage.mimeType,
     })
 
     const updatedTrip = await updateTripDeliveryProof(

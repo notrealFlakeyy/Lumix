@@ -2,7 +2,7 @@ import { Link } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 
-import { AppText, Button, EmptyState, LoadingState, Screen, Section, StatCard, uiStyles } from '@/src/components/ui'
+import { AppText, Badge, Button, EmptyState, HeroCard, ListCard, LoadingState, Screen, Section, StatCard, uiStyles } from '@/src/components/ui'
 import { formatDateTime, formatMinutes } from '@/src/lib/format'
 import { mobileApi } from '@/src/lib/mobile-api'
 import { useAuth } from '@/src/providers/auth-provider'
@@ -31,52 +31,70 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen showDock>
         <LoadingState label="Loading mobile dashboard" />
       </Screen>
     )
   }
 
   return (
-    <Screen>
-      <Section
+    <Screen showDock>
+      <HeroCard
+        eyebrow={me?.membership.company.name ?? 'Lumix'}
         title={me?.active_driver.full_name ?? 'Driver'}
-        subtitle={`${me?.membership.company.name ?? 'No company'} - ${me?.membership.role ?? 'user'}`}
+        subtitle={`Welcome back. ${Number(data?.stats.live_trips ?? 0)} live trip(s), ${Number(data?.stats.planned_trips ?? 0)} planned, and ${formatMinutes(data?.stats.todays_minutes ?? 0)} logged today.`}
       >
-        <AppText muted>Enabled modules: {(me?.membership.enabled_modules ?? []).join(', ') || 'transport'}</AppText>
+        <View style={uiStyles.row}>
+          <Badge label={me?.membership.role ?? 'driver'} tone="accent" />
+          <Badge label={`${(me?.membership.enabled_modules ?? []).length || 1} modules`} tone="success" />
+        </View>
         <View style={uiStyles.wrap}>
-          <StatCard label="Live trips" value={String(Number(data?.stats.live_trips ?? 0))} />
+          <StatCard label="Live trips" value={String(Number(data?.stats.live_trips ?? 0))} tone="dark" />
           <StatCard label="Planned" value={String(Number(data?.stats.planned_trips ?? 0))} />
-          <StatCard label="Today" value={formatMinutes(data?.stats.todays_minutes ?? 0)} />
+          <StatCard label="Today" value={formatMinutes(data?.stats.todays_minutes ?? 0)} tone="mint" />
+        </View>
+      </HeroCard>
+
+      <Section title="Quick actions" subtitle="Built for fast one-thumb navigation during the workday.">
+        <View style={uiStyles.wrap}>
+          <View style={{ flexBasis: '48%', flexGrow: 1 }}>
+            <Link href="/(app)/trips" asChild>
+              <Button title="Open trips" />
+            </Link>
+          </View>
+          <View style={{ flexBasis: '48%', flexGrow: 1 }}>
+            <Link href="/(app)/documents" asChild>
+              <Button title="View documents" variant="secondary" />
+            </Link>
+          </View>
+          {me?.membership.enabled_modules.includes('time') ? (
+            <View style={{ flexBasis: '48%', flexGrow: 1 }}>
+              <Link href="/(app)/time" asChild>
+                <Button title="Clock actions" variant="ghost" />
+              </Link>
+            </View>
+          ) : null}
         </View>
       </Section>
 
-      <Section title="Quick access" subtitle="The native app talks to the versioned `/api/mobile/v1` backend.">
-        <Link href="/(app)/trips" asChild>
-          <Button title="Open trips" />
-        </Link>
-        <Link href="/(app)/documents" asChild>
-          <Button title="Open documents" variant="secondary" />
-        </Link>
-        {me?.membership.enabled_modules.includes('time') ? (
-          <Link href="/(app)/time" asChild>
-            <Button title="Open time" variant="ghost" />
-          </Link>
-        ) : null}
-      </Section>
-
-      <Section title="Next actions" subtitle="Mirrors the task-driven mobile workflow from the web app.">
-        {error ? <AppText>{error}</AppText> : null}
+      <Section title="Priority queue" subtitle="The most important actions are surfaced first.">
+        {error ? <AppText danger>{error}</AppText> : null}
         {data?.priority_items.length ? (
           data.priority_items.map((item) => (
-            <View key={item.id} style={{ borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 12, gap: 4 }}>
-              <AppText strong>{item.title}</AppText>
-              <AppText muted>{item.detail}</AppText>
-              {item.trip_id ? (
-                <Link href={`/(app)/trips/${item.trip_id}`} asChild>
-                  <Button title="Open trip" variant="ghost" />
-                </Link>
-              ) : null}
+            <View key={item.id} style={uiStyles.stack}>
+              <ListCard
+                title={item.title}
+                subtitle={item.detail}
+                tone="accent"
+                right={
+                  item.trip_id ? (
+                    <Link href={`/(app)/trips/${item.trip_id}`} asChild>
+                      <Button title="Open" variant="ghost" />
+                    </Link>
+                  ) : undefined
+                }
+              />
+              {item.trip_id ? <AppText muted>Trip-linked action ready for immediate driver follow-through.</AppText> : null}
             </View>
           ))
         ) : (
@@ -84,14 +102,15 @@ export default function HomeScreen() {
         )}
       </Section>
 
-      <Section title="Today timeline" subtitle="Shift and trip events from the mobile API.">
+      <Section title="Today timeline" subtitle="A calmer event feed for the current shift.">
         {data?.timeline_items.length ? (
           data.timeline_items.map((item) => (
-            <View key={item.id} style={{ borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 12, gap: 4 }}>
-              <AppText strong>{item.title}</AppText>
-              <AppText muted>{item.detail}</AppText>
-              <AppText muted>{formatDateTime(item.time)}</AppText>
-            </View>
+            <ListCard
+              key={item.id}
+              title={item.title}
+              subtitle={`${item.detail} - ${formatDateTime(item.time)}`}
+              right={<Badge label={item.kind} tone={item.kind === 'trip' ? 'accent' : 'success'} />}
+            />
           ))
         ) : (
           <EmptyState title="No timeline items yet" detail="Shift and trip events will appear here during the day." />

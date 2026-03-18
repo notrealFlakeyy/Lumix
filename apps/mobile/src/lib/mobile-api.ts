@@ -117,4 +117,17 @@ export const mobileApi = {
       body,
     })
   },
+  deliveryProof(
+    session: Session,
+    routeId: string,
+    body: { delivery_recipient_name: string; delivery_confirmation: string; signature_data_url: string },
+    companyId?: string | null,
+  ) {
+    return request<MobileTripMutationResponse>(`/api/mobile/v1/trips/${routeId}/delivery-proof`, {
+      method: 'POST',
+      session,
+      companyId,
+      body,
+    })
+  },
 }
