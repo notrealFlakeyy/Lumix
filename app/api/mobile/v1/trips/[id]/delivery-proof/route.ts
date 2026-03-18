@@ -7,6 +7,8 @@ import { getDriverMobileTripById } from '@/lib/db/queries/driver-mobile'
 import { mobileDeliveryProofRequestSchema, mobileTripMutationResponseSchema } from '@/lib/mobile/contracts'
 import { validateMobileRequest } from '@/lib/mobile/route-contract'
 
+const MAX_PROOF_IMAGE_BYTES = 8 * 1024 * 1024
+
 function parseDataUrl(dataUrl: string) {
   const match = /^data:(.+);base64,(.+)$/.exec(dataUrl)
   if (!match) {
@@ -46,8 +48,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (proofImage.bytes.length === 0) {
       throw new Error('Proof image is empty.')
     }
-    if (proofImage.bytes.length > 2 * 1024 * 1024) {
-      throw new Error('Proof image is too large.')
+    if (proofImage.bytes.length > MAX_PROOF_IMAGE_BYTES) {
+      throw new Error('Proof image is too large. Maximum size is 8 MB.')
     }
 
     const receivedAt = new Date().toISOString()
