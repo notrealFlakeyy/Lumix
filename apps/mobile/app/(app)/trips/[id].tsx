@@ -22,6 +22,7 @@ export default function TripDetailScreen() {
   const [deliveryConfirmation, setDeliveryConfirmation] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [proofError, setProofError] = useState<string | null>(null)
 
   async function load() {
     if (!session || !id) return
@@ -32,6 +33,7 @@ export default function TripDetailScreen() {
       if ('ok' in response && response.ok) {
         setData(response)
         setError(null)
+        setProofError(null)
         setDeliveryConfirmation((current) => current || response.trip.delivery_confirmation || '')
         setRecipientName((current) => current || response.trip.delivery_recipient_name || '')
       }
@@ -120,17 +122,22 @@ export default function TripDetailScreen() {
     if (!session || !id) return
 
     if (!recipientName.trim()) {
-      setError('Recipient name is required before uploading proof of delivery.')
+      const message = 'Recipient name is required before uploading proof of delivery.'
+      setProofError(message)
+      Alert.alert('Missing recipient name', message)
       return
     }
 
     if (!deliveryConfirmation.trim()) {
-      setError('Delivery confirmation is required before uploading proof of delivery.')
+      const message = 'Delivery confirmation is required before uploading proof of delivery.'
+      setProofError(message)
+      Alert.alert('Missing delivery confirmation', message)
       return
     }
 
     try {
       setSubmitting(true)
+      setProofError(null)
 
       const permission =
         source === 'camera'
@@ -138,7 +145,10 @@ export default function TripDetailScreen() {
           : await ImagePicker.requestMediaLibraryPermissionsAsync()
 
       if (!permission.granted) {
-        throw new Error(source === 'camera' ? 'Camera permission is required.' : 'Photo library permission is required.')
+        const message = source === 'camera' ? 'Camera permission is required.' : 'Photo library permission is required.'
+        setProofError(message)
+        Alert.alert('Permission needed', message)
+        return
       }
 
       const pickerResult =
@@ -180,7 +190,9 @@ export default function TripDetailScreen() {
       await load()
       Alert.alert('Proof uploaded', 'Delivery proof has been saved to the trip.')
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to upload proof of delivery.')
+      const message = nextError instanceof Error ? nextError.message : 'Failed to upload proof of delivery.'
+      setProofError(message)
+      Alert.alert('Upload failed', message)
     } finally {
       setSubmitting(false)
     }
@@ -258,6 +270,7 @@ export default function TripDetailScreen() {
       </Section>
 
       <Section title="Proof of delivery" subtitle="Capture a delivery image and attach the recipient confirmation directly from the phone.">
+        {proofError ? <AppText>{proofError}</AppText> : null}
         {trip.delivery_received_at ? (
           <AppText muted>
             Existing proof captured for {trip.delivery_recipient_name ?? 'recipient'} at {formatDateTime(trip.delivery_received_at)}.
@@ -269,7 +282,7 @@ export default function TripDetailScreen() {
         <Field value={deliveryConfirmation} onChangeText={setDeliveryConfirmation} />
         <Button title={submitting ? 'Opening camera...' : 'Capture delivery proof'} onPress={() => void submitDeliveryProof('camera')} disabled={submitting} />
         <Button title={submitting ? 'Selecting photo...' : 'Choose proof from photos'} variant="secondary" onPress={() => void submitDeliveryProof('library')} disabled={submitting} />
-        <AppText muted>The uploaded proof is stored in trip documents and updates the delivery confirmation on the trip.</AppText>
+        <AppText muted>Fill recipient name and delivery confirmation first. The uploaded proof is stored in trip documents and updates the delivery confirmation on the trip.</AppText>
       </Section>
 
       <Section title="Documents" subtitle="Proof and receipts already linked to this trip.">
