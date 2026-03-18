@@ -25,21 +25,21 @@ export function AppHeader({
     .map((definition) => definition.label)
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/15 bg-[rgba(248,250,252,0.92)] backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border/20 bg-[rgba(248,239,227,0.88)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
         <div>
-          <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Operations Hub</div>
-          <div className="mt-1 text-sm font-semibold text-slate-900">{membership.company.name}</div>
-          <div className="mt-1 text-xs text-slate-500">{enabledModuleLabels.join(' | ')}</div>
+          <div className="text-xs uppercase tracking-[0.22em] text-[rgb(var(--app-muted))]">Operations Hub</div>
+          <div className="mt-1 text-sm font-semibold text-[rgb(var(--app-contrast))]">{membership.company.name}</div>
+          <div className="mt-1 text-xs text-[rgb(var(--app-muted))]">{enabledModuleLabels.join(' | ')}</div>
         </div>
         <div className="flex items-center gap-3">
           <CompanySwitcher locale={locale} memberships={memberships} currentCompanyId={membership.company_id} redirectTo={`/${locale}/dashboard`} />
           <GlobalSearch locale={locale} />
-          <div className="hidden items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 md:flex">
-            <BellDot className="h-4 w-4 text-sky-600" />
+          <div className="hidden items-center gap-3 rounded-full border border-border/25 bg-[rgba(255,249,241,0.88)] px-4 py-2 text-sm text-[rgb(var(--app-muted))] md:flex">
+            <BellDot className="h-4 w-4 text-[rgb(var(--app-accent))]" />
             <div>
-              <div className="font-medium text-slate-900">{userEmail ?? 'Authenticated user'}</div>
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">{membership.role}</div>
+              <div className="font-medium text-[rgb(var(--app-contrast))]">{userEmail ?? 'Authenticated user'}</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-[rgb(var(--app-muted))]">{membership.role}</div>
             </div>
           </div>
           {canUseDriverWorkflow(membership.role) && membership.enabledModules.includes('transport') ? (

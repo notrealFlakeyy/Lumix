@@ -82,7 +82,7 @@ export default function TripsScreen() {
           <ListCard
             key={`summary-${trip.id}`}
             title={trip.order_number ?? 'No order number'}
-            subtitle={`${formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)} • ${trip.pickup_location ?? 'Pickup TBD'} -> ${trip.delivery_location ?? 'Delivery TBD'}`}
+            subtitle={`${formatDateTime(trip.scheduled_at ?? trip.start_time ?? trip.created_at)} - ${trip.pickup_location ?? 'Pickup TBD'} -> ${trip.delivery_location ?? 'Delivery TBD'}`}
             right={<Badge label={formatTripStatus(trip.status)} />}
           />
         ))}

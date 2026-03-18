@@ -94,9 +94,7 @@ export default function HomeScreen() {
                   ) : undefined
                 }
               />
-              {item.trip_id ? (
-                <AppText muted>Trip-linked action ready for immediate driver follow-through.</AppText>
-              ) : null}
+              {item.trip_id ? <AppText muted>Trip-linked action ready for immediate driver follow-through.</AppText> : null}
             </View>
           ))
         ) : (
@@ -110,7 +108,7 @@ export default function HomeScreen() {
             <ListCard
               key={item.id}
               title={item.title}
-              subtitle={`${item.detail} • ${formatDateTime(item.time)}`}
+              subtitle={`${item.detail} - ${formatDateTime(item.time)}`}
               right={<Badge label={item.kind} tone={item.kind === 'trip' ? 'accent' : 'success'} />}
             />
           ))
