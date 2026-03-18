@@ -62,12 +62,12 @@ export function LandingPage({ locale }: { locale: string }) {
       </div>
 
       <header className="sticky top-0 z-30 border-b border-white/40 bg-[rgba(248,239,227,0.72)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-5 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-10">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Lumix</div>
-            <div className="mt-1 text-sm font-semibold text-[rgb(var(--app-contrast))]">Operations platform for modern transport teams</div>
+            <div className="mt-1 max-w-xs text-sm font-semibold text-[rgb(var(--app-contrast))] sm:max-w-none">Operations platform for modern transport teams</div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <Button asChild variant="ghost" size="sm">
               <Link href="/login">Sign in</Link>
             </Button>
@@ -78,23 +78,23 @@ export function LandingPage({ locale }: { locale: string }) {
         </div>
       </header>
 
-      <section className="relative mx-auto max-w-7xl px-6 pb-16 pt-16 lg:px-10 lg:pb-24 lg:pt-20">
+      <section className="relative mx-auto max-w-7xl px-5 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
         <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_0.92fr]">
           <ScrollReveal className="space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_14px_32px_rgba(95,73,52,0.08)] backdrop-blur">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/60 bg-white/70 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_14px_32px_rgba(95,73,52,0.08)] backdrop-blur">
               <BadgeCheck className="h-4 w-4 text-[rgb(var(--app-accent))]" />
-              Built for real transport office work, not just dispatch demos
+              <span className="truncate">Built for real transport office work, not just dispatch demos</span>
             </div>
             <div className="space-y-5">
-              <h1 className="max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-[rgb(var(--app-contrast))] md:text-7xl">
+              <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-[rgb(var(--app-contrast))] sm:text-5xl md:text-7xl">
                 One calm control layer for dispatch, office ops, and driver follow-through.
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-[rgb(var(--app-muted))] md:text-xl">
+              <p className="max-w-2xl text-base leading-7 text-[rgb(var(--app-muted))] sm:text-lg sm:leading-8 md:text-xl">
                 Lumix gives transport companies a more premium operating rhythm: mobile driver actions, recurring office
                 workflows, finance follow-through, and modular rollout paths in one tenant-aware system.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg" className="pr-6">
                 <Link href="/login" className="inline-flex items-center gap-2 no-underline">
                   Launch the workspace <ArrowRight className="h-4 w-4" />
@@ -133,24 +133,24 @@ export function LandingPage({ locale }: { locale: string }) {
 
           <ScrollReveal delay={140} className="relative">
             <div className="lumix-dashboard-shell">
-              <div className="lumix-dashboard-card">
+              <div className="lumix-dashboard-card text-white">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.25em] text-[rgba(240,227,214,0.68)]">Operations pulse</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.25em] text-white/70">Operations pulse</div>
                     <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">A workspace that feels coordinated, not crowded.</h2>
                   </div>
                   <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Live</div>
                 </div>
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <div className="rounded-[28px] border border-white/10 bg-white/8 p-5">
-                    <div className="text-sm text-white/70">Urgent queue</div>
+                    <div className="text-sm text-white">Urgent queue</div>
                     <div className="mt-2 text-4xl font-semibold text-white">12</div>
-                    <div className="mt-3 text-sm leading-6 text-white/70">Overdue invoices, maintenance reminders, and proof follow-through in one panel.</div>
+                    <div className="mt-3 text-sm leading-6 text-white">Overdue invoices, maintenance reminders, and proof follow-through in one panel.</div>
                   </div>
                   <div className="rounded-[28px] border border-white/10 bg-[rgba(244,127,90,0.16)] p-5">
-                    <div className="text-sm text-white/70">Driver mobile</div>
+                    <div className="text-sm text-white">Driver mobile</div>
                     <div className="mt-2 text-4xl font-semibold text-white">Ready</div>
-                    <div className="mt-3 text-sm leading-6 text-white/70">Trip control, checkpoints, proof of delivery, and time actions from the phone.</div>
+                    <div className="mt-3 text-sm leading-6 text-white">Trip control, checkpoints, proof of delivery, and time actions from the phone.</div>
                   </div>
                 </div>
                 <div className="mt-6 space-y-3">
@@ -175,7 +175,7 @@ export function LandingPage({ locale }: { locale: string }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-16">
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-12 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 flex items-center justify-between gap-4">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Workflow</div>
@@ -239,7 +239,7 @@ export function LandingPage({ locale }: { locale: string }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-16">
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-12 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Modules</div>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
@@ -271,7 +271,7 @@ export function LandingPage({ locale }: { locale: string }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-20 pt-10 lg:px-10 lg:pb-24">
+      <section className="mx-auto max-w-7xl px-5 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-10 lg:px-10 lg:pb-24">
         <ScrollReveal>
           <Card className="overflow-hidden bg-[linear-gradient(135deg,rgba(24,38,63,0.98),rgba(33,52,83,0.95))] text-white">
             <CardContent className="flex flex-col gap-8 p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
