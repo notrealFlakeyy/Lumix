@@ -15,6 +15,7 @@ import {
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { ScrollReveal } from '@/components/marketing/scroll-reveal'
+import { LandingNav } from '@/components/marketing/landing-nav'
 
 const modules = [
   {
@@ -104,50 +105,7 @@ export function LandingPage({ locale }: { locale: string }) {
       </div>
 
       {/* ── Header ───────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-30 border-b backdrop-blur-xl"
-        style={{
-          background: 'rgba(var(--app-bg), 0.82)',
-          borderColor: 'rgba(var(--app-muted), 0.14)',
-        }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 lg:px-10">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-xl text-sm font-bold text-white"
-              style={{ background: 'rgb(var(--app-contrast))' }}
-            >
-              <span style={{ color: 'rgb(var(--app-accent))' }}>L</span>
-            </div>
-            <span className="text-sm font-semibold tracking-tight" style={{ color: 'rgb(var(--app-contrast))' }}>
-              Lumix
-            </span>
-            <span
-              className="hidden rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] sm:block"
-              style={{
-                background: 'rgba(var(--app-accent), 0.1)',
-                color: 'rgb(var(--app-accent))',
-                border: '1px solid rgba(var(--app-accent), 0.22)',
-              }}
-            >
-              ERP
-            </span>
-          </div>
-
-          {/* Nav */}
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login" className="no-underline">Sign in</Link>
-            </Button>
-            <Button asChild size="sm" className="lumix-cta-pulse">
-              <Link href={`/${locale}/login`} className="no-underline">
-                Open workspace
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <LandingNav />
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative mx-auto max-w-6xl px-5 pb-20 pt-24 text-center lg:px-10 lg:pb-28 lg:pt-32">
@@ -181,12 +139,12 @@ export function LandingPage({ locale }: { locale: string }) {
         {/* CTAs */}
         <div className="lumix-rise-4 mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link href={`/${locale}/login`} className="inline-flex items-center gap-2 no-underline">
+            <Link href="/login" className="inline-flex items-center gap-2 no-underline">
               Launch workspace <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href={`/${locale}/login`} className="no-underline">
+            <Link href="/login" className="no-underline">
               See a demo
             </Link>
           </Button>
@@ -377,7 +335,7 @@ export function LandingPage({ locale }: { locale: string }) {
                   className="bg-white hover:bg-white/92"
                   style={{ color: 'rgb(var(--app-contrast))' }}
                 >
-                  <Link href={`/${locale}/login`} className="inline-flex items-center gap-2 no-underline">
+                  <Link href="/login" className="inline-flex items-center gap-2 no-underline">
                     Get started free <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>

@@ -95,31 +95,8 @@ export function AppSidebar({ allowedModules }: { allowedModules: readonly AppMod
       style={{ borderRight: '1px solid rgba(var(--app-muted), 0.14)' }}
     >
       {/* Brand */}
-      <div className="px-4 py-5" style={{ borderBottom: '1px solid rgba(var(--app-muted), 0.12)' }}>
-        <div
-          className="rounded-2xl px-4 py-4"
-          style={{
-            background: 'rgb(var(--app-contrast))',
-            boxShadow: '0 10px 30px rgba(24,38,63,0.22)',
-          }}
-        >
-          <div className="flex items-center gap-2.5">
-            <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-              style={{ background: 'rgb(var(--app-accent))', color: '#fff' }}
-            >
-              L
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-semibold leading-tight tracking-tight" style={{ color: 'rgb(var(--app-bg))' }}>
-                Lumix
-              </div>
-              <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: 'rgba(248,239,227,0.45)' }}>
-                Operations Hub
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center px-5 py-5" style={{ borderBottom: '1px solid rgba(var(--app-muted), 0.12)' }}>
+        <img src="/lumix-logo-transparent.png" alt="Lumix" className="h-16 w-16 shrink-0 object-contain" />
       </div>
 
       {/* Nav groups */}

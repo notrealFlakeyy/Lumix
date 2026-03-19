@@ -55,7 +55,7 @@ export function LoginForm({ locale }: { locale: string }) {
             Password
           </Label>
           <a
-            href={`/${locale}/forgot-password`}
+            href="/forgot-password"
             className="text-xs no-underline hover:underline"
             style={{ color: 'rgb(var(--app-muted))' }}
           >

@@ -16,24 +16,36 @@ const onboardingInitialState: ActionState = {
   error: null,
 }
 
+// Map billing plan keys to the closest onboarding bundle
+const planToBundle: Record<string, (typeof onboardingModuleBundles)[number]['key']> = {
+  starter:    'transport',
+  growth:     'hybrid',
+  enterprise: 'hybrid',
+}
+
 export function CompanyOnboarding({
   locale,
   userEmail,
   demoCompanyAvailable,
   createCompany,
   claimDemoCompany,
+  defaultPlan,
 }: {
   locale: string
   userEmail: string | null
   demoCompanyAvailable: boolean
   createCompany: (state: ActionState, formData: FormData) => Promise<ActionState>
   claimDemoCompany: (state: ActionState, formData: FormData) => Promise<ActionState>
+  defaultPlan?: string | null
 }) {
   const [createState, createAction, isCreating] = React.useActionState(createCompany, onboardingInitialState)
   const [claimState, claimAction, isClaiming] = React.useActionState(claimDemoCompany, onboardingInitialState)
-  const [businessType, setBusinessType] = React.useState<(typeof onboardingModuleBundles)[number]['key']>('transport')
+
+  const resolvedDefault = (defaultPlan && planToBundle[defaultPlan]) ?? 'transport'
+
+  const [businessType, setBusinessType] = React.useState<(typeof onboardingModuleBundles)[number]['key']>(resolvedDefault)
   const [selectedModules, setSelectedModules] = React.useState<string[]>(
-    onboardingModuleBundles.find((bundle) => bundle.key === 'transport')?.enabledModules ?? ['core', 'transport'],
+    onboardingModuleBundles.find((bundle) => bundle.key === resolvedDefault)?.enabledModules ?? ['core', 'transport'],
   )
 
   React.useEffect(() => {

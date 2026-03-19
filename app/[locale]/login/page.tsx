@@ -39,16 +39,8 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
 
       {/* Header */}
       <header className="relative z-10 px-6 pt-8 lg:px-10">
-        <Link href={`/${locale}`} className="inline-flex items-center gap-2.5 no-underline">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-sm font-bold"
-            style={{ background: 'rgb(var(--app-contrast))' }}
-          >
-            <span style={{ color: 'rgb(var(--app-accent))' }}>L</span>
-          </div>
-          <span className="text-sm font-semibold" style={{ color: 'rgb(var(--app-contrast))' }}>
-            Lumix
-          </span>
+        <Link href="/" className="inline-flex items-center gap-2.5 no-underline">
+          <img src="/lumix-logo-transparent.png" alt="Lumix" className="h-16 w-16 object-contain" />
         </Link>
       </header>
 
@@ -142,7 +134,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
                 style={{ color: 'rgba(var(--app-muted), 0.7)' }}
               >
                 New to Lumix?{' '}
-                <Link href={`/${locale}/signup`} className="font-medium underline-offset-2">
+                <Link href="/signup" className="font-medium underline-offset-2">
                   Create your company
                 </Link>
               </p>

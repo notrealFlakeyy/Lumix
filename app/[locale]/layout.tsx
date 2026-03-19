@@ -20,13 +20,16 @@ export const metadata: Metadata = {
     title: 'Lumix ERP',
   },
   icons: {
-    icon: '/logo.svg',
-    apple: '/logo.svg',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/lumix-logo-transparent.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0ea5e9',
+  themeColor: '#f47f5a',
 }
 
 export function generateStaticParams() {

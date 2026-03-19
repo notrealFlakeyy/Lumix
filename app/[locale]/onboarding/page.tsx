@@ -7,8 +7,15 @@ import { getCurrentMembership } from '@/lib/auth/get-current-membership'
 
 const demoCompanyId = '11111111-1111-1111-1111-111111111111'
 
-export default async function OnboardingPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function OnboardingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ plan?: string }>
+}) {
   const { locale } = await params
+  const { plan } = await searchParams
   const { user, membership, supabase } = await getCurrentMembership()
 
   if (!user) {
@@ -22,7 +29,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   const { data: demoCompany } = await supabase.from('companies').select('id').eq('id', demoCompanyId).maybeSingle()
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f8fafc_0%,_#e2e8f0_100%)] px-6 py-16">
+    <main className="min-h-screen px-6 py-16" style={{ background: 'rgb(var(--app-bg))' }}>
       <div className="mx-auto max-w-5xl space-y-6">
         <Card >
           <CardHeader>
@@ -40,6 +47,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
           demoCompanyAvailable={Boolean(demoCompany)}
           createCompany={createCompanyAction}
           claimDemoCompany={claimDemoCompanyAction}
+          defaultPlan={plan ?? null}
         />
       </div>
     </main>
