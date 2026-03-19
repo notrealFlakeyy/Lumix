@@ -174,8 +174,8 @@ export function DriverProofOfDeliveryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {currentReceivedAt || currentRecipientName || currentConfirmation ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-            <div className="font-medium text-slate-950">Current delivery proof</div>
+          <div className="rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] px-4 py-4 text-sm text-muted-foreground">
+            <div className="font-medium text-foreground">Current delivery proof</div>
             <div className="mt-2">Recipient: {currentRecipientName ?? 'Not recorded'}</div>
             <div className="mt-1">Confirmation: {currentConfirmation ?? 'Not recorded'}</div>
             <div className="mt-1">Captured: {formatDateTime(currentReceivedAt)}</div>
@@ -212,18 +212,18 @@ export function DriverProofOfDeliveryCard({
               Clear
             </Button>
           </div>
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-2">
+          <div className="rounded-2xl border border-dashed border-border/40 bg-[rgb(var(--app-surface))] p-2">
             <canvas
               id="delivery_signature"
               ref={canvasRef}
-              className="h-[180px] w-full touch-none rounded-xl bg-white"
+              className="h-[180px] w-full touch-none rounded-xl bg-[rgb(var(--app-surface))]"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={stopDrawing}
               onPointerLeave={stopDrawing}
             />
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <PenLine className="h-3.5 w-3.5" />
             <span>{hasSignature ? 'Signature captured. Save to attach it to this trip.' : 'Ask the receiver to sign in the box above.'}</span>
           </div>

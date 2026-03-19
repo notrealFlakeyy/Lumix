@@ -20,7 +20,7 @@ export function MonitoringTestPanel({
       <CardHeader>
         <CardTitle>Monitoring Tests</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm text-slate-600">
+      <CardContent className="space-y-4 text-sm text-muted-foreground">
         <p>Use these controls after deployment to verify that Sentry receives both server-side and client-side events for the active environment.</p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -67,7 +67,7 @@ export function MonitoringTestPanel({
             Configure <code>NEXT_PUBLIC_SENTRY_DSN</code> before using the monitoring test controls.
           </div>
         ) : null}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700">
+        <div className="rounded-xl border border-border/30 bg-[rgb(var(--app-surface))] px-4 py-3 text-muted-foreground">
           Alert rules still need to be configured in the Sentry dashboard. These buttons only confirm event ingestion.
         </div>
         {serverStatus ? (

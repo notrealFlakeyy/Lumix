@@ -20,14 +20,14 @@ export function RecentActivity({
         </CardHeader>
         <CardContent className="space-y-4">
           {orders.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No orders yet.</div>
+            <div className="rounded-xl border border-dashed border-border/30 px-4 py-8 text-sm text-muted-foreground">No orders yet.</div>
           ) : (
             orders.map((order) => (
-              <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 px-4 py-3 no-underline hover:border-slate-200">
+              <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between gap-4 rounded-xl border border-border/20 px-4 py-3 no-underline hover:border-border/30">
                 <div className="min-w-0">
-                  <div className="font-medium text-slate-950">{order.orderNumber}</div>
-                  <div className="truncate text-sm text-slate-500">{order.customerName}</div>
-                  <div className="text-xs text-slate-400">{formatDateTime(order.scheduledAt)}</div>
+                  <div className="font-medium text-foreground">{order.orderNumber}</div>
+                  <div className="truncate text-sm text-muted-foreground">{order.customerName}</div>
+                  <div className="text-xs text-muted-foreground">{formatDateTime(order.scheduledAt)}</div>
                 </div>
                 <OrderStatusBadge status={order.status} />
               </Link>
@@ -42,14 +42,14 @@ export function RecentActivity({
         </CardHeader>
         <CardContent className="space-y-4">
           {invoices.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No invoices yet.</div>
+            <div className="rounded-xl border border-dashed border-border/30 px-4 py-8 text-sm text-muted-foreground">No invoices yet.</div>
           ) : (
             invoices.map((invoice) => (
-              <Link key={invoice.id} href={`/invoices/${invoice.id}`} className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 px-4 py-3 no-underline hover:border-slate-200">
+              <Link key={invoice.id} href={`/invoices/${invoice.id}`} className="flex items-center justify-between gap-4 rounded-xl border border-border/20 px-4 py-3 no-underline hover:border-border/30">
                 <div className="min-w-0">
-                  <div className="font-medium text-slate-950">{invoice.invoiceNumber}</div>
-                  <div className="truncate text-sm text-slate-500">{invoice.customerName}</div>
-                  <div className="text-xs text-slate-400">{formatCurrency(invoice.total)}</div>
+                  <div className="font-medium text-foreground">{invoice.invoiceNumber}</div>
+                  <div className="truncate text-sm text-muted-foreground">{invoice.customerName}</div>
+                  <div className="text-xs text-muted-foreground">{formatCurrency(invoice.total)}</div>
                 </div>
                 <InvoiceStatusBadge status={invoice.status} />
               </Link>

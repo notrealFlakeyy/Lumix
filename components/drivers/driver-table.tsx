@@ -35,7 +35,7 @@ export function DriverTable({
         {drivers.map((driver) => (
           <TableRow key={driver.id}>
             <TableCell className="max-w-[180px] font-medium">
-              <Link href={`/drivers/${getDriverRouteId(driver)}`} className="block truncate text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/drivers/${getDriverRouteId(driver)}`} className="block truncate text-foreground no-underline hover:text-[rgb(var(--app-accent))]">
                 {driver.full_name}
               </Link>
             </TableCell>

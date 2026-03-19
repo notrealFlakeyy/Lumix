@@ -51,8 +51,8 @@ export function DriverInstallPrompt() {
 
   return (
     <Card className="shadow-softSm">
-      <CardContent className="space-y-3 p-4 text-sm text-slate-600">
-        <div className="font-medium text-slate-900">Install driver app</div>
+      <CardContent className="space-y-3 p-4 text-sm text-muted-foreground">
+        <div className="font-medium text-foreground">Install driver app</div>
         {installEvent ? (
           <>
             <p>Add this workflow to the home screen for quicker access, cleaner full-screen navigation, and a more app-like handoff during live operations.</p>
@@ -62,7 +62,7 @@ export function DriverInstallPrompt() {
           </>
         ) : (
           <p>
-            On iPhone or iPad, use Safari’s Share menu and choose <span className="font-medium text-slate-900">Add to Home Screen</span> to install the driver workflow.
+            On iPhone or iPad, use Safari’s Share menu and choose <span className="font-medium text-foreground">Add to Home Screen</span> to install the driver workflow.
           </p>
         )}
       </CardContent>

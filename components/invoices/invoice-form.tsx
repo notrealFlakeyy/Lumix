@@ -120,7 +120,7 @@ export function InvoiceForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {paddedItems.map((item, index) => (
-            <div key={index} className="grid gap-4 rounded-xl border border-slate-100 p-4 md:grid-cols-[2fr_repeat(3,1fr)]">
+            <div key={index} className="grid gap-4 rounded-xl border border-border/20 p-4 md:grid-cols-[2fr_repeat(3,1fr)]">
               <div className="space-y-2">
                 <Label htmlFor={`item_description_${index}`}>Description</Label>
                 <Input id={`item_description_${index}`} name={`item_description_${index}`} defaultValue={item.description ?? ''} />

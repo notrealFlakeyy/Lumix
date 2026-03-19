@@ -1892,7 +1892,7 @@ export async function SettingsView({
             key={key}
             asChild
             variant={section === key ? 'default' : 'outline'}
-            className={section === key ? 'bg-slate-950 text-white hover:bg-slate-900' : undefined}
+            className={section === key ? 'bg-[rgb(var(--app-contrast))] text-[rgb(var(--app-surface))] hover:bg-[rgba(var(--app-contrast),0.85)]' : undefined}
           >
             <Link href={buildSettingsHref(locale, key)}>{key === 'overview' ? 'Overview' : meta.title.replace(' Settings', '')}</Link>
           </Button>
@@ -1927,17 +1927,17 @@ export async function SettingsView({
                 <CardTitle>Rollout Snapshot</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Stripe billing</span>
                   <Badge variant={stripeBillingConfigured && stripeWebhookConfigured ? 'success' : 'warning'}>
                     {stripeBillingConfigured && stripeWebhookConfigured ? 'Ready' : 'Needs review'}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Invoice email delivery</span>
                   <Badge variant={emailDeliveryConfigured ? 'success' : 'warning'}>{emailDeliveryConfigured ? 'Ready' : 'Fallback only'}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Sentry monitoring</span>
                   <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Ready' : 'Incomplete'}</Badge>
                 </div>
@@ -1949,15 +1949,15 @@ export async function SettingsView({
                 <CardTitle>Data Hygiene</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Cleanup queue</span>
                   <Badge variant={diagnostics.cleanupQueue.length === 0 ? 'success' : 'warning'}>{diagnostics.cleanupQueue.length}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Duplicate review groups</span>
                   <Badge variant={duplicateReviewGroups === 0 ? 'success' : 'warning'}>{duplicateReviewGroups}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                   <span>Drivers without explicit auth link</span>
                   <Badge variant={diagnostics.quality.activeDriversUnlinked === 0 ? 'success' : 'warning'}>
                     {diagnostics.quality.activeDriversUnlinked}
@@ -2135,7 +2135,7 @@ export async function SettingsView({
                 id="invoice_footer"
                 name="invoice_footer"
                 defaultValue={resolvedCompanyAppSettings.invoice_footer ?? ''}
-                className="min-h-28 w-full rounded-lg border border-border/20 bg-white px-4 py-3 text-sm text-foreground"
+                className="min-h-28 w-full rounded-lg border border-border/20 bg-[rgb(var(--app-surface))] px-4 py-3 text-sm text-foreground"
                 placeholder="Payment instructions, legal note, or dispatch contact details."
               />
             </div>
@@ -2168,7 +2168,7 @@ export async function SettingsView({
                     value="true"
                     defaultChecked={enabledCompanyModuleKeys.has(moduleDefinition.key)}
                     disabled={moduleDefinition.alwaysEnabled}
-                    className="mt-1 h-4 w-4 rounded border-slate-300"
+                    className="mt-1 h-4 w-4 rounded border-border/40"
                   />
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -2222,7 +2222,7 @@ export async function SettingsView({
                     </div>
                     <div className="flex items-end gap-3">
                       <label className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-                        <input type="checkbox" name="branch_is_active" value="true" defaultChecked={branch.is_active} className="h-4 w-4 rounded border-slate-300" />
+                        <input type="checkbox" name="branch_is_active" value="true" defaultChecked={branch.is_active} className="h-4 w-4 rounded border-border/40" />
                         Active
                       </label>
                       <input type="hidden" name="branch_country" value={branch.country} />
@@ -2312,7 +2312,7 @@ export async function SettingsView({
             </div>
             <div className="space-y-2">
               <Label htmlFor="invite_role">Role</Label>
-              <select id="invite_role" name="role" defaultValue="viewer" className="h-11 w-full rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
+              <select id="invite_role" name="role" defaultValue="viewer" className="h-11 w-full rounded-lg border border-border/20 bg-[rgb(var(--app-surface))] px-3 text-sm text-foreground">
                 {companyRoles.map((role) => (
                   <option key={role} value={role}>
                     {role}
@@ -2333,14 +2333,14 @@ export async function SettingsView({
               <Input id="driver_employment_type" name="driver_employment_type" placeholder="Full-time" />
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
-              <input id="create_driver_profile" name="create_driver_profile" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
+              <input id="create_driver_profile" name="create_driver_profile" type="checkbox" className="mt-1 h-4 w-4 rounded border-border/40" />
               <div className="space-y-1">
                 <Label htmlFor="create_driver_profile">Create or link a driver profile</Label>
                 <p className="text-sm text-muted-foreground">Use this when inviting a user with the <code>driver</code> role so mobile access works without SQL.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
-              <input id="create_account_without_email" name="create_account_without_email" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
+              <input id="create_account_without_email" name="create_account_without_email" type="checkbox" className="mt-1 h-4 w-4 rounded border-border/40" />
               <div className="space-y-1">
                 <Label htmlFor="create_account_without_email">Create account without sending an email invite</Label>
                 <p className="text-sm text-muted-foreground">
@@ -2349,7 +2349,7 @@ export async function SettingsView({
               </div>
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
-              <input id="generate_invite_link" name="generate_invite_link" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
+              <input id="generate_invite_link" name="generate_invite_link" type="checkbox" className="mt-1 h-4 w-4 rounded border-border/40" />
               <div className="space-y-1">
                 <Label htmlFor="generate_invite_link">Generate a manual invite link instead of sending an email</Label>
                 <p className="text-sm text-muted-foreground">
@@ -2419,14 +2419,14 @@ export async function SettingsView({
                         <div className="space-y-3">
                           <form action={updateMembershipAction} className="flex min-w-[20rem] flex-col gap-2 md:flex-row">
                             <input type="hidden" name="target_user_id" value={member.user_id} />
-                            <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
+                            <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-border/20 bg-[rgb(var(--app-surface))] px-3 text-sm text-foreground">
                               {companyRoles.map((role) => (
                                 <option key={role} value={role}>
                                   {role}
                                 </option>
                               ))}
                             </select>
-                            <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
+                            <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-border/20 bg-[rgb(var(--app-surface))] px-3 text-sm text-foreground">
                               <option value="active">Active</option>
                               <option value="inactive">Inactive</option>
                             </select>
@@ -2549,7 +2549,7 @@ export async function SettingsView({
                         <select
                           name="auth_user_id"
                           defaultValue={driver.auth_user_id ?? ''}
-                          className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground"
+                          className="h-11 rounded-lg border border-border/20 bg-[rgb(var(--app-surface))] px-3 text-sm text-foreground"
                         >
                           <option value="">No linked login</option>
                           {availableOptions.map((memberOption) => (
@@ -2604,13 +2604,13 @@ export async function SettingsView({
                     </div>
                     <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {branchRows.map((branch) => (
-                        <label key={`${member.user_id}-${branch.id}`} className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3 text-sm text-slate-700">
+                        <label key={`${member.user_id}-${branch.id}`} className="flex items-center gap-3 rounded-xl border border-border/20 px-3 py-3 text-sm text-muted-foreground">
                           <input
                             type="checkbox"
                             name="branch_ids"
                             value={branch.id}
                             defaultChecked={assignedBranchIds.has(branch.id)}
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-border/40"
                           />
                           <div>
                             <div className="font-medium text-foreground">{branch.name}</div>
@@ -2640,24 +2640,24 @@ export async function SettingsView({
         </CardHeader>
         <CardContent className="space-y-6 pt-0">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-border/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Current plan</div>
               <div className="mt-1 flex items-center gap-2">
                 <span className="text-lg font-semibold text-foreground">{subscription?.plan_key ?? 'No plan yet'}</span>
                 <Badge variant={getSubscriptionBadgeVariant(subscription?.status)}>{subscription?.status ?? 'unconfigured'}</Badge>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-border/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Renewal window</div>
               <div className="mt-1 text-sm font-medium text-foreground">{formatDateTime(subscription?.current_period_end ?? null)}</div>
             </div>
-            <div className="rounded-xl border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-border/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Stripe customer</div>
               <div className="mt-1 text-sm font-medium text-foreground">
                 {billingAccount?.stripe_customer_id ? `${billingAccount.stripe_customer_id.slice(0, 16)}...` : 'Not linked'}
               </div>
             </div>
-            <div className="rounded-xl border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-border/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Seats</div>
               <div className="mt-1 text-lg font-semibold text-foreground">{subscription?.seats ?? 0}</div>
             </div>
@@ -2702,7 +2702,7 @@ export async function SettingsView({
                     ))}
                   </div>
                   {plan.requiresContact ? (
-                    <div className="mt-5 rounded-2xl border border-border/20 bg-white px-4 py-3 text-sm text-muted-foreground">
+                    <div className="mt-5 rounded-2xl border border-border/20 bg-[rgb(var(--app-surface))] px-4 py-3 text-sm text-muted-foreground">
                       Use this tier as a founder-led sales motion after the first live pilots.
                     </div>
                   ) : (
@@ -2734,46 +2734,46 @@ export async function SettingsView({
             <CardTitle>Operational Readiness</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Site URL configured</span>
               <Badge variant={siteUrlConfigured ? 'success' : 'warning'}>{siteUrlConfigured ? 'Ready' : 'Missing'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>SMTP invoice delivery</span>
               <Badge variant={emailDeliveryConfigured ? 'success' : 'warning'}>{emailDeliveryConfigured ? 'Ready' : 'Manual fallback only'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Stripe billing</span>
               <Badge variant={stripeBillingConfigured ? 'success' : 'warning'}>{stripeBillingConfigured ? 'Ready' : 'Missing secret key'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Stripe webhook sync</span>
               <Badge variant={stripeWebhookConfigured ? 'success' : 'warning'}>{stripeWebhookConfigured ? 'Ready' : 'Missing webhook secret'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Sentry monitoring</span>
               <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Ready' : 'Missing DSN'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Sentry release tag</span>
               <Badge variant={sentryRelease ? 'success' : 'warning'}>{sentryRelease ?? 'Missing'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Sentry source maps</span>
               <Badge variant={sentrySourceMapsConfigured ? 'success' : 'default'}>{sentrySourceMapsConfigured ? 'Ready' : 'Optional'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Active pending invites</span>
               <Badge variant={invitePendingCount === 0 ? 'success' : 'warning'}>{invitePendingCount}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Driver auth links</span>
               <Badge variant={driverRows.length === 0 || explicitDriverLinkCount === driverRows.length ? 'success' : 'warning'}>{driverLinkCoverage}</Badge>
             </div>
             <div className="rounded-2xl border border-border/20 bg-surface px-4 py-3">
               <div className="font-medium text-foreground">Health endpoint</div>
               <div className="mt-1 text-muted-foreground">
-                Use <a href="/api/health" target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-4">/api/health</a> for deployment checks and basic database/email readiness visibility.
+                Use <a href="/api/health" target="_blank" rel="noreferrer" className="underline underline-offset-4 text-[rgb(var(--app-accent))]">/api/health</a> for deployment checks and basic database/email readiness visibility.
               </div>
             </div>
           </CardContent>
@@ -2807,19 +2807,19 @@ export async function SettingsView({
             <CardTitle>Monitoring Setup</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span><code>NEXT_PUBLIC_SENTRY_DSN</code></span>
               <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Configured' : 'Missing'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span><code>SENTRY_ENVIRONMENT</code></span>
               <Badge variant="default">{sentryEnvironment}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span><code>SENTRY_RELEASE</code></span>
               <Badge variant={sentryRelease ? 'success' : 'warning'}>{sentryRelease ?? 'Missing'}</Badge>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/20 px-4 py-3">
               <span>Source map upload envs</span>
               <Badge variant={sentrySourceMapsConfigured ? 'success' : 'default'}>{sentrySourceMapsConfigured ? 'Configured' : 'Optional'}</Badge>
             </div>
@@ -2856,35 +2856,35 @@ export async function SettingsView({
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Customers</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.customers}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Orders</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.orders}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Trips</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.trips}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Invoices</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.invoices}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payments</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.payments}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Documents</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.documents}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Drivers</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.drivers}</div>
               </div>
-              <div className="rounded-xl border border-slate-100 px-4 py-3">
+              <div className="rounded-xl border border-border/20 px-4 py-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Vehicles</div>
                 <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.vehicles}</div>
               </div>
@@ -2907,27 +2907,27 @@ export async function SettingsView({
             <CardTitle>Data Quality Warnings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Customers missing billing email</span>
               <Badge variant={diagnostics.quality.customersMissingEmail === 0 ? 'success' : 'warning'}>{diagnostics.quality.customersMissingEmail}</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Active drivers without explicit auth link</span>
               <Badge variant={diagnostics.quality.activeDriversUnlinked === 0 ? 'success' : 'warning'}>{diagnostics.quality.activeDriversUnlinked}</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Active drivers missing email</span>
               <Badge variant={diagnostics.quality.activeDriversMissingEmail === 0 ? 'success' : 'warning'}>{diagnostics.quality.activeDriversMissingEmail}</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Overdue invoices</span>
               <Badge variant={diagnostics.quality.overdueInvoices === 0 ? 'success' : 'warning'}>{diagnostics.quality.overdueInvoices}</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Started trips without assigned driver</span>
               <Badge variant={diagnostics.quality.startedTripsWithoutDriver === 0 ? 'success' : 'warning'}>{diagnostics.quality.startedTripsWithoutDriver}</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
               <span>Sent invoices missing stored PDF URL</span>
               <Badge variant={diagnostics.quality.sentInvoicesWithoutPdfUrl === 0 ? 'success' : 'warning'}>{diagnostics.quality.sentInvoicesWithoutPdfUrl}</Badge>
             </div>
@@ -2958,7 +2958,7 @@ export async function SettingsView({
                       const mergeAction = duplicateMergeActionMap[section.path]
 
                       return (
-                        <div key={`${section.title}-${group.reason}-${group.key}-${index}`} className="rounded-xl border border-border/20 bg-white px-3 py-3">
+                        <div key={`${section.title}-${group.reason}-${group.key}-${index}`} className="rounded-xl border border-border/20 bg-[rgb(var(--app-surface))] px-3 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="font-medium text-foreground">{group.reason}</div>
@@ -2968,7 +2968,7 @@ export async function SettingsView({
                         </div>
                         <div className="mt-3 space-y-2">
                           {group.entries.map((entry, entryIndex) => (
-                            <div key={entry.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
+                            <div key={entry.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/20 px-3 py-2">
                               <div className="min-w-0">
                                 <div className="truncate font-medium text-foreground">{entry.label}</div>
                                 {entry.secondaryLabel ? <div className="truncate text-xs text-muted-foreground">{entry.secondaryLabel}</div> : null}

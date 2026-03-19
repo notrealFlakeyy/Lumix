@@ -112,7 +112,7 @@ export function DriverShiftActionCard({
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-border/30 px-4 py-4 text-sm text-muted-foreground">
             No active shift. Clock in before the day starts so payroll and operations reporting stay aligned.
           </div>
         )}

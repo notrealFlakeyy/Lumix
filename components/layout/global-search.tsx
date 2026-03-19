@@ -118,11 +118,11 @@ export function GlobalSearch({ locale }: { locale: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+        className="flex items-center gap-2 rounded-full border border-border/30 bg-[rgb(var(--app-surface))] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border/60 hover:text-foreground"
       >
         <Search className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Search...</span>
-        <kbd className="hidden rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 sm:inline">
+        <kbd className="hidden rounded border border-border/30 bg-[rgb(var(--app-surface))] px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
           Ctrl+K
         </kbd>
       </button>
@@ -131,25 +131,25 @@ export function GlobalSearch({ locale }: { locale: string }) {
         <DialogContent className="top-[20%] translate-y-0 gap-0 p-0">
           <DialogTitle className="sr-only">Search</DialogTitle>
           <div className="flex items-center gap-3 border-b border-border/25 px-4 py-3">
-            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(event) => handleSearch(event.target.value)}
               placeholder="Search customers, quotes, orders, invoices..."
-              className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
-            {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-slate-400" /> : null}
+            {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" /> : null}
           </div>
 
           <div className="max-h-[320px] overflow-y-auto px-2 py-2">
             {!query.trim() ? (
-              <div className="px-3 py-8 text-center text-sm text-slate-400">Type to search across all entities</div>
+              <div className="px-3 py-8 text-center text-sm text-muted-foreground">Type to search across all entities</div>
             ) : null}
 
             {query.trim() && !loading && results.length === 0 ? (
-              <div className="px-3 py-8 text-center text-sm text-slate-400">No results found for &quot;{query}&quot;</div>
+              <div className="px-3 py-8 text-center text-sm text-muted-foreground">No results found for &quot;{query}&quot;</div>
             ) : null}
 
             {Object.entries(grouped).map(([type, items]) => {
@@ -158,7 +158,7 @@ export function GlobalSearch({ locale }: { locale: string }) {
 
               return (
                 <div key={type} className="mb-1">
-                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {config.label}
                   </div>
                   {items.map((result) => (
@@ -166,13 +166,13 @@ export function GlobalSearch({ locale }: { locale: string }) {
                       key={result.id}
                       type="button"
                       onClick={() => handleSelect(result)}
-                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-slate-50"
+                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-[rgb(var(--app-surface))]"
                     >
-                      <Icon className="h-4 w-4 shrink-0 text-slate-400" />
+                      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-slate-900">{result.title}</div>
+                        <div className="truncate text-sm font-medium text-foreground">{result.title}</div>
                         {result.subtitle ? (
-                          <div className="truncate text-xs text-slate-500">{result.subtitle}</div>
+                          <div className="truncate text-xs text-muted-foreground">{result.subtitle}</div>
                         ) : null}
                       </div>
                     </button>

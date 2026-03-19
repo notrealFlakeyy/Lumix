@@ -31,18 +31,18 @@ export function InviteLinkPanel({ email, inviteLink, generatedAt, clearAction }:
   }
 
   return (
-    <Card className="border-sky-200 bg-sky-50/80">
+    <Card className="border-border/30 bg-[rgb(var(--app-surface))]">
       <CardHeader>
         <CardTitle>Manual Invite Link</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm text-slate-700">
-          Generated for <span className="font-medium text-slate-950">{email}</span> on {formatTimestamp(generatedAt)}.
+        <div className="text-sm text-muted-foreground">
+          Generated for <span className="font-medium text-foreground">{email}</span> on {formatTimestamp(generatedAt)}.
         </div>
         <div className="space-y-2">
           <Label htmlFor="manual_invite_link">Invite URL</Label>
           <Input id="manual_invite_link" readOnly value={inviteLink} className="font-mono text-xs" />
-          <p className="text-sm text-slate-600">Share this link through your own delivery channel if Auth invite emails are not configured yet.</p>
+          <p className="text-sm text-muted-foreground">Share this link through your own delivery channel if Auth invite emails are not configured yet.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={handleCopy}>

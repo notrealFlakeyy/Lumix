@@ -21,8 +21,8 @@ export function TablePagination({
   const end = Math.min(page * pageSize, total)
 
   return (
-    <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-4">
-      <p className="text-sm text-slate-500">
+    <div className="mt-2 flex items-center justify-between border-t border-border/20 pt-4">
+      <p className="text-sm text-muted-foreground">
         {start}–{end} of {total}
       </p>
       <div className="flex items-center gap-2">

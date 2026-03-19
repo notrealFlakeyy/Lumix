@@ -57,7 +57,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
         <Card >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Truck className="h-4 w-4 text-sky-500" />
+              <Truck className="h-4 w-4 text-[rgb(var(--app-accent))]" />
               Delivery Status
             </CardTitle>
           </CardHeader>
@@ -71,15 +71,15 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
                     {isDone ? (
                       <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
                     ) : isCurrent ? (
-                      <Clock className="h-5 w-5 shrink-0 text-sky-500" />
+                      <Clock className="h-5 w-5 shrink-0 text-[rgb(var(--app-accent))]" />
                     ) : (
-                      <Circle className="h-5 w-5 shrink-0 text-slate-300" />
+                      <Circle className="h-5 w-5 shrink-0 text-muted-foreground" />
                     )}
-                    <span className={isCurrent ? 'font-semibold text-foreground' : isDone ? 'text-muted-foreground line-through' : 'text-slate-400'}>
+                    <span className={isCurrent ? 'font-semibold text-foreground' : isDone ? 'text-muted-foreground line-through' : 'text-muted-foreground'}>
                       {step.label}
                     </span>
                     {isCurrent ? (
-                      <span className="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">Current</span>
+                      <span className="ml-auto rounded-full bg-[rgba(var(--app-accent),0.12)] px-2 py-0.5 text-xs font-medium text-[rgb(var(--app-accent))]">Current</span>
                     ) : null}
                   </div>
                 )
@@ -91,23 +91,23 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
         <Card >
           <CardContent className="space-y-4 pt-6">
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Pickup</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pickup</p>
                 <p className="text-sm text-foreground">{order.pickup_location}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--app-accent))]" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Delivery</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Delivery</p>
                 <p className="text-sm text-foreground">{order.delivery_location}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-400">Last updated {formatDateTime(order.updated_at)}</p>
+        <p className="text-center text-xs text-muted-foreground">Last updated {formatDateTime(order.updated_at)}</p>
       </div>
     </main>
   )

@@ -38,7 +38,7 @@ export function DriverTripCard({ locale, trip, previewDriverId }: DriverTripCard
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <CardTitle className="text-base">{trip.customer_name}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{trip.pickup_location ?? 'Pickup TBD'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
               <span>{trip.delivery_location ?? 'Delivery TBD'}</span>
@@ -47,18 +47,18 @@ export function DriverTripCard({ locale, trip, previewDriverId }: DriverTripCard
           <TripStatusBadge status={trip.status as any} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm text-slate-600">
+      <CardContent className="space-y-4 text-sm text-muted-foreground">
         <div className="grid gap-2">
           <div className="flex items-center gap-2">
-            <Clock3 className="h-4 w-4 text-slate-400" />
+            <Clock3 className="h-4 w-4 text-muted-foreground" />
             <span>{formatDateTime(trip.scheduled_at)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Truck className="h-4 w-4 text-slate-400" />
+            <Truck className="h-4 w-4 text-muted-foreground" />
             <span>{trip.vehicle_name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-400" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
             <span>{trip.order_number ?? 'Direct trip'}{trip.invoice_number ? ` • ${trip.invoice_number}` : ''}</span>
           </div>
         </div>
@@ -69,7 +69,7 @@ export function DriverTripCard({ locale, trip, previewDriverId }: DriverTripCard
           {trip.waiting_time_minutes > 0 ? <Badge variant="warning">Wait {trip.waiting_time_minutes} min</Badge> : null}
         </div>
 
-        <Link href={href} className="block rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-medium text-white">
+        <Link href={href} className="block rounded-xl bg-[rgb(var(--app-contrast))] px-4 py-3 text-center text-sm font-medium text-[rgb(var(--app-surface))]">
           Open trip workflow
         </Link>
       </CardContent>

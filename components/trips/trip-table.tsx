@@ -42,7 +42,7 @@ export function TripTable({
         {trips.map((trip) => (
           <TableRow key={trip.id}>
             <TableCell className="font-medium">
-              <Link href={`/trips/${getTripRouteId(trip)}`} className="text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/trips/${getTripRouteId(trip)}`} className="text-foreground no-underline hover:text-[rgb(var(--app-accent))]">
                 {getTripDisplayId(trip)}
               </Link>
             </TableCell>

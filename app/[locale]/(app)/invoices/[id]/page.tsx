@@ -162,7 +162,7 @@ export default async function InvoiceDetailPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div><span className="font-medium text-foreground">Recipient:</span> {customer?.email ?? 'Missing customer email'}</div>
-            <div><span className="font-medium text-foreground">PDF URL:</span> {invoice.pdf_url ? <a href={invoice.pdf_url} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-4">Stored PDF link</a> : 'Generated on demand from this page'}</div>
+            <div><span className="font-medium text-foreground">PDF URL:</span> {invoice.pdf_url ? <a href={invoice.pdf_url} target="_blank" rel="noreferrer" className="underline underline-offset-4">Stored PDF link</a> : 'Generated on demand from this page'}</div>
             <div><span className="font-medium text-foreground">SMTP delivery:</span> {hasEmailDeliveryConfig() ? 'Configured' : 'Not configured'}</div>
             {!customer?.email ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-950">
@@ -218,7 +218,7 @@ export default async function InvoiceDetailPage({
               <div className="rounded-xl border border-dashed px-4 py-8 text-sm text-muted-foreground">No payments registered yet.</div>
             ) : (
               payments.map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3 text-sm">
+                <div key={payment.id} className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3 text-sm">
                   <div>
                     <div className="font-medium text-foreground">{formatDate(payment.payment_date)}</div>
                     <div className="text-muted-foreground">{payment.payment_method ?? 'Payment'} {payment.reference ? ` | ${payment.reference}` : ''}</div>
@@ -239,7 +239,7 @@ export default async function InvoiceDetailPage({
             <div className="flex items-center justify-between"><span>VAT Total</span><span className="font-medium text-foreground">{formatCurrency(toNumber(invoice.vat_total))}</span></div>
             <div className="flex items-center justify-between"><span>Total</span><span className="font-medium text-foreground">{formatCurrency(toNumber(invoice.total))}</span></div>
             <div className="flex items-center justify-between"><span>Paid Amount</span><span className="font-medium text-foreground">{formatCurrency(paidAmount)}</span></div>
-            <div className="flex items-center justify-between border-t border-slate-100 pt-3"><span>Remaining Balance</span><span className="font-semibold text-foreground">{formatCurrency(balanceDue)}</span></div>
+            <div className="flex items-center justify-between border-t border-border/20 pt-3"><span>Remaining Balance</span><span className="font-semibold text-foreground">{formatCurrency(balanceDue)}</span></div>
           </CardContent>
         </Card>
       </div>

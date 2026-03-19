@@ -76,13 +76,13 @@ export function DriverOfflineSync() {
 
   return (
     <Card className="shadow-softSm">
-      <CardContent className="space-y-3 p-4 text-sm text-slate-600">
+      <CardContent className="space-y-3 p-4 text-sm text-muted-foreground">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+          <div className="rounded-xl bg-[rgb(var(--app-surface-2))] p-2 text-muted-foreground">
             {isOnline ? <Wifi className="h-4 w-4" /> : <CloudOff className="h-4 w-4" />}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-medium text-slate-900">{isOnline ? 'Connection active' : 'Offline mode active'}</div>
+            <div className="font-medium text-foreground">{isOnline ? 'Connection active' : 'Offline mode active'}</div>
             <div className="mt-1">
               {isOnline
                 ? pendingCount > 0
@@ -93,7 +93,7 @@ export function DriverOfflineSync() {
           </div>
         </div>
 
-        {message ? <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">{message}</div> : null}
+        {message ? <div className="rounded-xl border border-border/20 bg-[rgb(var(--app-surface))] px-3 py-2 text-muted-foreground">{message}</div> : null}
 
         {isOnline && pendingCount > 0 ? (
           <Button type="button" variant="outline" className="w-full" onClick={handleManualSync} disabled={isSyncing}>

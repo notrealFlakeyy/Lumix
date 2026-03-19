@@ -78,7 +78,7 @@ export function PurchaseInvoiceForm({
         </CardHeader>
         <CardContent className="space-y-6">
           {[0, 1, 2].map((index) => (
-            <div key={index} className="grid gap-4 rounded-2xl border border-slate-100 px-4 py-4 md:grid-cols-5">
+            <div key={index} className="grid gap-4 rounded-2xl border border-border/20 px-4 py-4 md:grid-cols-5">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor={`item_description_${index}`}>Description</Label>
                 <Input id={`item_description_${index}`} name={`item_description_${index}`} placeholder={index === 0 ? 'Required for first line' : 'Optional line'} />

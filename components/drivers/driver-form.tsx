@@ -64,8 +64,8 @@ export function DriverForm({
             <Label htmlFor="employment_type">Employment Type</Label>
             <Input id="employment_type" name="employment_type" defaultValue={defaults?.employment_type ?? ''} />
           </div>
-          <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
-            <input type="checkbox" name="is_active" defaultChecked={defaults?.is_active ?? true} className="h-4 w-4 rounded border-slate-300" />
+          <label className="flex items-center gap-3 rounded-xl border border-border/30 px-4 py-3 text-sm text-muted-foreground">
+            <input type="checkbox" name="is_active" defaultChecked={defaults?.is_active ?? true} className="h-4 w-4 rounded border-border/40" />
             Driver is active
           </label>
         </CardContent>

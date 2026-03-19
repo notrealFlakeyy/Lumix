@@ -35,7 +35,7 @@ export function InvoiceTable({
         {invoices.map((invoice) => (
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">
-              <Link href={`/invoices/${invoice.id}`} className="text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/invoices/${invoice.id}`} className="text-foreground no-underline hover:text-[rgb(var(--app-accent))]">
                 {invoice.invoice_number}
               </Link>
             </TableCell>

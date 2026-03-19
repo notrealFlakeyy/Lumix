@@ -184,8 +184,8 @@ export default async function DriverTripDetailPage({
         </CardHeader>
         <CardContent className="space-y-3">
           {tripChecklist.map((item) => (
-            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-border/20 px-4 py-3 text-sm text-slate-700">
-              {item.done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-slate-400" />}
+            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-border/20 px-4 py-3 text-sm text-muted-foreground">
+              {item.done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
               <span>{item.label}</span>
             </div>
           ))}
@@ -199,14 +199,14 @@ export default async function DriverTripDetailPage({
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4">
-            <Route className="mt-0.5 h-4 w-4 text-slate-400" />
+            <Route className="mt-0.5 h-4 w-4 text-muted-foreground" />
             <div>
               <div className="font-medium text-foreground">Route</div>
               <div className="mt-1">{resolvedTrip.pickup_location ?? 'Pickup TBD'} {'->'} {resolvedTrip.delivery_location ?? 'Delivery TBD'}</div>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4">
-            <ShieldCheck className="mt-0.5 h-4 w-4 text-slate-400" />
+            <ShieldCheck className="mt-0.5 h-4 w-4 text-muted-foreground" />
             <div>
               <div className="font-medium text-foreground">Dispatch note</div>
               <div className="mt-1">{tripDetail.order?.status ? `Order ${tripDetail.order.order_number ?? 'linked'} is ${tripDetail.order.status}.` : 'No linked order status.'}</div>

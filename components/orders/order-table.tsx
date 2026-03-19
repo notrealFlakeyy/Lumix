@@ -38,7 +38,7 @@ export function OrderTable({
         {orders.map((order) => (
           <TableRow key={order.id}>
             <TableCell className="font-medium">
-              <Link href={`/orders/${order.id}`} className="text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/orders/${order.id}`} className="text-foreground no-underline hover:text-[rgb(var(--app-accent))]">
                 {order.order_number}
               </Link>
             </TableCell>

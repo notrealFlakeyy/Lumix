@@ -41,7 +41,7 @@ export function InventoryProductTable({
         {products.map((product) => (
           <TableRow key={product.id}>
             <TableCell className="font-medium">
-              <Link href={`/inventory/products/${product.id}`} className="text-slate-950 hover:underline">
+              <Link href={`/inventory/products/${product.id}`} className="text-foreground hover:underline">
                 {product.sku}
               </Link>
             </TableCell>

@@ -89,7 +89,7 @@ export default async function InventoryPage({ params }: { params: Promise<{ loca
           <CardContent className="space-y-3 pt-0">
             {overview.recentMovements.length > 0 ? (
               overview.recentMovements.map((movement) => (
-                <div key={movement.id} className="rounded-2xl border border-slate-100 px-4 py-4">
+                <div key={movement.id} className="rounded-2xl border border-border/20 px-4 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="font-medium text-foreground">{movement.product_name}</div>

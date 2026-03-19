@@ -91,11 +91,11 @@ export function InventoryProductForm({
               type="checkbox"
               value="true"
               defaultChecked={defaults?.is_active ?? true}
-              className="mt-1 h-4 w-4 rounded border-slate-300"
+              className="mt-1 h-4 w-4 rounded border-border/40"
             />
             <div className="space-y-1">
               <Label htmlFor="is_active">Active product</Label>
-              <p className="text-sm text-slate-500">Inactive products stay in history but no longer show as operational stock master data.</p>
+              <p className="text-sm text-muted-foreground">Inactive products stay in history but no longer show as operational stock master data.</p>
             </div>
           </div>
           <div className="space-y-2 md:col-span-2">

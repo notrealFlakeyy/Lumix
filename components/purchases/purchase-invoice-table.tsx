@@ -38,7 +38,7 @@ export function PurchaseInvoiceTable({
         {invoices.map((invoice) => (
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">
-              <Link href={`/purchases/invoices/${invoice.id}`} className="text-slate-950 hover:underline">
+              <Link href={`/purchases/invoices/${invoice.id}`} className="text-foreground hover:underline">
                 {invoice.invoice_number}
               </Link>
             </TableCell>

@@ -128,7 +128,7 @@ export function DriverTripActionPanel({
 
             {allowCombinedShiftStart && !hasOpenShift ? (
               <>
-                <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-950">
+                <div className="rounded-2xl border border-border/30 bg-[rgba(var(--app-contrast),0.04)] px-4 py-4 text-sm text-foreground">
                   No active shift is open. The combined action will queue both the shift clock-in and the trip start if the device is offline.
                 </div>
                 <Button

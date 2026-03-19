@@ -258,9 +258,9 @@ export function CsvOnboardingPanel({
             { resource: 'drivers', label: 'Drivers' },
             { resource: 'invoices', label: 'Invoices' },
           ].map((item) => (
-            <div key={item.resource} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-sm font-medium text-slate-900">{item.label}</div>
-              <p className="mt-2 text-sm text-slate-600">Download the current dataset as a CSV export for onboarding, cleanup, or handoff.</p>
+            <div key={item.resource} className="rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] p-4">
+              <div className="text-sm font-medium text-foreground">{item.label}</div>
+              <p className="mt-2 text-sm text-muted-foreground">Download the current dataset as a CSV export for onboarding, cleanup, or handoff.</p>
               <div className="mt-4 flex gap-2">
                 <Button asChild variant="outline" className="flex-1">
                   <Link href={`/api/exports/${item.resource}`}>Export</Link>
@@ -281,11 +281,11 @@ export function CsvOnboardingPanel({
             const expectedColumns = csvTemplateColumns[config.resource]
 
             return (
-              <form key={config.resource} action={actions[config.resource]} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <form key={config.resource} action={actions[config.resource]} className="rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] p-4">
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor={`${config.resource}_csv`}>Import {config.label}</Label>
-                    <p className="mt-1 text-xs text-slate-500">{config.description}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{config.description}</p>
                   </div>
 
                   <Input
@@ -298,8 +298,8 @@ export function CsvOnboardingPanel({
                     }}
                   />
 
-                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-600">
-                    <div className="font-medium text-slate-900">Expected columns</div>
+                  <div className="rounded-xl border border-border/30 bg-[rgb(var(--app-surface))] px-3 py-3 text-xs text-muted-foreground">
+                    <div className="font-medium text-foreground">Expected columns</div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {expectedColumns.map((column) => (
                         <Badge key={column} variant="default">
@@ -310,11 +310,11 @@ export function CsvOnboardingPanel({
                   </div>
 
                   {preview.hasFile ? (
-                    <div className="space-y-3 rounded-xl border border-slate-200 bg-white px-3 py-3">
+                    <div className="space-y-3 rounded-xl border border-border/30 bg-[rgb(var(--app-surface))] px-3 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <div className="text-sm font-medium text-slate-900">{preview.fileName}</div>
-                          <div className="text-xs text-slate-500">{preview.rowCount} rows detected</div>
+                          <div className="text-sm font-medium text-foreground">{preview.fileName}</div>
+                          <div className="text-xs text-muted-foreground">{preview.rowCount} rows detected</div>
                         </div>
                         <Badge variant={preview.missingColumns.length === 0 && preview.invalidBranches.length === 0 ? 'success' : 'warning'}>
                           {preview.missingColumns.length === 0 && preview.invalidBranches.length === 0 ? 'Preview ready' : 'Needs review'}
@@ -334,13 +334,13 @@ export function CsvOnboardingPanel({
                         </div>
                       ) : null}
 
-                      <div className="space-y-2 text-xs text-slate-600">
-                        <div className="font-medium text-slate-900">Duplicate signals</div>
+                      <div className="space-y-2 text-xs text-muted-foreground">
+                        <div className="font-medium text-foreground">Duplicate signals</div>
                         {preview.duplicateMatches.length > 0 ? (
                           <div className="space-y-1">
                             <div>{preview.duplicateMatches.length} rows will likely update existing data.</div>
                             {preview.duplicateMatches.slice(0, 3).map((match) => (
-                              <div key={`${match.rowLabel}-${match.matchType}`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                              <div key={`${match.rowLabel}-${match.matchType}`} className="rounded-lg border border-border/30 bg-[rgb(var(--app-surface))] px-3 py-2">
                                 {match.rowLabel} matches by {match.matchType}: {match.matchedValue}
                               </div>
                             ))}
@@ -353,7 +353,7 @@ export function CsvOnboardingPanel({
 
                       {preview.previewRows.length > 0 ? (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-slate-900">Preview rows</div>
+                          <div className="text-xs font-medium text-foreground">Preview rows</div>
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
@@ -376,16 +376,16 @@ export function CsvOnboardingPanel({
                           </div>
                         </div>
                       ) : (
-                        <div className="text-xs text-slate-500">No rows parsed from the selected file.</div>
+                        <div className="text-xs text-muted-foreground">No rows parsed from the selected file.</div>
                       )}
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-white px-3 py-6 text-xs text-slate-500">
+                    <div className="rounded-xl border border-dashed border-border/30 bg-[rgb(var(--app-surface))] px-3 py-6 text-xs text-muted-foreground">
                       Select a CSV file to preview row count, sample values, and likely updates before import.
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-600">
+                  <div className="rounded-xl border border-border/30 bg-[rgb(var(--app-surface))] px-3 py-3 text-xs text-muted-foreground">
                     {config.duplicateLabel}. Imports still validate every row server-side before changes are committed.
                   </div>
                 </div>
@@ -398,8 +398,8 @@ export function CsvOnboardingPanel({
           })}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-          <div className="font-medium text-slate-900">Import behavior</div>
+        <div className="rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] px-4 py-4 text-sm text-muted-foreground">
+          <div className="font-medium text-foreground">Import behavior</div>
           <div className="mt-2 space-y-2">
             <p>Customer imports update existing rows by business ID first, then by exact customer name.</p>
             <p>Vehicle imports update rows by registration number. Driver imports update by email first, then by exact full name.</p>

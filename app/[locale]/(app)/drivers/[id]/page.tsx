@@ -124,11 +124,11 @@ export default async function DriverDetailPage({
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Trips</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Trips</p>
                 <p className="mt-1 text-2xl font-semibold text-foreground">{tripsThisMonth.length}</p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Km Driven</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Km Driven</p>
                 <p className="mt-1 text-2xl font-semibold text-foreground">{Math.round(kmThisMonth).toLocaleString()}</p>
               </div>
             </CardContent>

@@ -37,7 +37,7 @@ export function VehicleTable({
         {vehicles.map((vehicle) => (
           <TableRow key={vehicle.id}>
             <TableCell className="font-medium">
-              <Link href={`/vehicles/${vehicle.id}`} className="text-slate-950 no-underline hover:text-sky-700">
+              <Link href={`/vehicles/${vehicle.id}`} className="text-foreground no-underline hover:text-[rgb(var(--app-accent))]">
                 {vehicle.registration_number}
               </Link>
             </TableCell>

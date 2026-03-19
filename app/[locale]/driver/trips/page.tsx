@@ -56,7 +56,7 @@ export default async function DriverTripsPage({
       )}
 
       {trips.length === 0 ? (
-        <Card className="border-dashed border-slate-300 bg-white/90">
+        <Card className="border-dashed border-border/30 bg-[rgba(var(--app-surface),0.9)]">
           <CardContent className="p-6 text-sm text-muted-foreground">No trips are assigned to this driver yet.</CardContent>
         </Card>
       ) : null}

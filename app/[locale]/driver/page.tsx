@@ -164,7 +164,7 @@ export default async function DriverHomePage({
           {activeDriver ? (
             <>
               <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-slate-400" />
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 <span>{new Intl.DateTimeFormat('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}</span>
               </div>
               <div><span className="font-medium text-foreground">Phone:</span> {activeDriver.phone ?? '-'}</div>
@@ -219,7 +219,7 @@ export default async function DriverHomePage({
                       href={item.href}
                       className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4 text-sm text-muted-foreground"
                     >
-                      <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+                      <div className="rounded-xl bg-[rgb(var(--app-surface-2))] p-2 text-foreground">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -275,18 +275,18 @@ export default async function DriverHomePage({
           ) : null}
 
           {primaryTrip ? (
-            <Card className="overflow-hidden border-slate-900 bg-slate-950 text-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.9)]">
+            <Card className="overflow-hidden border-[rgba(var(--app-contrast),0.9)] bg-[rgb(var(--app-contrast))] text-[rgb(var(--app-surface))] shadow-[0_24px_60px_-36px_rgba(15,23,42,0.9)]">
               <CardHeader className="pb-4">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-sky-200/85">Current focus</div>
+                <div className="text-[11px] uppercase tracking-[0.16em] text-[rgba(var(--app-accent),0.85)]">Current focus</div>
                 <CardTitle className="text-xl">{primaryTrip.customer_name}</CardTitle>
-                <CardDescription className="text-slate-300">
+                <CardDescription className="text-[rgb(var(--app-surface-2))]">
                   {primaryTrip.pickup_location ?? 'Pickup TBD'} {'->'} {primaryTrip.delivery_location ?? 'Delivery TBD'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-200">
+              <CardContent className="space-y-4 text-sm text-[rgb(var(--app-surface-2))]">
                 <div>Scheduled: {formatDateTime(primaryTrip.scheduled_at)}</div>
                 <div>Vehicle: {primaryTrip.vehicle_name}</div>
-                <Button asChild className="w-full bg-white text-foreground hover:bg-slate-100">
+                <Button asChild className="w-full bg-[rgb(var(--app-surface))] text-foreground hover:bg-[rgb(var(--app-surface-2))]">
                   <Link href={selectedDriverId ? `/driver/trips/${getTripRouteId(primaryTrip)}?driver=${selectedDriverId}` : `/driver/trips/${getTripRouteId(primaryTrip)}`}>
                     Open live trip workflow
                   </Link>
@@ -294,7 +294,7 @@ export default async function DriverHomePage({
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-dashed border-slate-300 bg-white/90">
+            <Card className="border-dashed border-border/30 bg-[rgba(var(--app-surface),0.9)]">
               <CardContent className="p-6 text-sm text-muted-foreground">No started or planned trips are currently assigned. New dispatches will appear here automatically.</CardContent>
             </Card>
           )}
@@ -303,7 +303,7 @@ export default async function DriverHomePage({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Next dispatches</h2>
-                <Link href={selectedDriverId ? `/driver/trips?driver=${selectedDriverId}` : '/driver/trips'} className="text-sm font-medium text-sky-700">
+                <Link href={selectedDriverId ? `/driver/trips?driver=${selectedDriverId}` : '/driver/trips'} className="text-sm font-medium text-[rgb(var(--app-accent))]">
                   View all
                 </Link>
               </div>
@@ -324,10 +324,10 @@ export default async function DriverHomePage({
                   <Link
                     key={trip.id}
                     href={selectedDriverId ? `/driver/trips/${getTripRouteId(trip)}?driver=${selectedDriverId}` : `/driver/trips/${getTripRouteId(trip)}`}
-                    className="flex items-center justify-between rounded-2xl border border-border/20 bg-surface px-4 py-3 text-sm text-slate-700"
+                    className="flex items-center justify-between rounded-2xl border border-border/20 bg-surface px-4 py-3 text-sm text-muted-foreground"
                   >
                     <span>{trip.customer_name}</span>
-                    <ArrowRight className="h-4 w-4 text-slate-400" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </Link>
                 ))}
               </CardContent>

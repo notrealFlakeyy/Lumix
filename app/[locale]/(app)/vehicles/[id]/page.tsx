@@ -142,7 +142,7 @@ export default async function VehicleDetailPage({
         </CardHeader>
         <CardContent className="pt-0">
           {maintenanceLogs.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-400">No maintenance records yet.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">No maintenance records yet.</p>
           ) : (
             <Table>
               <TableHeader>

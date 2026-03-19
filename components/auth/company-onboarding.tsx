@@ -88,16 +88,16 @@ export function CompanyOnboarding({
                 <Input id="timezone" name="timezone" defaultValue="Europe/Helsinki" />
               </div>
             </div>
-            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <div className="space-y-3 rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] px-4 py-4">
               <div>
-                <div className="text-sm font-medium text-slate-950">Business template</div>
-                <div className="text-sm text-slate-600">Choose the closest operating model. You can still adjust the exact module mix below.</div>
+                <div className="text-sm font-medium text-foreground">Business template</div>
+                <div className="text-sm text-muted-foreground">Choose the closest operating model. You can still adjust the exact module mix below.</div>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {onboardingModuleBundles.map((bundle) => (
                   <label
                     key={bundle.key}
-                    className={`rounded-xl border px-4 py-4 text-sm transition ${businessType === bundle.key ? 'border-sky-300 bg-white shadow-sm' : 'border-slate-200 bg-white/80'}`}
+                    className={`rounded-xl border px-4 py-4 text-sm transition ${businessType === bundle.key ? 'border-[rgba(var(--app-accent),0.4)] bg-[rgb(var(--app-surface))] shadow-sm' : 'border-border/30 bg-[rgba(var(--app-surface),0.9)]'}`}
                   >
                     <input
                       type="radio"
@@ -107,22 +107,22 @@ export function CompanyOnboarding({
                       onChange={() => setBusinessType(bundle.key)}
                       className="sr-only"
                     />
-                    <div className="font-medium text-slate-950">{bundle.label}</div>
-                    <div className="mt-1 text-slate-600">{bundle.description}</div>
+                    <div className="font-medium text-foreground">{bundle.label}</div>
+                    <div className="mt-1 text-muted-foreground">{bundle.description}</div>
                   </label>
                 ))}
               </div>
             </div>
-            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <div className="space-y-3 rounded-2xl border border-border/30 bg-[rgb(var(--app-surface))] px-4 py-4">
               <div>
-                <div className="text-sm font-medium text-slate-950">Enabled modules</div>
-                <div className="text-sm text-slate-600">Keep the tenant lean. Turn on only what this client is actually buying today.</div>
+                <div className="text-sm font-medium text-foreground">Enabled modules</div>
+                <div className="text-sm text-muted-foreground">Keep the tenant lean. Turn on only what this client is actually buying today.</div>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {platformModuleDefinitions.map((module) => (
                   <label
                     key={module.key}
-                    className={`rounded-xl border px-4 py-4 text-sm ${module.alwaysEnabled ? 'border-slate-300 bg-white' : 'border-slate-200 bg-white/80'}`}
+                    className={`rounded-xl border px-4 py-4 text-sm ${module.alwaysEnabled ? 'border-border/50 bg-[rgb(var(--app-surface))]' : 'border-border/30 bg-[rgba(var(--app-surface),0.9)]'}`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -142,11 +142,11 @@ export function CompanyOnboarding({
                               : current.filter((entry) => entry !== module.key),
                           )
                         }}
-                        className="h-4 w-4 rounded border-slate-300"
+                        className="h-4 w-4 rounded border-border/50"
                       />
-                      <div className="font-medium text-slate-950">{module.label}</div>
+                      <div className="font-medium text-foreground">{module.label}</div>
                     </div>
-                    <div className="mt-2 text-slate-600">{module.description}</div>
+                    <div className="mt-2 text-muted-foreground">{module.description}</div>
                   </label>
                 ))}
               </div>
@@ -162,8 +162,8 @@ export function CompanyOnboarding({
               </div>
             </div>
             {createState.error ? <p className="text-sm text-destructive">{createState.error}</p> : null}
-            <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
-              <p className="text-sm text-slate-600">Your account will be added as the first `owner` member and the selected modules will be enabled immediately.</p>
+            <div className="flex items-center justify-between gap-3 border-t border-border/30 pt-4">
+              <p className="text-sm text-muted-foreground">Your account will be added as the first `owner` member and the selected modules will be enabled immediately.</p>
               <Button type="submit" disabled={isCreating}>
                 {isCreating ? 'Creating company...' : 'Create company'}
               </Button>
@@ -178,12 +178,12 @@ export function CompanyOnboarding({
           <CardDescription>Attach this user to the seeded presentation tenant if you already ran the demo seed SQL.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-            <p className="font-medium text-slate-900">Demo company</p>
+          <div className="rounded-lg border border-border/30 bg-[rgb(var(--app-surface))] p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Demo company</p>
             <p>Northern Route Logistics Oy</p>
-            <p className="mt-2 text-slate-600">Use this if you want the preloaded orders, trips, invoices, and reports immediately.</p>
-            <p className="mt-2 text-slate-600">The demo tenant starts with the transport module enabled so you can show the full dispatch and invoicing story right away.</p>
-            <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+            <p className="mt-2 text-muted-foreground">Use this if you want the preloaded orders, trips, invoices, and reports immediately.</p>
+            <p className="mt-2 text-muted-foreground">The demo tenant starts with the transport module enabled so you can show the full dispatch and invoicing story right away.</p>
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
               {demoCompanyAvailable ? 'Demo tenant found' : 'Demo tenant not found'}
             </p>
           </div>
@@ -208,13 +208,13 @@ export function CompanyOnboarding({
           <CardDescription>Use this account for the initial company membership.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Signed in as</p>
-            <p className="mt-2 text-sm font-medium text-slate-900">{userEmail ?? 'No email available from session'}</p>
+          <div className="rounded-lg border border-border/30 bg-[rgb(var(--app-surface))] p-4">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Signed in as</p>
+            <p className="mt-2 text-sm font-medium text-foreground">{userEmail ?? 'No email available from session'}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Next step</p>
-            <p className="mt-2 text-sm text-slate-700">
+          <div className="rounded-lg border border-border/30 bg-[rgb(var(--app-surface))] p-4">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Next step</p>
+            <p className="mt-2 text-sm text-muted-foreground">
               Create a company to start from scratch with the right module footprint, or join the demo tenant if you want seeded transportation data immediately.
             </p>
           </div>

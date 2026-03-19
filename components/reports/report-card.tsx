@@ -13,7 +13,7 @@ export function ReportCard({
     <Card >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        {subtitle ? <p className="text-sm text-slate-500">{subtitle}</p> : null}
+        {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

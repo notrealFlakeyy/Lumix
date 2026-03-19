@@ -74,8 +74,8 @@ export function VehicleForm({
             <Label htmlFor="next_service_km">Next Service KM</Label>
             <Input id="next_service_km" name="next_service_km" type="number" step="0.01" defaultValue={defaults?.next_service_km ?? ''} />
           </div>
-          <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
-            <input type="checkbox" name="is_active" defaultChecked={defaults?.is_active ?? true} className="h-4 w-4 rounded border-slate-300" />
+          <label className="flex items-center gap-3 rounded-xl border border-border/30 px-4 py-3 text-sm text-muted-foreground">
+            <input type="checkbox" name="is_active" defaultChecked={defaults?.is_active ?? true} className="h-4 w-4 rounded border-border/40" />
             Vehicle is active
           </label>
         </CardContent>

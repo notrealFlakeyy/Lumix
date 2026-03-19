@@ -9,8 +9,8 @@ import { listOrders } from '@/lib/db/queries/orders'
 import { formatDateTime } from '@/lib/utils/dates'
 
 const COLUMNS = [
-  { status: 'planned', label: 'Planned', color: 'bg-slate-100 text-slate-700' },
-  { status: 'assigned', label: 'Assigned', color: 'bg-sky-100 text-sky-700' },
+  { status: 'planned', label: 'Planned', color: 'bg-[rgb(var(--app-surface-2))] text-[rgb(var(--app-muted))]' },
+  { status: 'assigned', label: 'Assigned', color: 'bg-[rgba(var(--app-contrast),0.08)] text-[rgb(var(--app-contrast))]' },
   { status: 'in_progress', label: 'In Progress', color: 'bg-amber-100 text-amber-700' },
   { status: 'completed', label: 'Completed', color: 'bg-emerald-100 text-emerald-700' },
 ] as const
@@ -49,7 +49,7 @@ export default async function OrderBoardPage({ params }: { params: Promise<{ loc
               </div>
               <div className="flex flex-col gap-2">
                 {orders.length === 0 ? (
-                  <div className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-slate-400">No orders</div>
+                  <div className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">No orders</div>
                 ) : (
                   orders.map((order) => (
                     <Link key={order.id} href={`/orders/${order.id}`} className="no-underline">
@@ -58,14 +58,14 @@ export default async function OrderBoardPage({ params }: { params: Promise<{ loc
                           <CardTitle className="text-sm font-semibold text-foreground">{order.order_number}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-1.5 pb-4 text-xs text-muted-foreground">
-                          <div className="truncate font-medium text-slate-800">{order.customer_name}</div>
+                          <div className="truncate font-medium text-foreground">{order.customer_name}</div>
                           <div className="truncate">{order.pickup_location}</div>
-                          <div className="truncate text-slate-400">→ {order.delivery_location}</div>
+                          <div className="truncate text-muted-foreground">→ {order.delivery_location}</div>
                           {order.scheduled_at ? (
-                            <div className="text-slate-400">{formatDateTime(order.scheduled_at)}</div>
+                            <div className="text-muted-foreground">{formatDateTime(order.scheduled_at)}</div>
                           ) : null}
                           {order.driver_name !== '—' ? (
-                            <div className="truncate text-sky-600">{order.driver_name}</div>
+                            <div className="truncate" style={{ color: 'rgb(var(--app-accent))' }}>{order.driver_name}</div>
                           ) : null}
                         </CardContent>
                       </Card>
