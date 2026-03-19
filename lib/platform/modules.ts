@@ -1,6 +1,6 @@
 import type { AppModule, PlatformModuleKey } from '@/types/app'
 
-export const defaultEnabledPlatformModules: PlatformModuleKey[] = ['core', 'transport']
+export const defaultEnabledPlatformModules: PlatformModuleKey[] = ['core', 'transport', 'time']
 
 export const platformModuleDefinitions: Array<{
   key: PlatformModuleKey
@@ -59,19 +59,19 @@ export const onboardingModuleBundles = [
     key: 'transport',
     label: 'Transport ERP',
     description: 'Dispatch, trips, invoicing, customers, fleet, and the driver workflow for transportation businesses.',
-    enabledModules: ['core', 'transport'] as PlatformModuleKey[],
+    enabledModules: ['core', 'transport', 'time'] as PlatformModuleKey[],
   },
   {
     key: 'warehouse',
     label: 'Warehouse & Inventory',
     description: 'Stock, purchasing, and warehouse operations for clients that do not need the transport suite yet.',
-    enabledModules: ['core', 'inventory', 'purchases'] as PlatformModuleKey[],
+    enabledModules: ['core', 'inventory', 'purchases', 'time'] as PlatformModuleKey[],
   },
   {
     key: 'hybrid',
     label: 'Transport + Warehouse',
     description: 'Combined transport and warehouse operations for mixed logistics businesses.',
-    enabledModules: ['core', 'transport', 'inventory', 'purchases'] as PlatformModuleKey[],
+    enabledModules: ['core', 'transport', 'inventory', 'purchases', 'time'] as PlatformModuleKey[],
   },
   {
     key: 'operations',
@@ -97,8 +97,14 @@ export function normalizeEnabledPlatformModules(values: readonly string[] | null
   const normalized = (values ?? []).filter(isPlatformModuleKey) as PlatformModuleKey[]
   const deduped = [...new Set(normalized)]
 
+  // core is the foundational module — always present
   if (!deduped.includes('core')) {
     deduped.unshift('core')
+  }
+
+  // time tracking is enabled by default for all companies
+  if (!deduped.includes('time')) {
+    deduped.push('time')
   }
 
   return deduped.length > 0 ? deduped : [...defaultEnabledPlatformModules]

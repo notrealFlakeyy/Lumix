@@ -17,6 +17,9 @@ const directRouteModuleMap: Record<string, AppModule> = {
   time: 'time',
   payroll: 'payroll',
   accounting: 'accounting',
+  expenses: 'expenses',
+  tasks: 'tasks',
+  maintenance: 'maintenance',
 }
 
 const compatibilityRouteModuleMap: Record<string, AppModule> = {
