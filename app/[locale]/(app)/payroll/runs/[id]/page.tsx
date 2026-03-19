@@ -63,23 +63,23 @@ export default async function PayrollRunDetailPage({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Run Summary</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
-            <div><span className="font-medium text-slate-900">Status:</span> <PayrollRunStatusBadge status={run.status as any} /></div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {run.branch_name}</div>
-            <div><span className="font-medium text-slate-900">Regular hours:</span> {formatMinutesAsHours(run.total_regular_minutes)}</div>
-            <div><span className="font-medium text-slate-900">Overtime hours:</span> {formatMinutesAsHours(run.total_overtime_minutes)}</div>
-            <div><span className="font-medium text-slate-900">Estimated gross:</span> {formatCurrency(Number(run.total_estimated_gross))}</div>
-            <div><span className="font-medium text-slate-900">Employees:</span> {bundle.items.length}</div>
-            <div className="md:col-span-2"><span className="font-medium text-slate-900">Notes:</span> {run.notes ?? '-'}</div>
+          <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+            <div><span className="font-medium text-foreground">Status:</span> <PayrollRunStatusBadge status={run.status as any} /></div>
+            <div><span className="font-medium text-foreground">Branch:</span> {run.branch_name}</div>
+            <div><span className="font-medium text-foreground">Regular hours:</span> {formatMinutesAsHours(run.total_regular_minutes)}</div>
+            <div><span className="font-medium text-foreground">Overtime hours:</span> {formatMinutesAsHours(run.total_overtime_minutes)}</div>
+            <div><span className="font-medium text-foreground">Estimated gross:</span> {formatCurrency(Number(run.total_estimated_gross))}</div>
+            <div><span className="font-medium text-foreground">Employees:</span> {bundle.items.length}</div>
+            <div className="md:col-span-2"><span className="font-medium text-foreground">Notes:</span> {run.notes ?? '-'}</div>
           </CardContent>
         </Card>
 
         {canManagePayroll(membership.role) ? (
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Run Actions</CardTitle>
             </CardHeader>
@@ -107,7 +107,7 @@ export default async function PayrollRunDetailPage({
         ) : null}
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Employee Totals</CardTitle>
         </CardHeader>
@@ -139,14 +139,14 @@ export default async function PayrollRunDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Linked Time Entries</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {bundle.items.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 px-4 py-4">
-              <div className="mb-3 font-medium text-slate-950">{item.employee_name}</div>
+            <div key={item.id} className="rounded-2xl border border-border/20 px-4 py-4">
+              <div className="mb-3 font-medium text-foreground">{item.employee_name}</div>
               <Table>
                 <TableHeader>
                   <TableRow>

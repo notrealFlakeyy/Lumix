@@ -27,7 +27,7 @@ export default function GlobalError({
             <button
               type="button"
               onClick={() => reset()}
-              className="rounded-lg bg-white px-5 py-3 text-sm font-medium text-slate-950"
+              className="rounded-lg bg-white px-5 py-3 text-sm font-medium text-foreground"
             >
               Try again
             </button>

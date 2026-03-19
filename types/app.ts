@@ -6,7 +6,7 @@ export type CompanyRole = (typeof companyRoles)[number]
 export const platformModuleKeys = ['core', 'transport', 'inventory', 'purchases', 'time', 'payroll', 'accounting'] as const
 export type PlatformModuleKey = (typeof platformModuleKeys)[number]
 
-export const appModules = ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting'] as const
+export const appModules = ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting', 'expenses', 'tasks', 'maintenance'] as const
 export type AppModule = (typeof appModules)[number]
 
 export const orderStatuses = ['draft', 'planned', 'assigned', 'in_progress', 'completed', 'invoiced', 'cancelled'] as const

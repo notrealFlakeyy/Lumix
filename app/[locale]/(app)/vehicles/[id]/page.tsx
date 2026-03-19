@@ -47,23 +47,23 @@ export default async function VehicleDetailPage({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Vehicle Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div><span className="font-medium text-slate-900">Make / Model:</span> {[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '-'}</div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {vehicle.branch_name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Year:</span> {vehicle.year ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Fuel Type:</span> {vehicle.fuel_type ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Current KM:</span> {toDisplayNumber(vehicle.current_km)} km</div>
-            <div><span className="font-medium text-slate-900">Next Service KM:</span> {vehicle.next_service_km ? `${toDisplayNumber(vehicle.next_service_km)} km` : '-'}</div>
-            <div><span className="font-medium text-slate-900">Status:</span> {vehicle.is_active ? 'Active' : 'Inactive'}</div>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div><span className="font-medium text-foreground">Make / Model:</span> {[vehicle.make, vehicle.model].filter(Boolean).join(' ') || '-'}</div>
+            <div><span className="font-medium text-foreground">Branch:</span> {vehicle.branch_name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Year:</span> {vehicle.year ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Fuel Type:</span> {vehicle.fuel_type ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Current KM:</span> {toDisplayNumber(vehicle.current_km)} km</div>
+            <div><span className="font-medium text-foreground">Next Service KM:</span> {vehicle.next_service_km ? `${toDisplayNumber(vehicle.next_service_km)} km` : '-'}</div>
+            <div><span className="font-medium text-foreground">Status:</span> {vehicle.is_active ? 'Active' : 'Inactive'}</div>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Assigned Orders</CardTitle>
             </CardHeader>
@@ -93,7 +93,7 @@ export default async function VehicleDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Related Trips</CardTitle>
             </CardHeader>
@@ -125,18 +125,18 @@ export default async function VehicleDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Revenue Contribution</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-600">
-              Estimated revenue by vehicle based on invoiced trips: <span className="font-semibold text-slate-950">{formatCurrency(revenue)}</span>
+            <CardContent className="text-sm text-muted-foreground">
+              Estimated revenue by vehicle based on invoiced trips: <span className="font-semibold text-foreground">{formatCurrency(revenue)}</span>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Maintenance Log</CardTitle>
         </CardHeader>

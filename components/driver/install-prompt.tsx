@@ -50,7 +50,7 @@ export function DriverInstallPrompt() {
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardContent className="space-y-3 p-4 text-sm text-slate-600">
         <div className="font-medium text-slate-900">Install driver app</div>
         {installEvent ? (

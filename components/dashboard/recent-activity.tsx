@@ -14,7 +14,7 @@ export function RecentActivity({
 }) {
   return (
     <div className="grid gap-6 xl:grid-cols-2">
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
         </CardHeader>
@@ -36,7 +36,7 @@ export function RecentActivity({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Recent Invoices</CardTitle>
         </CardHeader>

@@ -246,7 +246,7 @@ export function CsvOnboardingPanel({
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/90">
+    <Card >
       <CardHeader>
         <CardTitle>CSV Import & Export</CardTitle>
       </CardHeader>

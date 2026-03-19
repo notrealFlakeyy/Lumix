@@ -58,7 +58,7 @@ export default async function OrdersPage({
           </div>
         }
       />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardContent className="pt-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ export default async function OrdersPage({
               <TablePagination page={page} total={total} pageSize={PAGE_SIZE} href={(p) => `/orders?page=${p}${q ? `&q=${q}` : ''}${status ? `&status=${status}` : ''}`} />
             </>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
+            <div className="rounded-xl border border-dashed px-4 py-10 text-sm text-muted-foreground">
               {q || status ? 'No orders match your search.' : 'No transport orders yet.'}
             </div>
           )}

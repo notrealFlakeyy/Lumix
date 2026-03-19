@@ -22,7 +22,7 @@ export default async function PurchaseInvoicesPage({ params }: { params: Promise
           </Button>
         }
       />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Open and Recent Bills</CardTitle>
         </CardHeader>
@@ -30,7 +30,7 @@ export default async function PurchaseInvoicesPage({ params }: { params: Promise
           {invoices.length > 0 ? (
             <PurchaseInvoiceTable invoices={invoices} />
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
               No purchase bills yet.
             </div>
           )}

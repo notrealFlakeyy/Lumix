@@ -11,7 +11,7 @@ export default function Loading() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="border-slate-200/80 bg-white/90">
+          <Card key={i} >
             <CardContent className="pt-6">
               <Skeleton className="mb-2 h-4 w-28" />
               <Skeleton className="h-8 w-20" />
@@ -22,7 +22,7 @@ export default function Loading() {
 
       <div className="grid gap-6 xl:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className="border-slate-200/80 bg-white/90">
+          <Card key={i} >
             <CardHeader>
               <Skeleton className="h-6 w-40" />
             </CardHeader>

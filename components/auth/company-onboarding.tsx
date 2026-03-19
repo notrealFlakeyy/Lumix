@@ -42,7 +42,7 @@ export function CompanyOnboarding({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Create your company workspace</CardTitle>
           <CardDescription>Set up the initial tenant, choose the starting module footprint, and attach your current account as the owner.</CardDescription>
@@ -172,7 +172,7 @@ export function CompanyOnboarding({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Use the demo workspace</CardTitle>
           <CardDescription>Attach this user to the seeded presentation tenant if you already ran the demo seed SQL.</CardDescription>
@@ -202,7 +202,7 @@ export function CompanyOnboarding({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90 lg:col-span-2">
+      <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle>Current session</CardTitle>
           <CardDescription>Use this account for the initial company membership.</CardDescription>

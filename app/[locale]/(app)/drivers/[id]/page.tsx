@@ -32,22 +32,22 @@ export default async function DriverDetailPage({
       <PageHeader title={driver.full_name} description="Driver profile, current assignments, and related trip activity." actions={<Button asChild variant="outline"><Link href={`/drivers/${getDriverRouteId(driver)}/edit`}>Edit driver</Link></Button>} />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Driver Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div><span className="font-medium text-slate-900">Phone:</span> {driver.phone ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {driver.branch_name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Email:</span> {driver.email ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">License Type:</span> {driver.license_type ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Employment Type:</span> {driver.employment_type ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Status:</span> {driver.is_active ? 'Active' : 'Inactive'}</div>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div><span className="font-medium text-foreground">Phone:</span> {driver.phone ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Branch:</span> {driver.branch_name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Email:</span> {driver.email ?? '-'}</div>
+            <div><span className="font-medium text-foreground">License Type:</span> {driver.license_type ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Employment Type:</span> {driver.employment_type ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Status:</span> {driver.is_active ? 'Active' : 'Inactive'}</div>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Assigned Orders</CardTitle>
             </CardHeader>
@@ -77,7 +77,7 @@ export default async function DriverDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Related Trips</CardTitle>
             </CardHeader>
@@ -109,27 +109,27 @@ export default async function DriverDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Revenue Contribution</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-600">
-              Estimated revenue by driver based on linked trips: <span className="font-semibold text-slate-950">{formatCurrency(revenue)}</span>
+            <CardContent className="text-sm text-muted-foreground">
+              Estimated revenue by driver based on linked trips: <span className="font-semibold text-foreground">{formatCurrency(revenue)}</span>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>This Month</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm text-slate-600">
+            <CardContent className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Trips</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950">{tripsThisMonth.length}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{tripsThisMonth.length}</p>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Km Driven</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950">{Math.round(kmThisMonth).toLocaleString()}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{Math.round(kmThisMonth).toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>

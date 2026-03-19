@@ -42,7 +42,7 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Open Receivables</CardTitle>
           </CardHeader>
@@ -63,7 +63,7 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
                   {overview.receivables.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/invoices/${invoice.id}`} className="text-slate-950 hover:underline">
+                        <Link href={`/invoices/${invoice.id}`} className="text-foreground hover:underline">
                           {invoice.invoice_number}
                         </Link>
                       </TableCell>
@@ -77,14 +77,14 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
                 </TableBody>
               </Table>
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No open customer receivables in the current branch scope.
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Open Payables</CardTitle>
           </CardHeader>
@@ -105,7 +105,7 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
                   {overview.payables.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/purchases/invoices/${invoice.id}`} className="text-slate-950 hover:underline">
+                        <Link href={`/purchases/invoices/${invoice.id}`} className="text-foreground hover:underline">
                           {invoice.invoice_number}
                         </Link>
                       </TableCell>
@@ -119,7 +119,7 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
                 </TableBody>
               </Table>
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No open supplier payables in the current branch scope.
               </div>
             )}
@@ -127,15 +127,15 @@ export default async function AccountingPage({ params }: { params: Promise<{ loc
         </Card>
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Working Capital Snapshot</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 text-sm text-slate-600 md:grid-cols-3">
-          <div><span className="font-medium text-slate-900">Net outstanding:</span> {formatCurrency(overview.metrics.netOutstanding)}</div>
-          <div><span className="font-medium text-slate-900">Receivables overdue:</span> {overview.metrics.receivablesOverdueCount}</div>
-          <div><span className="font-medium text-slate-900">Payables overdue:</span> {overview.metrics.payablesOverdueCount}</div>
-          <div className="md:col-span-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4">
+        <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
+          <div><span className="font-medium text-foreground">Net outstanding:</span> {formatCurrency(overview.metrics.netOutstanding)}</div>
+          <div><span className="font-medium text-foreground">Receivables overdue:</span> {overview.metrics.receivablesOverdueCount}</div>
+          <div><span className="font-medium text-foreground">Payables overdue:</span> {overview.metrics.payablesOverdueCount}</div>
+          <div className="md:col-span-3 rounded-2xl border border-dashed bg-surface px-4 py-4">
             Build deeper accounting workflows on top of live receivables, payables, audit logs, and branch-aware module access without forcing every customer into a full accounting rollout.
           </div>
         </CardContent>

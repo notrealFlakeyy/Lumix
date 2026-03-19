@@ -45,7 +45,7 @@ export function TripForm({
 }) {
   return (
     <form action={action} className="space-y-6">
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Trip Summary</CardTitle>
         </CardHeader>

@@ -167,7 +167,7 @@ export function DriverProofOfDeliveryCard({
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardHeader className="pb-4">
         <CardTitle>Proof of delivery</CardTitle>
         <CardDescription>Capture the receiver name, delivery note, and a signature that is stored as a trip document.</CardDescription>

@@ -78,8 +78,8 @@ export default async function NewPurchaseInvoicePage({ params }: { params: Promi
     return (
       <div className="space-y-6">
         <PageHeader title="New Purchase Bill" description="Purchase bills need a branch so receiving and invoice ownership stay branch-scoped." />
-        <Card className="border-slate-200/80 bg-white/90">
-          <CardContent className="space-y-4 px-6 py-6 text-sm text-slate-600">
+        <Card >
+          <CardContent className="space-y-4 px-6 py-6 text-sm text-muted-foreground">
             <p>Create at least one branch before adding purchase bills.</p>
             <Button asChild>
               <Link href="/settings/company">Open branch settings</Link>
@@ -94,8 +94,8 @@ export default async function NewPurchaseInvoicePage({ params }: { params: Promi
     return (
       <div className="space-y-6">
         <PageHeader title="New Purchase Bill" description="You need at least one vendor before creating a purchase bill." />
-        <Card className="border-slate-200/80 bg-white/90">
-          <CardContent className="space-y-4 px-6 py-6 text-sm text-slate-600">
+        <Card >
+          <CardContent className="space-y-4 px-6 py-6 text-sm text-muted-foreground">
             <p>Create a vendor first, then return here to add the bill.</p>
             <Button asChild>
               <Link href="/purchases/vendors">Open vendor settings</Link>

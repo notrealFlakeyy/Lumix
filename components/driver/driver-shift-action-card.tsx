@@ -89,7 +89,7 @@ export function DriverShiftActionCard({
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardHeader className="pb-4">
         <CardTitle>{openEntry ? 'Clock out' : 'Clock in'}</CardTitle>
         <CardDescription>

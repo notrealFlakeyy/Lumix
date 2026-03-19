@@ -10,7 +10,7 @@ export function ReportCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="border-slate-200/80 bg-white/90">
+    <Card >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {subtitle ? <p className="text-sm text-slate-500">{subtitle}</p> : null}

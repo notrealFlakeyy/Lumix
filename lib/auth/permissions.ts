@@ -3,12 +3,12 @@ import type { AppModule, CompanyRole, PlatformModuleKey } from '@/types/app'
 import { defaultEnabledPlatformModules, getEnabledAppModules } from '@/lib/platform/modules'
 
 const moduleMatrix: Record<CompanyRole, AppModule[]> = {
-  owner: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting'],
-  admin: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting'],
-  dispatcher: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'reports', 'inventory', 'purchases', 'time'],
-  accountant: ['dashboard', 'invoices', 'reports', 'purchases', 'accounting', 'payroll'],
-  driver: ['dashboard', 'trips', 'time'],
-  viewer: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'inventory', 'purchases', 'time', 'payroll', 'accounting'],
+  owner: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting', 'expenses', 'tasks', 'maintenance'],
+  admin: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'settings', 'inventory', 'purchases', 'time', 'payroll', 'accounting', 'expenses', 'tasks', 'maintenance'],
+  dispatcher: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'reports', 'inventory', 'purchases', 'time', 'tasks', 'maintenance'],
+  accountant: ['dashboard', 'invoices', 'reports', 'purchases', 'accounting', 'payroll', 'expenses'],
+  driver: ['dashboard', 'trips', 'time', 'expenses', 'tasks'],
+  viewer: ['dashboard', 'customers', 'vehicles', 'drivers', 'orders', 'trips', 'invoices', 'reports', 'inventory', 'purchases', 'time', 'payroll', 'accounting', 'expenses', 'tasks', 'maintenance'],
 }
 
 function normalizeRole(role: string | null | undefined): CompanyRole | null {

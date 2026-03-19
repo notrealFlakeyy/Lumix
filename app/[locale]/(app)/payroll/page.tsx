@@ -67,17 +67,17 @@ export default async function PayrollPage({ params }: { params: Promise<{ locale
             branches={branches.map((branch) => ({ value: branch.id, label: `${branch.name}${branch.code ? ` (${branch.code})` : ''}` }))}
           />
         ) : (
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Payroll access</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-600">
+            <CardContent className="text-sm text-muted-foreground">
               Your role can review payroll outputs but cannot generate new runs.
             </CardContent>
           </Card>
         )}
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Recent Payroll Runs</CardTitle>
           </CardHeader>
@@ -85,7 +85,7 @@ export default async function PayrollPage({ params }: { params: Promise<{ locale
             {overview.recentRuns.length > 0 ? (
               <PayrollRunTable runs={overview.recentRuns} />
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No payroll runs yet. Approve time entries in the Time module, then generate the first run here.
               </div>
             )}
@@ -93,12 +93,12 @@ export default async function PayrollPage({ params }: { params: Promise<{ locale
         </Card>
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Workflow Notes</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 text-sm text-slate-600 md:grid-cols-3">
-          <div>1. Time entries are approved in <Link href="/time" className="text-slate-950 underline-offset-4 hover:underline">Time Tracking</Link>.</div>
+        <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
+          <div>1. Time entries are approved in <Link href="/time" className="text-foreground underline-offset-4 hover:underline">Time Tracking</Link>.</div>
           <div>2. Payroll runs group approved entries by employee and calculate estimated gross pay.</div>
           <div>3. Runs can then be reviewed, exported, and finalized from the payroll detail view.</div>
         </CardContent>

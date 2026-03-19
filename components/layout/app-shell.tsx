@@ -19,12 +19,12 @@ export function AppShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.08),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] text-slate-950">
+    <div className="min-h-screen bg-app-ambient" style={{ background: 'rgb(var(--app-bg))' }}>
       <div className="flex min-h-screen">
         <AppSidebar allowedModules={allowedModules} />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex flex-col">
           <AppHeader locale={locale} membership={membership} memberships={memberships} userEmail={userEmail} />
-          <main className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-10">{children}</main>
+          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-10">{children}</main>
         </div>
       </div>
     </div>

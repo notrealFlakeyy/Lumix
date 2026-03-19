@@ -39,16 +39,16 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
         />
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Enabled Modules</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {enabledModules.map((module) => (
-                <div key={module.key} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm">
+                <div key={module.key} className="flex items-start justify-between gap-3 rounded-xl border border-border/20 bg-surface px-4 py-4 text-sm">
                   <div>
-                    <div className="font-medium text-slate-950">{module.label}</div>
-                    <div className="mt-1 text-slate-600">{module.description}</div>
+                    <div className="font-medium text-foreground">{module.label}</div>
+                    <div className="mt-1 text-muted-foreground">{module.description}</div>
                   </div>
                   <Badge variant="success">Enabled</Badge>
                 </div>
@@ -56,7 +56,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Operational Footprint</CardTitle>
             </CardHeader>
@@ -141,8 +141,8 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
               {marginByCustomer.slice(0, 6).map((row) => (
                 <TableRow key={row.label}>
                   <TableCell>
-                    <div className="font-medium text-slate-900">{row.label}</div>
-                    {row.marginPercent !== null ? <div className="text-xs text-slate-500">{row.marginPercent}% margin</div> : null}
+                    <div className="font-medium text-foreground">{row.label}</div>
+                    {row.marginPercent !== null ? <div className="text-xs text-muted-foreground">{row.marginPercent}% margin</div> : null}
                   </TableCell>
                   <TableCell>{formatCurrency(row.revenue)}</TableCell>
                   <TableCell>{formatCurrency(row.estimatedCost)}</TableCell>
@@ -167,8 +167,8 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
               {marginByVehicle.slice(0, 6).map((row) => (
                 <TableRow key={row.label}>
                   <TableCell>
-                    <div className="font-medium text-slate-900">{row.label}</div>
-                    {row.marginPercent !== null ? <div className="text-xs text-slate-500">{row.marginPercent}% margin</div> : null}
+                    <div className="font-medium text-foreground">{row.label}</div>
+                    {row.marginPercent !== null ? <div className="text-xs text-muted-foreground">{row.marginPercent}% margin</div> : null}
                   </TableCell>
                   <TableCell>{formatCurrency(row.revenue)}</TableCell>
                   <TableCell>{formatCurrency(row.estimatedCost)}</TableCell>
@@ -195,8 +195,8 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
               {marginByDriver.slice(0, 6).map((row) => (
                 <TableRow key={row.label}>
                   <TableCell>
-                    <div className="font-medium text-slate-900">{row.label}</div>
-                    {row.marginPercent !== null ? <div className="text-xs text-slate-500">{row.marginPercent}% margin</div> : null}
+                    <div className="font-medium text-foreground">{row.label}</div>
+                    {row.marginPercent !== null ? <div className="text-xs text-muted-foreground">{row.marginPercent}% margin</div> : null}
                   </TableCell>
                   <TableCell>{formatCurrency(row.revenue)}</TableCell>
                   <TableCell>{formatCurrency(row.estimatedCost)}</TableCell>
@@ -225,12 +225,12 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
                 .map((row) => (
                   <TableRow key={row.tripId}>
                     <TableCell>
-                      <div className="font-medium text-slate-900">{row.tripReference}</div>
-                      <div className="text-xs text-slate-500">{row.status}</div>
+                      <div className="font-medium text-foreground">{row.tripReference}</div>
+                      <div className="text-xs text-muted-foreground">{row.status}</div>
                     </TableCell>
                     <TableCell>
                       <div>{row.customerName}</div>
-                      <div className="text-xs text-slate-500">{row.vehicleLabel}</div>
+                      <div className="text-xs text-muted-foreground">{row.vehicleLabel}</div>
                     </TableCell>
                     <TableCell>{formatCurrency(row.revenue)}</TableCell>
                     <TableCell>{formatCurrency(row.estimatedCost)}</TableCell>

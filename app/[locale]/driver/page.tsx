@@ -144,7 +144,7 @@ export default async function DriverHomePage({
     <div className="space-y-4">
       {activeDriver ? <DriverInstallPrompt /> : null}
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -160,15 +160,15 @@ export default async function DriverHomePage({
             {isPreviewMode ? <Badge variant="warning">Preview mode</Badge> : null}
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-600">
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
           {activeDriver ? (
             <>
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-slate-400" />
                 <span>{new Intl.DateTimeFormat('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}</span>
               </div>
-              <div><span className="font-medium text-slate-900">Phone:</span> {activeDriver.phone ?? '-'}</div>
-              <div><span className="font-medium text-slate-900">Email:</span> {activeDriver.email ?? '-'}</div>
+              <div><span className="font-medium text-foreground">Phone:</span> {activeDriver.phone ?? '-'}</div>
+              <div><span className="font-medium text-foreground">Email:</span> {activeDriver.email ?? '-'}</div>
             </>
           ) : (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
@@ -181,7 +181,7 @@ export default async function DriverHomePage({
       </Card>
 
       {membership.role !== 'driver' && activeDrivers.length > 0 ? (
-        <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <Card className="shadow-softSm">
           <CardHeader className="pb-4">
             <CardTitle>Choose driver preview</CardTitle>
             <CardDescription>Use the ERP seed data to present the field workflow without creating a separate mobile app.</CardDescription>
@@ -205,7 +205,7 @@ export default async function DriverHomePage({
           </div>
 
           {priorityItems.length > 0 ? (
-            <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+            <Card className="shadow-softSm">
               <CardHeader className="pb-4">
                 <CardTitle>Next actions</CardTitle>
                 <CardDescription>Clear, field-ready priorities based on today’s shift and trip state.</CardDescription>
@@ -217,14 +217,14 @@ export default async function DriverHomePage({
                     <Link
                       key={item.id}
                       href={item.href}
-                      className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-4 text-sm text-slate-600"
+                      className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4 text-sm text-muted-foreground"
                     >
                       <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="font-medium text-slate-950">{item.title}</div>
+                          <div className="font-medium text-foreground">{item.title}</div>
                           <Badge variant={item.tone}>{item.tone === 'success' ? 'Ready' : item.tone === 'warning' ? 'Attention' : 'Open'}</Badge>
                         </div>
                         <div className="mt-1">{item.detail}</div>
@@ -237,7 +237,7 @@ export default async function DriverHomePage({
           ) : null}
 
           {showTimeModule ? (
-            <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+            <Card className="shadow-softSm">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -247,7 +247,7 @@ export default async function DriverHomePage({
                   {mobileTimeSummary?.openEntry ? <Badge variant="success">Clocked in</Badge> : <Badge variant="default">Off shift</Badge>}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-600">
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
                 {membership.role === 'driver' ? (
                   workforceContext?.employee && mobileTimeSummary ? (
                     <>
@@ -261,12 +261,12 @@ export default async function DriverHomePage({
                       </Button>
                     </>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4">
+                    <div className="rounded-2xl border border-dashed px-4 py-4">
                       Your login is not linked to a workforce employee yet. An admin can link it in Settings.
                     </div>
                   )
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4">
+                  <div className="rounded-2xl border border-dashed px-4 py-4">
                     Shift tools are available to the signed-in driver when the Time module is enabled.
                   </div>
                 )}
@@ -286,7 +286,7 @@ export default async function DriverHomePage({
               <CardContent className="space-y-4 text-sm text-slate-200">
                 <div>Scheduled: {formatDateTime(primaryTrip.scheduled_at)}</div>
                 <div>Vehicle: {primaryTrip.vehicle_name}</div>
-                <Button asChild className="w-full bg-white text-slate-950 hover:bg-slate-100">
+                <Button asChild className="w-full bg-white text-foreground hover:bg-slate-100">
                   <Link href={selectedDriverId ? `/driver/trips/${getTripRouteId(primaryTrip)}?driver=${selectedDriverId}` : `/driver/trips/${getTripRouteId(primaryTrip)}`}>
                     Open live trip workflow
                   </Link>
@@ -295,14 +295,14 @@ export default async function DriverHomePage({
             </Card>
           ) : (
             <Card className="border-dashed border-slate-300 bg-white/90">
-              <CardContent className="p-6 text-sm text-slate-600">No started or planned trips are currently assigned. New dispatches will appear here automatically.</CardContent>
+              <CardContent className="p-6 text-sm text-muted-foreground">No started or planned trips are currently assigned. New dispatches will appear here automatically.</CardContent>
             </Card>
           )}
 
           {plannedTrips.length > 0 ? (
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Next dispatches</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Next dispatches</h2>
                 <Link href={selectedDriverId ? `/driver/trips?driver=${selectedDriverId}` : '/driver/trips'} className="text-sm font-medium text-sky-700">
                   View all
                 </Link>
@@ -314,7 +314,7 @@ export default async function DriverHomePage({
           ) : null}
 
           {completedTrips.length > 0 ? (
-            <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+            <Card className="shadow-softSm">
               <CardHeader className="pb-4">
                 <CardTitle>Recently completed</CardTitle>
                 <CardDescription>Delivered jobs remain visible for invoice follow-through and proof of delivery review.</CardDescription>
@@ -324,7 +324,7 @@ export default async function DriverHomePage({
                   <Link
                     key={trip.id}
                     href={selectedDriverId ? `/driver/trips/${getTripRouteId(trip)}?driver=${selectedDriverId}` : `/driver/trips/${getTripRouteId(trip)}`}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+                    className="flex items-center justify-between rounded-2xl border border-border/20 bg-surface px-4 py-3 text-sm text-slate-700"
                   >
                     <span>{trip.customer_name}</span>
                     <ArrowRight className="h-4 w-4 text-slate-400" />
@@ -335,7 +335,7 @@ export default async function DriverHomePage({
           ) : null}
 
           {timelineItems.length > 0 ? (
-            <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+            <Card className="shadow-softSm">
               <CardHeader className="pb-4">
                 <CardTitle>Today timeline</CardTitle>
                 <CardDescription>Shift milestones and assigned work in one field-facing sequence.</CardDescription>
@@ -346,20 +346,20 @@ export default async function DriverHomePage({
                     <Link
                       key={item.id}
                       href={item.href}
-                      className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-4 text-sm text-slate-600"
+                      className="flex items-start justify-between gap-3 rounded-2xl border border-border/20 px-4 py-4 text-sm text-muted-foreground"
                     >
                       <div>
-                        <div className="font-medium text-slate-950">{item.title}</div>
+                        <div className="font-medium text-foreground">{item.title}</div>
                         <div className="mt-1">{item.detail}</div>
-                        <div className="mt-1 text-xs text-slate-500">{formatDateTime(item.time)}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.time)}</div>
                       </div>
                       <Badge variant={item.status === 'started' ? 'success' : 'default'}>{item.status}</Badge>
                     </Link>
                   ) : (
-                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-                      <div className="font-medium text-slate-950">{item.title}</div>
+                    <div key={item.id} className="rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
+                      <div className="font-medium text-foreground">{item.title}</div>
                       <div className="mt-1">{item.detail}</div>
-                      <div className="mt-1 text-xs text-slate-500">{formatDateTime(item.time)}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.time)}</div>
                     </div>
                   ),
                 )}

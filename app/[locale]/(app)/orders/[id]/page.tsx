@@ -65,39 +65,39 @@ export default async function OrderDetailPage({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Order Summary</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div className="flex items-center gap-3"><span className="font-medium text-slate-900">Status:</span> <OrderStatusBadge status={order.status as any} /></div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {branch?.name ?? 'No branch assigned'}</div>
-            <div><span className="font-medium text-slate-900">Customer:</span> {customer?.name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Pickup:</span> {order.pickup_location}</div>
-            <div><span className="font-medium text-slate-900">Delivery:</span> {order.delivery_location}</div>
-            <div><span className="font-medium text-slate-900">Scheduled At:</span> {formatDateTime(order.scheduled_at)}</div>
-            <div><span className="font-medium text-slate-900">Cargo:</span> {order.cargo_description ?? '-'}</div>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3"><span className="font-medium text-foreground">Status:</span> <OrderStatusBadge status={order.status as any} /></div>
+            <div><span className="font-medium text-foreground">Branch:</span> {branch?.name ?? 'No branch assigned'}</div>
+            <div><span className="font-medium text-foreground">Customer:</span> {customer?.name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Pickup:</span> {order.pickup_location}</div>
+            <div><span className="font-medium text-foreground">Delivery:</span> {order.delivery_location}</div>
+            <div><span className="font-medium text-foreground">Scheduled At:</span> {formatDateTime(order.scheduled_at)}</div>
+            <div><span className="font-medium text-foreground">Cargo:</span> {order.cargo_description ?? '-'}</div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Assignment Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div><span className="font-medium text-slate-900">Vehicle:</span> {vehicle ? `${vehicle.registration_number} ${[vehicle.make, vehicle.model].filter(Boolean).join(' ')}` : 'Unassigned'}</div>
-            <div><span className="font-medium text-slate-900">Driver:</span> {driver?.full_name ?? 'Unassigned'}</div>
-            <div><span className="font-medium text-slate-900">Driver contact:</span> {driver?.phone ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Linked Trip:</span> {trip ? <Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link> : 'No trip yet'}</div>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div><span className="font-medium text-foreground">Vehicle:</span> {vehicle ? `${vehicle.registration_number} ${[vehicle.make, vehicle.model].filter(Boolean).join(' ')}` : 'Unassigned'}</div>
+            <div><span className="font-medium text-foreground">Driver:</span> {driver?.full_name ?? 'Unassigned'}</div>
+            <div><span className="font-medium text-foreground">Driver contact:</span> {driver?.phone ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Linked Trip:</span> {trip ? <Link href={`/trips/${getTripRouteId(trip)}`}>{getTripDisplayId(trip)}</Link> : 'No trip yet'}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Notes</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-slate-600">{order.notes ?? 'No order notes captured.'}</CardContent>
+        <CardContent className="text-sm text-muted-foreground">{order.notes ?? 'No order notes captured.'}</CardContent>
       </Card>
 
       <div className="flex flex-wrap gap-3">

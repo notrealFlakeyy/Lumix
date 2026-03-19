@@ -13,7 +13,7 @@ export const platformModuleDefinitions: Array<{
     key: 'core',
     label: 'Core Platform',
     description: 'Dashboard, reporting, settings, auth, documents, billing, and the shared operating foundation.',
-    routeModules: ['dashboard', 'reports', 'settings'],
+    routeModules: ['dashboard', 'reports', 'settings', 'expenses', 'tasks', 'maintenance'],
     alwaysEnabled: true,
   },
   {

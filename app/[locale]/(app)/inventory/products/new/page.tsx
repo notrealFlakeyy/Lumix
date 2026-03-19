@@ -49,8 +49,8 @@ export default async function NewInventoryProductPage({ params }: { params: Prom
     return (
       <div className="space-y-6">
         <PageHeader title="New Inventory Product" description="Inventory products need an active branch so stock stays branch-scoped from day one." />
-        <Card className="border-slate-200/80 bg-white/90">
-          <CardContent className="space-y-4 px-6 py-6 text-sm text-slate-600">
+        <Card >
+          <CardContent className="space-y-4 px-6 py-6 text-sm text-muted-foreground">
             <p>Create at least one branch before adding inventory products.</p>
             <Button asChild>
               <Link href="/settings/company">Open branch settings</Link>

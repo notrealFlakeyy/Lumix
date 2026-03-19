@@ -45,19 +45,19 @@ export default async function OrderBoardPage({ params }: { params: Promise<{ loc
             <div key={col.status} className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${col.color}`}>{col.label}</span>
-                <span className="text-sm text-slate-500">{orders.length}</span>
+                <span className="text-sm text-muted-foreground">{orders.length}</span>
               </div>
               <div className="flex flex-col gap-2">
                 {orders.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">No orders</div>
+                  <div className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-slate-400">No orders</div>
                 ) : (
                   orders.map((order) => (
                     <Link key={order.id} href={`/orders/${order.id}`} className="no-underline">
-                      <Card className="border-slate-200/80 bg-white/90 transition-shadow hover:shadow-soft">
+                      <Card className="transition-shadow hover:shadow-soft">
                         <CardHeader className="pb-2 pt-4">
-                          <CardTitle className="text-sm font-semibold text-slate-950">{order.order_number}</CardTitle>
+                          <CardTitle className="text-sm font-semibold text-foreground">{order.order_number}</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-1.5 pb-4 text-xs text-slate-600">
+                        <CardContent className="space-y-1.5 pb-4 text-xs text-muted-foreground">
                           <div className="truncate font-medium text-slate-800">{order.customer_name}</div>
                           <div className="truncate">{order.pickup_location}</div>
                           <div className="truncate text-slate-400">→ {order.delivery_location}</div>

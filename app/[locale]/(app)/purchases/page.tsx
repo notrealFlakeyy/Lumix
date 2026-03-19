@@ -42,7 +42,7 @@ export default async function PurchasesPage({ params }: { params: Promise<{ loca
         <StatCard label="Pending receipts" value={String(overview.pendingReceiptCount)} />
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Recent Purchase Bills</CardTitle>
         </CardHeader>
@@ -65,7 +65,7 @@ export default async function PurchasesPage({ params }: { params: Promise<{ loca
                 {overview.recentInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/purchases/invoices/${invoice.id}`} className="text-slate-950 hover:underline">
+                      <Link href={`/purchases/invoices/${invoice.id}`} className="text-foreground hover:underline">
                         {invoice.invoice_number}
                       </Link>
                     </TableCell>
@@ -81,7 +81,7 @@ export default async function PurchasesPage({ params }: { params: Promise<{ loca
               </TableBody>
             </Table>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
               No purchase bills yet.
             </div>
           )}

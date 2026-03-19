@@ -99,28 +99,28 @@ export default async function PurchaseInvoiceDetailPage({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Bill Summary</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
-            <div><span className="font-medium text-slate-900">Vendor:</span> {bundle.vendor?.name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {bundle.branch?.name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Invoice date:</span> {invoice.invoice_date}</div>
-            <div><span className="font-medium text-slate-900">Due date:</span> {invoice.due_date ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Status:</span> <PurchaseInvoiceStatusBadge status={invoice.status} /></div>
-            <div><span className="font-medium text-slate-900">Receipts:</span> {invoice.received_at ? `Received ${formatDateTime(invoice.received_at)}` : `${bundle.metrics.pending_receipts} pending`}</div>
-            <div><span className="font-medium text-slate-900">Subtotal:</span> {formatCurrency(Number(invoice.subtotal))}</div>
-            <div><span className="font-medium text-slate-900">VAT:</span> {formatCurrency(Number(invoice.vat_total))}</div>
-            <div><span className="font-medium text-slate-900">Total:</span> {formatCurrency(Number(invoice.total))}</div>
-            <div><span className="font-medium text-slate-900">Balance due:</span> {formatCurrency(bundle.metrics.balance_due)}</div>
-            <div className="md:col-span-2"><span className="font-medium text-slate-900">Notes:</span> {invoice.notes ?? '-'}</div>
+          <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+            <div><span className="font-medium text-foreground">Vendor:</span> {bundle.vendor?.name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Branch:</span> {bundle.branch?.name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Invoice date:</span> {invoice.invoice_date}</div>
+            <div><span className="font-medium text-foreground">Due date:</span> {invoice.due_date ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Status:</span> <PurchaseInvoiceStatusBadge status={invoice.status} /></div>
+            <div><span className="font-medium text-foreground">Receipts:</span> {invoice.received_at ? `Received ${formatDateTime(invoice.received_at)}` : `${bundle.metrics.pending_receipts} pending`}</div>
+            <div><span className="font-medium text-foreground">Subtotal:</span> {formatCurrency(Number(invoice.subtotal))}</div>
+            <div><span className="font-medium text-foreground">VAT:</span> {formatCurrency(Number(invoice.vat_total))}</div>
+            <div><span className="font-medium text-foreground">Total:</span> {formatCurrency(Number(invoice.total))}</div>
+            <div><span className="font-medium text-foreground">Balance due:</span> {formatCurrency(bundle.metrics.balance_due)}</div>
+            <div className="md:col-span-2"><span className="font-medium text-foreground">Notes:</span> {invoice.notes ?? '-'}</div>
           </CardContent>
         </Card>
 
         <div className="space-y-4">
           {canManagePurchases(membership.role) ? (
-            <Card className="border-slate-200/80 bg-white/90">
+            <Card >
               <CardHeader>
                 <CardTitle>Bill Actions</CardTitle>
               </CardHeader>
@@ -145,7 +145,7 @@ export default async function PurchaseInvoiceDetailPage({
         </div>
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Bill Lines</CardTitle>
         </CardHeader>
@@ -185,7 +185,7 @@ export default async function PurchaseInvoiceDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Payments</CardTitle>
         </CardHeader>
@@ -212,7 +212,7 @@ export default async function PurchaseInvoiceDetailPage({
               </TableBody>
             </Table>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
               No payments registered yet.
             </div>
           )}

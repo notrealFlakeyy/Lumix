@@ -29,10 +29,10 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
 
   if (!order || order.status === 'cancelled') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <Card className="w-full max-w-md border-slate-200/80 bg-white/90">
+      <main className="flex min-h-screen items-center justify-center bg-surface px-4">
+        <Card className="w-full max-w-md ">
           <CardContent className="px-8 py-10 text-center">
-            <p className="text-sm text-slate-500">This tracking link is no longer valid or the order has been cancelled.</p>
+            <p className="text-sm text-muted-foreground">This tracking link is no longer valid or the order has been cancelled.</p>
           </CardContent>
         </Card>
       </main>
@@ -44,17 +44,17 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
   const currentIndex = getStatusIndex(order.status)
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-surface px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center">
-          {company?.name ? <p className="text-sm font-medium text-slate-500">{company.name}</p> : null}
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Order {order.order_number}</h1>
+          {company?.name ? <p className="text-sm font-medium text-muted-foreground">{company.name}</p> : null}
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">Order {order.order_number}</h1>
           {order.scheduled_at ? (
-            <p className="mt-1 text-sm text-slate-500">Scheduled: {formatDateTime(order.scheduled_at)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">Scheduled: {formatDateTime(order.scheduled_at)}</p>
           ) : null}
         </div>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Truck className="h-4 w-4 text-sky-500" />
@@ -75,7 +75,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
                     ) : (
                       <Circle className="h-5 w-5 shrink-0 text-slate-300" />
                     )}
-                    <span className={isCurrent ? 'font-semibold text-slate-950' : isDone ? 'text-slate-500 line-through' : 'text-slate-400'}>
+                    <span className={isCurrent ? 'font-semibold text-foreground' : isDone ? 'text-muted-foreground line-through' : 'text-slate-400'}>
                       {step.label}
                     </span>
                     {isCurrent ? (
@@ -88,20 +88,20 @@ export default async function TrackingPage({ params }: { params: Promise<{ local
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardContent className="space-y-4 pt-6">
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Pickup</p>
-                <p className="text-sm text-slate-900">{order.pickup_location}</p>
+                <p className="text-sm text-foreground">{order.pickup_location}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Delivery</p>
-                <p className="text-sm text-slate-900">{order.delivery_location}</p>
+                <p className="text-sm text-foreground">{order.delivery_location}</p>
               </div>
             </div>
           </CardContent>

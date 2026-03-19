@@ -41,7 +41,7 @@ export default async function CustomersPage({
           </Button>
         }
       />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardContent className="pt-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <Suspense>
@@ -55,7 +55,7 @@ export default async function CustomersPage({
               <TablePagination page={page} total={total} pageSize={PAGE_SIZE} href={(p) => `/customers?page=${p}${q ? `&q=${q}` : ''}`} />
             </>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
+            <div className="rounded-xl border border-dashed px-4 py-10 text-sm text-muted-foreground">
               {q ? 'No customers match your search.' : 'No customers yet.'}
             </div>
           )}

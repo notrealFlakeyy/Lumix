@@ -15,7 +15,7 @@ export function PurchaseVendorForm({
 }) {
   return (
     <form action={action}>
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>New Vendor</CardTitle>
         </CardHeader>

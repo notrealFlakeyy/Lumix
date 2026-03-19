@@ -15,7 +15,7 @@ export function ModuleOverviewCard({
   highlights: string[]
 }) {
   return (
-    <Card className="border-slate-200/80 bg-white/90">
+    <Card >
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>

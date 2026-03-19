@@ -33,7 +33,7 @@ export function DriverTripCard({ locale, trip, previewDriverId }: DriverTripCard
   const href = previewDriverId ? `/driver/trips/${routeId}?driver=${previewDriverId}` : `/driver/trips/${routeId}`
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">

@@ -75,7 +75,7 @@ export function DriverOfflineSync() {
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardContent className="space-y-3 p-4 text-sm text-slate-600">
         <div className="flex items-start gap-3">
           <div className="rounded-xl bg-slate-100 p-2 text-slate-700">

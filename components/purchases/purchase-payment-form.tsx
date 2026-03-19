@@ -13,7 +13,7 @@ export function PurchasePaymentForm({
 }) {
   return (
     <form action={action}>
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Register Payment</CardTitle>
         </CardHeader>

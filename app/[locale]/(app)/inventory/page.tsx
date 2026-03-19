@@ -42,7 +42,7 @@ export default async function InventoryPage({ params }: { params: Promise<{ loca
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Low Stock Watchlist</CardTitle>
           </CardHeader>
@@ -62,7 +62,7 @@ export default async function InventoryPage({ params }: { params: Promise<{ loca
                   {overview.lowStockProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/inventory/products/${product.id}`} className="text-slate-950 hover:underline">
+                        <Link href={`/inventory/products/${product.id}`} className="text-foreground hover:underline">
                           {product.sku}
                         </Link>
                       </TableCell>
@@ -75,14 +75,14 @@ export default async function InventoryPage({ params }: { params: Promise<{ loca
                 </TableBody>
               </Table>
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No products are currently below their reorder levels.
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Recent Stock Movements</CardTitle>
           </CardHeader>
@@ -92,25 +92,25 @@ export default async function InventoryPage({ params }: { params: Promise<{ loca
                 <div key={movement.id} className="rounded-2xl border border-slate-100 px-4 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-slate-950">{movement.product_name}</div>
-                      <div className="text-sm text-slate-500">{movement.sku} · {movement.branch_name}</div>
+                      <div className="font-medium text-foreground">{movement.product_name}</div>
+                      <div className="text-sm text-muted-foreground">{movement.sku} · {movement.branch_name}</div>
                     </div>
                     <Badge variant={getInventoryMovementDirection(movement.movement_type) === 'in' ? 'success' : 'warning'}>
                       {movement.movement_label}
                     </Badge>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-600">
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-muted-foreground">
                     <div>{formatDateTime(movement.occurred_at)}</div>
                     <div className={movement.signed_quantity >= 0 ? 'font-medium text-emerald-700' : 'font-medium text-rose-700'}>
                       {movement.signed_quantity >= 0 ? '+' : ''}
                       {toDisplayNumber(movement.signed_quantity, 2)}
                     </div>
                   </div>
-                  {movement.reference ? <div className="mt-2 text-xs text-slate-500">Ref: {movement.reference}</div> : null}
+                  {movement.reference ? <div className="mt-2 text-xs text-muted-foreground">Ref: {movement.reference}</div> : null}
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No stock movements recorded in the last 30 days.
               </div>
             )}

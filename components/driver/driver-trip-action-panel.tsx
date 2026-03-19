@@ -90,7 +90,7 @@ export function DriverTripActionPanel({
   return (
     <>
       {status === 'planned' ? (
-        <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <Card className="shadow-softSm">
           <CardHeader className="pb-4">
             <CardTitle>Start trip</CardTitle>
             <CardDescription>Capture the starting odometer and a short dispatch note before departure.</CardDescription>
@@ -205,7 +205,7 @@ export function DriverTripActionPanel({
       ) : null}
 
       {status === 'started' ? (
-        <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+        <Card className="shadow-softSm">
           <CardHeader className="pb-4">
             <CardTitle>Complete trip</CardTitle>
             <CardDescription>Record the delivery confirmation, final odometer, and any wait time from the field.</CardDescription>

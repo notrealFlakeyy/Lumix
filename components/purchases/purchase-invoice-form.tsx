@@ -19,7 +19,7 @@ export function PurchaseInvoiceForm({
 }) {
   return (
     <form action={action} className="space-y-6">
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Bill Header</CardTitle>
         </CardHeader>
@@ -72,7 +72,7 @@ export function PurchaseInvoiceForm({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Bill Lines</CardTitle>
         </CardHeader>

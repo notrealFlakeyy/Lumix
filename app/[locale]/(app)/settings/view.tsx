@@ -1912,21 +1912,21 @@ export async function SettingsView({
               <Link
                 key={card.section}
                 href={buildSettingsHref(locale, card.section)}
-                className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 transition hover:border-sky-200 hover:shadow-sm"
+                className="rounded-3xl border p-5 transition hover:border-sky-200 hover:shadow-sm"
               >
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{card.eyebrow}</div>
-                <div className="mt-3 text-lg font-semibold text-slate-950">{card.metric}</div>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{card.detail}</p>
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{card.eyebrow}</div>
+                <div className="mt-3 text-lg font-semibold text-foreground">{card.metric}</div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{card.detail}</p>
               </Link>
             ))}
           </div>
 
           <div className="grid gap-6 xl:grid-cols-3">
-            <Card className="border-slate-200/80 bg-white/90">
+            <Card >
               <CardHeader>
                 <CardTitle>Rollout Snapshot</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
                   <span>Stripe billing</span>
                   <Badge variant={stripeBillingConfigured && stripeWebhookConfigured ? 'success' : 'warning'}>
@@ -1944,11 +1944,11 @@ export async function SettingsView({
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200/80 bg-white/90">
+            <Card >
               <CardHeader>
                 <CardTitle>Data Hygiene</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
                   <span>Cleanup queue</span>
                   <Badge variant={diagnostics.cleanupQueue.length === 0 ? 'success' : 'warning'}>{diagnostics.cleanupQueue.length}</Badge>
@@ -1966,11 +1966,11 @@ export async function SettingsView({
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200/80 bg-white/90">
+            <Card >
               <CardHeader>
                 <CardTitle>Recommended Next Steps</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm text-slate-600">
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
                 <p>1. Keep company defaults current before changing invoice numbering or pricing logic.</p>
                 <p>2. Use Team to invite staff and verify explicit driver login links before handing out mobile access.</p>
                 <p>3. Use Data to import master data and clear duplicate or incomplete records before go-live.</p>
@@ -1982,7 +1982,7 @@ export async function SettingsView({
       ) : null}
 
       {section === 'company' ? <form action={updateCompanyAction}>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Company Details</CardTitle>
           </CardHeader>
@@ -2039,7 +2039,7 @@ export async function SettingsView({
       </form> : null}
 
       {section === 'company' ? <form action={updateCompanyAppSettingsAction}>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Company Configuration</CardTitle>
           </CardHeader>
@@ -2135,14 +2135,14 @@ export async function SettingsView({
                 id="invoice_footer"
                 name="invoice_footer"
                 defaultValue={resolvedCompanyAppSettings.invoice_footer ?? ''}
-                className="min-h-28 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900"
+                className="min-h-28 w-full rounded-lg border border-border/20 bg-white px-4 py-3 text-sm text-foreground"
                 placeholder="Payment instructions, legal note, or dispatch contact details."
               />
             </div>
-            <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            <div className="md:col-span-2 rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
               Profitability reporting uses the cost assumptions above to estimate trip, vehicle, driver, and customer margin. Keep them directional and review them before using the reports for pricing decisions.
             </div>
-            <div className="md:col-span-2 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <div className="md:col-span-2 flex items-center justify-between rounded-2xl border border-border/20 bg-surface px-4 py-3 text-sm text-muted-foreground">
               <span>Order numbering, invoice terms, and estimated profitability reports all use these company defaults automatically.</span>
               <Button type="submit">Save company configuration</Button>
             </div>
@@ -2151,17 +2151,17 @@ export async function SettingsView({
       </form> : null}
 
       {section === 'company' ? <form action={updateCompanyModulesAction}>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Platform Modules</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
               Enable only the parts of the platform this client actually needs. Transport can stay focused while inventory, purchasing, time, payroll, or accounting are turned on later.
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
               {platformModuleDefinitions.map((moduleDefinition) => (
-                <label key={moduleDefinition.key} className="flex gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+                <label key={moduleDefinition.key} className="flex gap-3 rounded-2xl border border-border/20 px-4 py-4">
                   <input
                     type="checkbox"
                     name={`module_${moduleDefinition.key}`}
@@ -2172,11 +2172,11 @@ export async function SettingsView({
                   />
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-950">{moduleDefinition.label}</span>
+                      <span className="font-medium text-foreground">{moduleDefinition.label}</span>
                       {moduleDefinition.alwaysEnabled ? <Badge variant="default">Always on</Badge> : null}
                     </div>
-                    <p className="text-sm text-slate-600">{moduleDefinition.description}</p>
-                    <div className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                    <p className="text-sm text-muted-foreground">{moduleDefinition.description}</p>
+                    <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                       {moduleDefinition.routeModules.join(' / ')}
                     </div>
                   </div>
@@ -2191,18 +2191,18 @@ export async function SettingsView({
       </form> : null}
 
       {section === 'company' ? <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Branches</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
               Branches let you tailor access for depots, terminals, warehouses, or business units without spinning up another app instance.
             </div>
             {branchRows.length > 0 ? (
               <div className="space-y-3">
                 {branchRows.map((branch) => (
-                  <form key={branch.id} action={updateBranchAction} className="grid gap-3 rounded-2xl border border-slate-200 px-4 py-4 md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_auto]">
+                  <form key={branch.id} action={updateBranchAction} className="grid gap-3 rounded-2xl border border-border/20 px-4 py-4 md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_auto]">
                     <input type="hidden" name="branch_id" value={branch.id} />
                     <div className="space-y-2">
                       <Label htmlFor={`branch_name_${branch.id}`}>Name</Label>
@@ -2221,7 +2221,7 @@ export async function SettingsView({
                       <Input id={`branch_city_${branch.id}`} name="branch_city" defaultValue={branch.city ?? ''} />
                     </div>
                     <div className="flex items-end gap-3">
-                      <label className="mb-2 flex items-center gap-2 text-sm text-slate-600">
+                      <label className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                         <input type="checkbox" name="branch_is_active" value="true" defaultChecked={branch.is_active} className="h-4 w-4 rounded border-slate-300" />
                         Active
                       </label>
@@ -2232,13 +2232,13 @@ export async function SettingsView({
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No branches created yet. Keep a single workspace if the client does not operate by branch, depot, terminal, or warehouse.</div>
+              <div className="rounded-xl border border-dashed px-4 py-8 text-sm text-muted-foreground">No branches created yet. Keep a single workspace if the client does not operate by branch, depot, terminal, or warehouse.</div>
             )}
           </CardContent>
         </Card>
 
         <form action={createBranchAction}>
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Add Branch</CardTitle>
             </CardHeader>
@@ -2297,7 +2297,7 @@ export async function SettingsView({
       /> : null}
 
       {section === 'team' ? <form action={inviteTeamMemberAction}>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Invite Team Member</CardTitle>
           </CardHeader>
@@ -2312,7 +2312,7 @@ export async function SettingsView({
             </div>
             <div className="space-y-2">
               <Label htmlFor="invite_role">Role</Label>
-              <select id="invite_role" name="role" defaultValue="viewer" className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
+              <select id="invite_role" name="role" defaultValue="viewer" className="h-11 w-full rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
                 {companyRoles.map((role) => (
                   <option key={role} value={role}>
                     {role}
@@ -2336,14 +2336,14 @@ export async function SettingsView({
               <input id="create_driver_profile" name="create_driver_profile" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
               <div className="space-y-1">
                 <Label htmlFor="create_driver_profile">Create or link a driver profile</Label>
-                <p className="text-sm text-slate-500">Use this when inviting a user with the <code>driver</code> role so mobile access works without SQL.</p>
+                <p className="text-sm text-muted-foreground">Use this when inviting a user with the <code>driver</code> role so mobile access works without SQL.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
               <input id="create_account_without_email" name="create_account_without_email" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
               <div className="space-y-1">
                 <Label htmlFor="create_account_without_email">Create account without sending an email invite</Label>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   Use this fallback if SMTP or Supabase Auth invite delivery is not configured yet. The user will be created immediately.
                 </p>
               </div>
@@ -2352,7 +2352,7 @@ export async function SettingsView({
               <input id="generate_invite_link" name="generate_invite_link" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" />
               <div className="space-y-1">
                 <Label htmlFor="generate_invite_link">Generate a manual invite link instead of sending an email</Label>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   Use this when you want to copy the secure invite URL and deliver it yourself through WhatsApp, SMS, or your own email channel.
                 </p>
               </div>
@@ -2360,7 +2360,7 @@ export async function SettingsView({
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="temporary_password">Temporary Password</Label>
               <Input id="temporary_password" name="temporary_password" type="password" placeholder="Required only for manual account creation" />
-              <p className="text-sm text-slate-500">Minimum 8 characters. Share it through a secure channel and ask the user to change it after first sign-in.</p>
+              <p className="text-sm text-muted-foreground">Minimum 8 characters. Share it through a secure channel and ask the user to change it after first sign-in.</p>
             </div>
             <div className="md:col-span-2">
               <Button type="submit">Invite team member</Button>
@@ -2369,7 +2369,7 @@ export async function SettingsView({
         </Card>
       </form> : null}
 
-      {section === 'team' ? <Card className="border-slate-200/80 bg-white/90">
+      {section === 'team' ? <Card >
         <CardHeader>
           <CardTitle>Team Memberships</CardTitle>
         </CardHeader>
@@ -2399,7 +2399,7 @@ export async function SettingsView({
                     <TableCell>
                       <div className="space-y-1">
                         <div>{profile?.full_name ?? member.user_id.slice(0, 8)}</div>
-                        <div className="text-xs text-slate-500">{authUser?.email ?? 'No auth email'}</div>
+                        <div className="text-xs text-muted-foreground">{authUser?.email ?? 'No auth email'}</div>
                       </div>
                     </TableCell>
                     <TableCell>{member.role}</TableCell>
@@ -2409,7 +2409,7 @@ export async function SettingsView({
                     <TableCell>
                       <div className="space-y-2">
                         <Badge variant={authLifecycle.variant}>{authLifecycle.label}</Badge>
-                        <div className="text-xs text-slate-500">{authLifecycle.detail}</div>
+                        <div className="text-xs text-muted-foreground">{authLifecycle.detail}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -2419,14 +2419,14 @@ export async function SettingsView({
                         <div className="space-y-3">
                           <form action={updateMembershipAction} className="flex min-w-[20rem] flex-col gap-2 md:flex-row">
                             <input type="hidden" name="target_user_id" value={member.user_id} />
-                            <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
+                            <select name="role" defaultValue={member.role} className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
                               {companyRoles.map((role) => (
                                 <option key={role} value={role}>
                                   {role}
                                 </option>
                               ))}
                             </select>
-                            <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900">
+                            <select name="status" defaultValue={member.is_active ? 'active' : 'inactive'} className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground">
                               <option value="active">Active</option>
                               <option value="inactive">Inactive</option>
                             </select>
@@ -2467,17 +2467,17 @@ export async function SettingsView({
         </CardContent>
       </Card> : null}
 
-      {section === 'team' ? <Card className="border-slate-200/80 bg-white/90">
+      {section === 'team' ? <Card >
         <CardHeader>
           <CardTitle>Driver Login Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Link each driver row to an active company user with the <code>driver</code> role. The app now prefers this explicit
             <code> drivers.auth_user_id </code>
             link for mobile access and driver-scoped RLS.
           </p>
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/20 bg-surface px-4 py-3 text-sm text-muted-foreground">
             <span>
               Use auto-link to match unlinked active drivers to active company users with the <code>driver</code> role by exact email first, then unique full-name fallback.
             </span>
@@ -2515,20 +2515,20 @@ export async function SettingsView({
                   <TableRow key={driver.id}>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-slate-900">{driver.full_name}</div>
-                        <div className="text-xs text-slate-500">{driver.email ?? 'No driver email'}</div>
+                        <div className="font-medium text-foreground">{driver.full_name}</div>
+                        <div className="text-xs text-muted-foreground">{driver.email ?? 'No driver email'}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       {linkedMember ? (
                         <div className="space-y-1">
                           <div>{linkedProfile?.full_name ?? linkedMember.user_id.slice(0, 8)}</div>
-                          <div className="text-xs text-slate-500">{linkedAuthUser?.email ?? 'No auth email'}</div>
+                          <div className="text-xs text-muted-foreground">{linkedAuthUser?.email ?? 'No auth email'}</div>
                         </div>
                       ) : fallbackMatch ? (
                         <div className="space-y-1">
                           <div>{fallbackMatch.label}</div>
-                          <div className="text-xs text-slate-500">{fallbackMatch.email ?? 'Suggested from fallback match'}</div>
+                          <div className="text-xs text-muted-foreground">{fallbackMatch.email ?? 'Suggested from fallback match'}</div>
                         </div>
                       ) : (
                         'Not linked'
@@ -2549,7 +2549,7 @@ export async function SettingsView({
                         <select
                           name="auth_user_id"
                           defaultValue={driver.auth_user_id ?? ''}
-                          className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900"
+                          className="h-11 rounded-lg border border-border/20 bg-white px-3 text-sm text-foreground"
                         >
                           <option value="">No linked login</option>
                           {availableOptions.map((memberOption) => (
@@ -2566,7 +2566,7 @@ export async function SettingsView({
               })}
             </TableBody>
           </Table>
-          {driverRows.length === 0 ? <div className="text-sm text-slate-500">No driver rows yet.</div> : null}
+          {driverRows.length === 0 ? <div className="text-sm text-muted-foreground">No driver rows yet.</div> : null}
           {driverMemberOptions.length === 0 ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
               No active company users with the driver role are available to link yet.
@@ -2575,12 +2575,12 @@ export async function SettingsView({
         </CardContent>
       </Card> : null}
 
-      {section === 'team' ? <Card className="border-slate-200/80 bg-white/90">
+      {section === 'team' ? <Card >
         <CardHeader>
           <CardTitle>Branch Access</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
             Leave branch access empty for a user to keep full-company visibility. Assign one or more branches when a client wants branch-specific access for depots, warehouses, or terminals.
           </div>
           {branchRows.length > 0 ? (
@@ -2591,12 +2591,12 @@ export async function SettingsView({
                 const profile = profileMap.get(member.user_id)
 
                 return (
-                  <form key={`branch-access-${member.user_id}`} action={updateBranchAccessAction} className="rounded-2xl border border-slate-200 px-4 py-4">
+                  <form key={`branch-access-${member.user_id}`} action={updateBranchAccessAction} className="rounded-2xl border border-border/20 px-4 py-4">
                     <input type="hidden" name="target_user_id" value={member.user_id} />
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <div className="font-medium text-slate-950">{profile?.full_name ?? authUser?.email ?? member.user_id.slice(0, 8)}</div>
-                        <div className="text-sm text-slate-500">{authUser?.email ?? 'No auth email'} · {member.role}</div>
+                        <div className="font-medium text-foreground">{profile?.full_name ?? authUser?.email ?? member.user_id.slice(0, 8)}</div>
+                        <div className="text-sm text-muted-foreground">{authUser?.email ?? 'No auth email'} · {member.role}</div>
                       </div>
                       <Badge variant={assignedBranchIds.size === 0 ? 'default' : 'success'}>
                         {assignedBranchIds.size === 0 ? 'All branches' : `${assignedBranchIds.size} assigned`}
@@ -2613,8 +2613,8 @@ export async function SettingsView({
                             className="h-4 w-4 rounded border-slate-300"
                           />
                           <div>
-                            <div className="font-medium text-slate-950">{branch.name}</div>
-                            <div className="text-xs uppercase tracking-[0.14em] text-slate-500">{branch.branch_type}{branch.city ? ` · ${branch.city}` : ''}</div>
+                            <div className="font-medium text-foreground">{branch.name}</div>
+                            <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{branch.branch_type}{branch.city ? ` · ${branch.city}` : ''}</div>
                           </div>
                         </label>
                       ))}
@@ -2627,39 +2627,39 @@ export async function SettingsView({
               })}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
+            <div className="rounded-xl border border-dashed px-4 py-8 text-sm text-muted-foreground">
               Create branches in Company Settings before assigning branch access to users.
             </div>
           )}
         </CardContent>
       </Card> : null}
 
-      {section === 'billing' ? <Card className="border-slate-200/80 bg-white/90">
+      {section === 'billing' ? <Card >
         <CardHeader>
           <CardTitle>Billing & Subscription</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 pt-0">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-slate-100 px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Current plan</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Current plan</div>
               <div className="mt-1 flex items-center gap-2">
-                <span className="text-lg font-semibold text-slate-950">{subscription?.plan_key ?? 'No plan yet'}</span>
+                <span className="text-lg font-semibold text-foreground">{subscription?.plan_key ?? 'No plan yet'}</span>
                 <Badge variant={getSubscriptionBadgeVariant(subscription?.status)}>{subscription?.status ?? 'unconfigured'}</Badge>
               </div>
             </div>
             <div className="rounded-xl border border-slate-100 px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Renewal window</div>
-              <div className="mt-1 text-sm font-medium text-slate-950">{formatDateTime(subscription?.current_period_end ?? null)}</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Renewal window</div>
+              <div className="mt-1 text-sm font-medium text-foreground">{formatDateTime(subscription?.current_period_end ?? null)}</div>
             </div>
             <div className="rounded-xl border border-slate-100 px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Stripe customer</div>
-              <div className="mt-1 text-sm font-medium text-slate-950">
+              <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Stripe customer</div>
+              <div className="mt-1 text-sm font-medium text-foreground">
                 {billingAccount?.stripe_customer_id ? `${billingAccount.stripe_customer_id.slice(0, 16)}...` : 'Not linked'}
               </div>
             </div>
             <div className="rounded-xl border border-slate-100 px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Seats</div>
-              <div className="mt-1 text-lg font-semibold text-slate-950">{subscription?.seats ?? 0}</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Seats</div>
+              <div className="mt-1 text-lg font-semibold text-foreground">{subscription?.seats ?? 0}</div>
             </div>
           </div>
 
@@ -2687,22 +2687,22 @@ export async function SettingsView({
                 ((plan.key === 'starter' && starterPriceConfigured) || (plan.key === 'growth' && growthPriceConfigured))
 
               return (
-                <div key={plan.key} className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+                <div key={plan.key} className="rounded-3xl border border-border/20 bg-surface/80 p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-lg font-semibold text-slate-950">{plan.name}</div>
-                      <div className="text-sm text-slate-500">{plan.monthlyPriceLabel}</div>
+                      <div className="text-lg font-semibold text-foreground">{plan.name}</div>
+                      <div className="text-sm text-muted-foreground">{plan.monthlyPriceLabel}</div>
                     </div>
                     {isCurrent ? <Badge variant="success">Current</Badge> : null}
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-600">{plan.description}</p>
-                  <div className="mt-4 space-y-2 text-sm text-slate-600">
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">{plan.description}</p>
+                  <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                     {plan.highlights.map((highlight) => (
                       <div key={highlight}>• {highlight}</div>
                     ))}
                   </div>
                   {plan.requiresContact ? (
-                    <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                    <div className="mt-5 rounded-2xl border border-border/20 bg-white px-4 py-3 text-sm text-muted-foreground">
                       Use this tier as a founder-led sales motion after the first live pilots.
                     </div>
                   ) : (
@@ -2718,8 +2718,8 @@ export async function SettingsView({
             })}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            <div className="font-medium text-slate-900">Billing sync notes</div>
+          <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4 text-sm text-muted-foreground">
+            <div className="font-medium text-foreground">Billing sync notes</div>
             <div className="mt-2 space-y-2">
               <p>Stripe checkout launches from this page, then the webhook at <code>/api/stripe/webhook</code> syncs the live subscription state back into Supabase.</p>
               <p>Starter and Growth need valid recurring Stripe prices. Enterprise stays founder-led for now and should be sold manually until plan controls are fully productized.</p>
@@ -2729,11 +2729,11 @@ export async function SettingsView({
       </Card> : null}
 
       {section === 'operations' ? <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Operational Readiness</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
               <span>Site URL configured</span>
               <Badge variant={siteUrlConfigured ? 'success' : 'warning'}>{siteUrlConfigured ? 'Ready' : 'Missing'}</Badge>
@@ -2770,20 +2770,20 @@ export async function SettingsView({
               <span>Driver auth links</span>
               <Badge variant={driverRows.length === 0 || explicitDriverLinkCount === driverRows.length ? 'success' : 'warning'}>{driverLinkCoverage}</Badge>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="font-medium text-slate-900">Health endpoint</div>
-              <div className="mt-1 text-slate-600">
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-3">
+              <div className="font-medium text-foreground">Health endpoint</div>
+              <div className="mt-1 text-muted-foreground">
                 Use <a href="/api/health" target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-4">/api/health</a> for deployment checks and basic database/email readiness visibility.
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Release Workflow</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>1. Run `npm run type-check` and `npm test` locally before every release.</p>
             <p>2. Run `npm run build` to confirm the production bundle and route generation are clean.</p>
             <p>3. Run `npm run test:e2e` with `PLAYWRIGHT_EMAIL` and `PLAYWRIGHT_PASSWORD` against the target Supabase project.</p>
@@ -2792,21 +2792,21 @@ export async function SettingsView({
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>App Configuration Notes</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>This MVP enforces authenticated dashboard access, company-aware data filtering, and starter role checks.</p>
             <p>Driver access now prefers an explicit auth link on the driver row. Email and full-name matching are fallback only for existing data migration.</p>
             <p>Settings now supports team invite status, invite resends, access revocation, and manual account creation fallback when invite email delivery is not ready.</p>
           </CardContent>
         </Card>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Monitoring Setup</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
               <span><code>NEXT_PUBLIC_SENTRY_DSN</code></span>
               <Badge variant={monitoringConfigured ? 'success' : 'warning'}>{monitoringConfigured ? 'Configured' : 'Missing'}</Badge>
@@ -2823,8 +2823,8 @@ export async function SettingsView({
               <span>Source map upload envs</span>
               <Badge variant={sentrySourceMapsConfigured ? 'success' : 'default'}>{sentrySourceMapsConfigured ? 'Configured' : 'Optional'}</Badge>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="font-medium text-slate-900">Deployment checklist</div>
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-3">
+              <div className="font-medium text-foreground">Deployment checklist</div>
               <div className="mt-2 space-y-2">
                 <p>1. Create a Sentry Next.js project and add <code>NEXT_PUBLIC_SENTRY_DSN</code> on the host.</p>
                 <p>2. Set <code>SENTRY_ENVIRONMENT</code> and a stable <code>SENTRY_RELEASE</code> for each deploy.</p>
@@ -2835,11 +2835,11 @@ export async function SettingsView({
             </div>
           </CardContent>
         </Card>
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Document Storage Setup</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>The `documents` table is ready for metadata and demo preparation.</p>
             <p>The mobile driver workflow expects a Supabase Storage bucket named `transport-documents` for POD and receipt uploads.</p>
             <p>Signed uploads are now wired for the driver portal, but bucket rules and object-level access policies still need manual completion before production file handling is finished.</p>
@@ -2850,48 +2850,48 @@ export async function SettingsView({
       {section === 'operations' ? <MonitoringTestPanel enabled={monitoringConfigured} /> : null}
 
       {section === 'data' ? <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Tenant Diagnostics</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-slate-600">
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Customers</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.customers}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Customers</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.customers}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Orders</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.orders}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Orders</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.orders}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Trips</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.trips}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Trips</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.trips}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Invoices</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.invoices}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Invoices</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.invoices}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Payments</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.payments}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payments</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.payments}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Documents</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.documents}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Documents</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.documents}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Drivers</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.drivers}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Drivers</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.drivers}</div>
               </div>
               <div className="rounded-xl border border-slate-100 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Vehicles</div>
-                <div className="mt-1 text-xl font-semibold text-slate-950">{diagnostics.counts.vehicles}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Vehicles</div>
+                <div className="mt-1 text-xl font-semibold text-foreground">{diagnostics.counts.vehicles}</div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-              <div className="font-medium text-slate-900">Latest activity</div>
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4">
+              <div className="font-medium text-foreground">Latest activity</div>
               <div className="mt-3 space-y-2">
                 <div>Last order: {formatDateTime(diagnostics.recency.lastOrderCreatedAt)}</div>
                 <div>Last trip: {formatDateTime(diagnostics.recency.lastTripCreatedAt)}</div>
@@ -2902,11 +2902,11 @@ export async function SettingsView({
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Data Quality Warnings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
               <span>Customers missing billing email</span>
               <Badge variant={diagnostics.quality.customersMissingEmail === 0 ? 'success' : 'warning'}>{diagnostics.quality.customersMissingEmail}</Badge>
@@ -2936,19 +2936,19 @@ export async function SettingsView({
       </div> : null}
 
       {section === 'data' ? <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Duplicate Review</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5 text-sm text-slate-600">
+          <CardContent className="space-y-5 text-sm text-muted-foreground">
             {([
               { title: 'Customers', rows: diagnostics.duplicates.customers, path: 'customers' },
               { title: 'Vehicles', rows: diagnostics.duplicates.vehicles, path: 'vehicles' },
               { title: 'Drivers', rows: diagnostics.duplicates.drivers, path: 'drivers' },
             ] as const).map((section) => (
-              <div key={section.title} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <div key={section.title} className="space-y-3 rounded-2xl border border-border/20 bg-surface px-4 py-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-medium text-slate-900">{section.title}</div>
+                  <div className="font-medium text-foreground">{section.title}</div>
                   <Badge variant={section.rows.length === 0 ? 'success' : 'warning'}>{section.rows.length === 0 ? 'Clear' : `${section.rows.length} review groups`}</Badge>
                 </div>
                 {section.rows.length > 0 ? (
@@ -2958,11 +2958,11 @@ export async function SettingsView({
                       const mergeAction = duplicateMergeActionMap[section.path]
 
                       return (
-                        <div key={`${section.title}-${group.reason}-${group.key}-${index}`} className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                        <div key={`${section.title}-${group.reason}-${group.key}-${index}`} className="rounded-xl border border-border/20 bg-white px-3 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <div className="font-medium text-slate-900">{group.reason}</div>
-                            <div className="text-xs text-slate-500">{group.key}</div>
+                            <div className="font-medium text-foreground">{group.reason}</div>
+                            <div className="text-xs text-muted-foreground">{group.key}</div>
                           </div>
                           <Badge variant="warning">{group.entries.length} records</Badge>
                         </div>
@@ -2970,8 +2970,8 @@ export async function SettingsView({
                           {group.entries.map((entry, entryIndex) => (
                             <div key={entry.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
                               <div className="min-w-0">
-                                <div className="truncate font-medium text-slate-900">{entry.label}</div>
-                                {entry.secondaryLabel ? <div className="truncate text-xs text-slate-500">{entry.secondaryLabel}</div> : null}
+                                <div className="truncate font-medium text-foreground">{entry.label}</div>
+                                {entry.secondaryLabel ? <div className="truncate text-xs text-muted-foreground">{entry.secondaryLabel}</div> : null}
                               </div>
                               <div className="flex items-center gap-2">
                                 {entryIndex === 0 ? (
@@ -2997,19 +2997,19 @@ export async function SettingsView({
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-slate-500">No likely duplicate groups detected for this section.</div>
+                  <div className="rounded-xl border border-dashed px-4 py-6 text-muted-foreground">No likely duplicate groups detected for this section.</div>
                 )}
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Cleanup Queue</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border/20 bg-surface px-4 py-4">
               Prioritize these records before go-live so onboarding, driver access, and invoice delivery do not degrade into manual cleanup later.
             </div>
             {diagnostics.cleanupQueue.length > 0 ? (
@@ -3027,8 +3027,8 @@ export async function SettingsView({
                     <TableRow key={`${item.entityType}-${item.id}-${item.issue}`}>
                       <TableCell className="capitalize">{item.entityType}</TableCell>
                       <TableCell>
-                        <div className="font-medium text-slate-900">{item.label}</div>
-                        {item.detail ? <div className="text-xs text-slate-500">{item.detail}</div> : null}
+                        <div className="font-medium text-foreground">{item.label}</div>
+                        {item.detail ? <div className="text-xs text-muted-foreground">{item.detail}</div> : null}
                       </TableCell>
                       <TableCell>{item.issue}</TableCell>
                       <TableCell>
@@ -3041,13 +3041,13 @@ export async function SettingsView({
                 </TableBody>
               </Table>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-slate-500">No cleanup items are currently queued for the core customer, vehicle, and driver datasets.</div>
+              <div className="rounded-xl border border-dashed px-4 py-8 text-muted-foreground">No cleanup items are currently queued for the core customer, vehicle, and driver datasets.</div>
             )}
           </CardContent>
         </Card>
       </div> : null}
 
-      {section === 'operations' ? <Card className="border-slate-200/80 bg-white/90">
+      {section === 'operations' ? <Card >
         <CardHeader>
           <CardTitle>Recent Audit Activity</CardTitle>
         </CardHeader>
@@ -3074,7 +3074,7 @@ export async function SettingsView({
               </TableBody>
             </Table>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">No audit events have been recorded yet.</div>
+            <div className="rounded-xl border border-dashed px-4 py-8 text-sm text-muted-foreground">No audit events have been recorded yet.</div>
           )}
         </CardContent>
       </Card> : null}

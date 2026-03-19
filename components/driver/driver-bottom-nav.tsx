@@ -22,7 +22,7 @@ export function DriverBottomNav({ enabledModules }: { enabledModules: readonly P
     : baseNavItems
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-[rgba(255,255,255,0.96)] px-3 py-3 backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-[rgba(255,255,255,0.96)] px-3 py-3 backdrop-blur">
       <div className={cn('mx-auto grid max-w-md gap-2', navItems.length === 4 ? 'grid-cols-4' : 'grid-cols-3')}>
         {navItems.map((item) => {
           const Icon = item.icon

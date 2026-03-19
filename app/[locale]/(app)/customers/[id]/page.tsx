@@ -28,24 +28,24 @@ export default async function CustomerDetailPage({
       <PageHeader title={customer.name} description="Customer account details and related transport activity." actions={<Button asChild variant="outline"><Link href={`/customers/${customer.id}/edit`}>Edit customer</Link></Button>} />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Customer Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
-            <div><span className="font-medium text-slate-900">Business ID:</span> {customer.business_id ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {customer.branch_name ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">VAT Number:</span> {customer.vat_number ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Email:</span> {customer.email ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Phone:</span> {customer.phone ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">City:</span> {customer.billing_city ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Address:</span> {[customer.billing_address_line1, customer.billing_address_line2].filter(Boolean).join(', ') || '-'}</div>
-            <div><span className="font-medium text-slate-900">Notes:</span> {customer.notes ?? '-'}</div>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div><span className="font-medium text-foreground">Business ID:</span> {customer.business_id ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Branch:</span> {customer.branch_name ?? '-'}</div>
+            <div><span className="font-medium text-foreground">VAT Number:</span> {customer.vat_number ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Email:</span> {customer.email ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Phone:</span> {customer.phone ?? '-'}</div>
+            <div><span className="font-medium text-foreground">City:</span> {customer.billing_city ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Address:</span> {[customer.billing_address_line1, customer.billing_address_line2].filter(Boolean).join(', ') || '-'}</div>
+            <div><span className="font-medium text-foreground">Notes:</span> {customer.notes ?? '-'}</div>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Related Orders</CardTitle>
             </CardHeader>
@@ -77,7 +77,7 @@ export default async function CustomerDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Related Trips</CardTitle>
             </CardHeader>
@@ -109,7 +109,7 @@ export default async function CustomerDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Related Invoices</CardTitle>
             </CardHeader>

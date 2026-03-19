@@ -28,7 +28,7 @@ export function InventoryMovementForm({
   return (
     <form action={action} className="space-y-6">
       <input type="hidden" name="product_id" value={productId} />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Record Stock Movement</CardTitle>
         </CardHeader>

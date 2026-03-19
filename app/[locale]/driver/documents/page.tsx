@@ -32,7 +32,7 @@ export default async function DriverDocumentsPage({
 
   return (
     <div className="space-y-4">
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Trip documents</CardTitle>
           <CardDescription>

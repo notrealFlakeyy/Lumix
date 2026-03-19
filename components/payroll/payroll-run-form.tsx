@@ -22,7 +22,7 @@ export function PayrollRunForm({
 
   return (
     <form action={action}>
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Create Payroll Run</CardTitle>
         </CardHeader>

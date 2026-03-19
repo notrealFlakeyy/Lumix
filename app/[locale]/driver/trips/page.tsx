@@ -32,7 +32,7 @@ export default async function DriverTripsPage({
 
   return (
     <div className="space-y-4">
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Assigned trips</CardTitle>
           <CardDescription>All trips currently linked to {activeDriver.full_name}. Use the trip workflow page for live odometer and delivery reporting.</CardDescription>
@@ -47,7 +47,7 @@ export default async function DriverTripsPage({
       {sections.map((section) =>
         section.trips.length > 0 ? (
           <section key={section.title} className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">{section.title}</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">{section.title}</h2>
             {section.trips.map((trip) => (
               <DriverTripCard key={trip.id} locale={locale} trip={trip} previewDriverId={selectedDriverId} />
             ))}
@@ -57,7 +57,7 @@ export default async function DriverTripsPage({
 
       {trips.length === 0 ? (
         <Card className="border-dashed border-slate-300 bg-white/90">
-          <CardContent className="p-6 text-sm text-slate-600">No trips are assigned to this driver yet.</CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground">No trips are assigned to this driver yet.</CardContent>
         </Card>
       ) : null}
     </div>

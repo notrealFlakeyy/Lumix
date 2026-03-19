@@ -56,15 +56,15 @@ export default async function PurchaseVendorsPage({ params }: { params: Promise<
             branches={branches.map((branch) => ({ value: branch.id, label: `${branch.name}${branch.code ? ` (${branch.code})` : ''}` }))}
           />
         ) : (
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>No branches configured</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-600">Create at least one branch before adding vendors to the purchases module.</CardContent>
+            <CardContent className="text-sm text-muted-foreground">Create at least one branch before adding vendors to the purchases module.</CardContent>
           </Card>
         )}
 
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Vendor Directory</CardTitle>
           </CardHeader>
@@ -72,7 +72,7 @@ export default async function PurchaseVendorsPage({ params }: { params: Promise<
             {vendors.length > 0 ? (
               <PurchaseVendorTable vendors={vendors} />
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                 No vendors yet.
               </div>
             )}

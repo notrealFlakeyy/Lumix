@@ -13,7 +13,7 @@ export function PaymentForm({
   return (
     <form action={action}>
       <input type="hidden" name="invoice_id" value={invoiceId} />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Register Payment</CardTitle>
         </CardHeader>

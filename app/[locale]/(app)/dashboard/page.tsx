@@ -53,42 +53,42 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Enabled Module Stack</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               {enabledModules.map((module) => (
-                <div key={module.key} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                <div key={module.key} className="rounded-2xl border border-border/20 bg-surface px-4 py-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-950">{module.label}</div>
+                    <div className="font-medium text-foreground">{module.label}</div>
                     <Badge variant="success">Enabled</Badge>
                   </div>
-                  <p className="mt-2 text-sm text-slate-600">{module.description}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{module.description}</p>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Platform Signals</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-slate-600">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="font-medium text-slate-950">Customer master data</div>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-border/20 bg-surface px-4 py-3">
+                <div className="font-medium text-foreground">Customer master data</div>
                 <div className="mt-1">{customerCount ?? 0} customer records available for invoicing, inventory handoff, or future module expansion.</div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="font-medium text-slate-950">Branch foundation</div>
+              <div className="rounded-xl border border-border/20 bg-surface px-4 py-3">
+                <div className="font-medium text-foreground">Branch foundation</div>
                 <div className="mt-1">
                   {branchCount && branchCount > 0
                     ? `This tenant already has ${branchCount} configured branch${branchCount === 1 ? '' : 'es'}.`
                     : 'No branches configured yet. Keep the workspace simple until the client needs branch-specific permissions.'}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="font-medium text-slate-950">Next expansion step</div>
+              <div className="rounded-xl border border-border/20 bg-surface px-4 py-3">
+                <div className="font-medium text-foreground">Next expansion step</div>
                 <div className="mt-1">Enable additional modules in Settings when the client’s scope grows instead of creating a separate app fork.</div>
               </div>
             </CardContent>

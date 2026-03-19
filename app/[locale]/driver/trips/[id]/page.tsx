@@ -148,7 +148,7 @@ export default async function DriverTripDetailPage({
 
   return (
     <div className="space-y-4">
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -160,15 +160,15 @@ export default async function DriverTripDetailPage({
             <TripStatusBadge status={resolvedTrip.status as any} />
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-600">
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
           {success ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">{success}</div> : null}
           {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-950">{error}</div> : null}
-          <div><span className="font-medium text-slate-900">Trip Ref:</span> {getTripRouteId(resolvedTrip)}</div>
-          <div><span className="font-medium text-slate-900">Order:</span> {resolvedTrip.order_number ?? 'Direct trip'}</div>
-          <div><span className="font-medium text-slate-900">Scheduled:</span> {formatDateTime(resolvedTrip.scheduled_at)}</div>
-          <div><span className="font-medium text-slate-900">Vehicle:</span> {resolvedTrip.vehicle_name}</div>
-          <div><span className="font-medium text-slate-900">Customer contact:</span> {tripDetail.customer?.phone ?? tripDetail.customer?.email ?? '-'}</div>
-          <div><span className="font-medium text-slate-900">Branch:</span> {tripDetail.branch?.name ?? 'No branch'}</div>
+          <div><span className="font-medium text-foreground">Trip Ref:</span> {getTripRouteId(resolvedTrip)}</div>
+          <div><span className="font-medium text-foreground">Order:</span> {resolvedTrip.order_number ?? 'Direct trip'}</div>
+          <div><span className="font-medium text-foreground">Scheduled:</span> {formatDateTime(resolvedTrip.scheduled_at)}</div>
+          <div><span className="font-medium text-foreground">Vehicle:</span> {resolvedTrip.vehicle_name}</div>
+          <div><span className="font-medium text-foreground">Customer contact:</span> {tripDetail.customer?.phone ?? tripDetail.customer?.email ?? '-'}</div>
+          <div><span className="font-medium text-foreground">Branch:</span> {tripDetail.branch?.name ?? 'No branch'}</div>
           <div className="flex flex-wrap gap-2">
             {resolvedTrip.invoice_number ? <Badge variant="success">{resolvedTrip.invoice_number}</Badge> : <Badge variant="default">Not invoiced</Badge>}
             {resolvedTrip.start_km ? <Badge variant="default">Start {toDisplayNumber(resolvedTrip.start_km)} km</Badge> : null}
@@ -177,14 +177,14 @@ export default async function DriverTripDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Field checklist</CardTitle>
           <CardDescription>The essentials to finish before dispatch closes the job and invoicing picks it up.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {tripChecklist.map((item) => (
-            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
+            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-border/20 px-4 py-3 text-sm text-slate-700">
               {item.done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-slate-400" />}
               <span>{item.label}</span>
             </div>
@@ -192,25 +192,25 @@ export default async function DriverTripDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Route brief</CardTitle>
           <CardDescription>Keep the live route, order context, and site notes visible while working from the phone.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-600">
-          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <div className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4">
             <Route className="mt-0.5 h-4 w-4 text-slate-400" />
             <div>
-              <div className="font-medium text-slate-950">Route</div>
+              <div className="font-medium text-foreground">Route</div>
               <div className="mt-1">{resolvedTrip.pickup_location ?? 'Pickup TBD'} {'->'} {resolvedTrip.delivery_location ?? 'Delivery TBD'}</div>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-4">
+          <div className="flex items-start gap-3 rounded-2xl border border-border/20 px-4 py-4">
             <ShieldCheck className="mt-0.5 h-4 w-4 text-slate-400" />
             <div>
-              <div className="font-medium text-slate-950">Dispatch note</div>
+              <div className="font-medium text-foreground">Dispatch note</div>
               <div className="mt-1">{tripDetail.order?.status ? `Order ${tripDetail.order.order_number ?? 'linked'} is ${tripDetail.order.status}.` : 'No linked order status.'}</div>
-              <div className="mt-1 text-slate-500">{tripDetail.trip.notes ?? 'No route or handling notes recorded yet.'}</div>
+              <div className="mt-1 text-muted-foreground">{tripDetail.trip.notes ?? 'No route or handling notes recorded yet.'}</div>
             </div>
           </div>
         </CardContent>
@@ -240,7 +240,7 @@ export default async function DriverTripDetailPage({
         />
       ) : null}
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Proof of delivery and receipts</CardTitle>
           <CardDescription>Capture a phone photo or upload a PDF directly from the field. Files are stored in the `{transportDocumentsBucket}` Supabase bucket when configured.</CardDescription>
@@ -262,14 +262,14 @@ export default async function DriverTripDetailPage({
             </div>
             <Button type="submit" variant="outline" className="w-full">Upload document</Button>
           </form>
-          <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed px-4 py-4 text-sm text-muted-foreground">
             Document uploads still require connectivity. Trip and shift actions can queue offline and sync automatically when the device reconnects.
           </div>
           <DriverDocumentList documents={documentFeed} />
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Checkpoint history</CardTitle>
           <CardDescription>Arrival and departure stamps captured from the driver phone with location metadata.</CardDescription>
@@ -277,40 +277,40 @@ export default async function DriverTripDetailPage({
         <CardContent className="space-y-3">
           {checkpoints.length > 0 ? (
             checkpoints.map((checkpoint) => (
-              <div key={checkpoint.id} className="rounded-2xl border border-slate-200 px-4 py-4 text-sm text-slate-600">
+              <div key={checkpoint.id} className="rounded-2xl border border-border/20 px-4 py-4 text-sm text-muted-foreground">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-medium text-slate-950">{checkpoint.checkpoint_type.replaceAll('_', ' ')}</div>
+                  <div className="font-medium text-foreground">{checkpoint.checkpoint_type.replaceAll('_', ' ')}</div>
                   <Badge variant="default">{formatDateTime(checkpoint.captured_at)}</Badge>
                 </div>
                 <div className="mt-2">
                   {checkpoint.latitude}, {checkpoint.longitude}
                 </div>
-                <div className="mt-1 text-slate-500">
+                <div className="mt-1 text-muted-foreground">
                   Accuracy: {checkpoint.accuracy_meters ? `${Number(checkpoint.accuracy_meters).toFixed(0)} m` : 'n/a'}
                 </div>
-                {checkpoint.notes ? <div className="mt-2 text-slate-500">{checkpoint.notes}</div> : null}
+                {checkpoint.notes ? <div className="mt-2 text-muted-foreground">{checkpoint.notes}</div> : null}
               </div>
             ))
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-4 py-4 text-sm text-muted-foreground">
               No live arrival or departure stamps captured yet.
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+      <Card className="shadow-softSm">
         <CardHeader className="pb-4">
           <CardTitle>Trip notes</CardTitle>
           <CardDescription>Field context stays visible for dispatch and invoicing follow-through.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-600">
-          <div><span className="font-medium text-slate-900">Start time:</span> {formatDateTime(tripDetail.trip.start_time)}</div>
-          <div><span className="font-medium text-slate-900">End time:</span> {formatDateTime(tripDetail.trip.end_time)}</div>
-          <div><span className="font-medium text-slate-900">Recipient:</span> {tripDetail.trip.delivery_recipient_name ?? 'Not captured yet'}</div>
-          <div><span className="font-medium text-slate-900">Delivery received:</span> {formatDateTime(tripDetail.trip.delivery_received_at)}</div>
-          <div><span className="font-medium text-slate-900">Delivery confirmation:</span> {tripDetail.trip.delivery_confirmation ?? 'Not captured yet'}</div>
-          <div><span className="font-medium text-slate-900">Notes:</span> {tripDetail.trip.notes ?? 'No notes recorded'}</div>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <div><span className="font-medium text-foreground">Start time:</span> {formatDateTime(tripDetail.trip.start_time)}</div>
+          <div><span className="font-medium text-foreground">End time:</span> {formatDateTime(tripDetail.trip.end_time)}</div>
+          <div><span className="font-medium text-foreground">Recipient:</span> {tripDetail.trip.delivery_recipient_name ?? 'Not captured yet'}</div>
+          <div><span className="font-medium text-foreground">Delivery received:</span> {formatDateTime(tripDetail.trip.delivery_received_at)}</div>
+          <div><span className="font-medium text-foreground">Delivery confirmation:</span> {tripDetail.trip.delivery_confirmation ?? 'Not captured yet'}</div>
+          <div><span className="font-medium text-foreground">Notes:</span> {tripDetail.trip.notes ?? 'No notes recorded'}</div>
         </CardContent>
       </Card>
 

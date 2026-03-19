@@ -92,7 +92,7 @@ export function DriverCheckpointPanel({
   }
 
   return (
-    <Card className="border-slate-200/80 bg-white/95 shadow-softSm">
+    <Card className="shadow-softSm">
       <CardHeader className="pb-4">
         <CardTitle>Live location stamps</CardTitle>
         <CardDescription>Capture arrival and departure checkpoints with GPS location from the driver phone.</CardDescription>

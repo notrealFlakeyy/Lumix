@@ -35,7 +35,7 @@ export function DocumentList({
         const isImage = document.mime_type?.startsWith('image/')
 
         return (
-          <Card key={document.id} className="border-slate-200/80 bg-white/95 shadow-softSm">
+          <Card key={document.id} className="shadow-softSm">
             <CardContent className="flex items-start gap-3 p-4">
               <div className="rounded-xl bg-slate-100 p-3 text-slate-700">
                 {isImage ? <FileImage className="h-5 w-5" /> : <FileText className="h-5 w-5" />}

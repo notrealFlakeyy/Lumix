@@ -87,20 +87,20 @@ export default async function InventoryProductDetailPage({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-slate-200/80 bg-white/90">
+        <Card >
           <CardHeader>
             <CardTitle>Product Summary</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
-            <div><span className="font-medium text-slate-900">SKU:</span> {product.sku}</div>
-            <div><span className="font-medium text-slate-900">Branch:</span> {product.branch_name}</div>
-            <div><span className="font-medium text-slate-900">Category:</span> {product.category ?? '-'}</div>
-            <div><span className="font-medium text-slate-900">Unit:</span> {product.unit}</div>
-            <div><span className="font-medium text-slate-900">Cost price:</span> {formatCurrency(Number(product.cost_price))}</div>
-            <div><span className="font-medium text-slate-900">Sale price:</span> {product.sale_price ? formatCurrency(Number(product.sale_price)) : '-'}</div>
-            <div><span className="font-medium text-slate-900">Status:</span> {product.is_active ? 'Active' : 'Inactive'}</div>
-            <div><span className="font-medium text-slate-900">Reorder level:</span> {toDisplayNumber(product.reorder_level, 2)} {product.unit}</div>
-            <div className="md:col-span-2"><span className="font-medium text-slate-900">Notes:</span> {product.notes ?? '-'}</div>
+          <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+            <div><span className="font-medium text-foreground">SKU:</span> {product.sku}</div>
+            <div><span className="font-medium text-foreground">Branch:</span> {product.branch_name}</div>
+            <div><span className="font-medium text-foreground">Category:</span> {product.category ?? '-'}</div>
+            <div><span className="font-medium text-foreground">Unit:</span> {product.unit}</div>
+            <div><span className="font-medium text-foreground">Cost price:</span> {formatCurrency(Number(product.cost_price))}</div>
+            <div><span className="font-medium text-foreground">Sale price:</span> {product.sale_price ? formatCurrency(Number(product.sale_price)) : '-'}</div>
+            <div><span className="font-medium text-foreground">Status:</span> {product.is_active ? 'Active' : 'Inactive'}</div>
+            <div><span className="font-medium text-foreground">Reorder level:</span> {toDisplayNumber(product.reorder_level, 2)} {product.unit}</div>
+            <div className="md:col-span-2"><span className="font-medium text-foreground">Notes:</span> {product.notes ?? '-'}</div>
           </CardContent>
         </Card>
 
@@ -109,7 +109,7 @@ export default async function InventoryProductDetailPage({
         ) : null}
       </div>
 
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Movement History</CardTitle>
         </CardHeader>
@@ -147,7 +147,7 @@ export default async function InventoryProductDetailPage({
               </TableBody>
             </Table>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
               No stock movements recorded yet.
             </div>
           )}

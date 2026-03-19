@@ -178,15 +178,15 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="space-y-6">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>My Shift</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {currentEmployee ? (
                 <>
-                  <div className="text-sm text-slate-600">
-                    Linked employee: <span className="font-medium text-slate-950">{currentEmployee.full_name}</span>
+                  <div className="text-sm text-muted-foreground">
+                    Linked employee: <span className="font-medium text-foreground">{currentEmployee.full_name}</span>
                   </div>
                   {currentOpenEntry ? (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
@@ -194,7 +194,7 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
                       <div className="mt-1">Status: <TimeEntryStatusBadge status={currentOpenEntry.status as any} /></div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+                    <div className="rounded-2xl border border-dashed px-4 py-4 text-sm text-muted-foreground">
                       No active shift. Clock in when the workday starts.
                     </div>
                   )}
@@ -220,7 +220,7 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
                   )}
                 </>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed px-4 py-4 text-sm text-muted-foreground">
                   No linked employee profile found for your user yet. An admin can create one below and link your login.
                 </div>
               )}
@@ -235,11 +235,11 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
                 users={userOptions}
               />
             ) : (
-              <Card className="border-slate-200/80 bg-white/90">
+              <Card >
                 <CardHeader>
                   <CardTitle>No branches configured</CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-slate-600">Create at least one branch before adding workforce employees.</CardContent>
+                <CardContent className="text-sm text-muted-foreground">Create at least one branch before adding workforce employees.</CardContent>
               </Card>
             )
           ) : null}
@@ -256,7 +256,7 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
         </div>
 
         <div className="space-y-6">
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Employee Directory</CardTitle>
             </CardHeader>
@@ -264,14 +264,14 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
               {employees.length > 0 ? (
                 <WorkforceEmployeeTable employees={employees} />
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                   No workforce employees yet.
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 bg-white/90">
+          <Card >
             <CardHeader>
               <CardTitle>Recent Time Entries</CardTitle>
             </CardHeader>
@@ -279,7 +279,7 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
               {overview.recentEntries.length > 0 ? (
                 <TimeEntryTable entries={overview.recentEntries} approveAction={approveEntryAction} canApprove={canManageTime(membership.role)} />
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
                   No time entries yet.
                 </div>
               )}
@@ -287,14 +287,14 @@ export default async function TimePage({ params }: { params: Promise<{ locale: s
           </Card>
 
           {recentOpenEntries.length > 0 ? (
-            <Card className="border-slate-200/80 bg-white/90">
+            <Card >
               <CardHeader>
                 <CardTitle>Open Shifts</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentOpenEntries.map((entry) => (
-                  <div key={entry.id} className="rounded-2xl border border-slate-200 px-4 py-4 text-sm text-slate-600">
-                    <div className="font-medium text-slate-950">{entry.employee_name}</div>
+                  <div key={entry.id} className="rounded-2xl border border-border/20 px-4 py-4 text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">{entry.employee_name}</div>
                     <div>{entry.branch_name}</div>
                     <div>Started {formatDateTime(entry.start_time)}</div>
                   </div>

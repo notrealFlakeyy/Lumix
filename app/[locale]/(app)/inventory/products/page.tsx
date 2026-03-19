@@ -27,7 +27,7 @@ export default async function InventoryProductsPage({ params }: { params: Promis
           </>
         }
       />
-      <Card className="border-slate-200/80 bg-white/90">
+      <Card >
         <CardHeader>
           <CardTitle>Product Catalogue</CardTitle>
         </CardHeader>
@@ -35,7 +35,7 @@ export default async function InventoryProductsPage({ params }: { params: Promis
           {products.length > 0 ? (
             <InventoryProductTable products={products} />
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed px-6 py-10 text-sm text-muted-foreground">
               No inventory products yet. Add the first branch-owned SKU to start stock tracking.
             </div>
           )}

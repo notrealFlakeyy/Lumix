@@ -16,7 +16,7 @@ export function MonitoringTestPanel({
   const [isPending, startTransition] = React.useTransition()
 
   return (
-    <Card className="border-slate-200/80 bg-white/90">
+    <Card >
       <CardHeader>
         <CardTitle>Monitoring Tests</CardTitle>
       </CardHeader>
