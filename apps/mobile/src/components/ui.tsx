@@ -1,5 +1,7 @@
 import { Link, usePathname } from 'expo-router'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import React, { useEffect, useRef } from 'react'
+import { Animated, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const palette = {
@@ -203,24 +205,127 @@ export function LoadingState({ label = 'Loading' }: { label?: string }) {
   )
 }
 
+type DockNavItemProps = {
+  iconName: keyof typeof Ionicons.glyphMap
+  iconNameActive: keyof typeof Ionicons.glyphMap
+  label: string
+  href: string
+  isActive: boolean
+}
+
+function DockNavItem({ iconName, iconNameActive, label, href, isActive }: DockNavItemProps) {
+  const bounceAnim = useRef(new Animated.Value(1)).current
+  const labelOpacity = useRef(new Animated.Value(isActive ? 1 : 0)).current
+  const underlineScale = useRef(new Animated.Value(isActive ? 1 : 0)).current
+  const prevActive = useRef(isActive)
+
+  useEffect(() => {
+    if (isActive && !prevActive.current) {
+      // Bounce the icon on activation
+      Animated.sequence([
+        Animated.spring(bounceAnim, {
+          toValue: 1.4,
+          useNativeDriver: true,
+          speed: 60,
+          bounciness: 18,
+        }),
+        Animated.spring(bounceAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 30,
+          bounciness: 6,
+        }),
+      ]).start()
+    }
+
+    // Fade label + slide underline in/out
+    Animated.parallel([
+      Animated.timing(labelOpacity, {
+        toValue: isActive ? 1 : 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.spring(underlineScale, {
+        toValue: isActive ? 1 : 0,
+        useNativeDriver: true,
+        speed: 40,
+        bounciness: 4,
+      }),
+    ]).start()
+
+    prevActive.current = isActive
+  }, [isActive])
+
+  return (
+    <Link href={href} asChild>
+      <Pressable style={styles.dockItem}>
+        {/* Icon with bounce */}
+        <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
+          <Ionicons
+            name={isActive ? iconNameActive : iconName}
+            size={22}
+            color={isActive ? palette.primary : '#a09282'}
+          />
+        </Animated.View>
+
+        {/* Label — always present, fades in/out to avoid layout shift */}
+        <Animated.Text
+          style={[styles.dockLabel, { opacity: labelOpacity, color: isActive ? palette.ink : palette.inkSoft }]}
+        >
+          {label}
+        </Animated.Text>
+
+        {/* Underline indicator */}
+        <Animated.View
+          style={[
+            styles.dockUnderline,
+            { transform: [{ scaleX: underlineScale }], backgroundColor: palette.primary },
+          ]}
+        />
+      </Pressable>
+    </Link>
+  )
+}
+
 function MobileDock() {
   const pathname = usePathname()
+
   const items = [
-    { href: '/(app)/home', label: 'Home', active: pathname === '/(app)/home' || pathname === '/home' },
-    { href: '/(app)/trips', label: 'Trips', active: pathname.includes('/trips') },
-    { href: '/(app)/documents', label: 'Docs', active: pathname.includes('/documents') },
-    { href: '/(app)/time', label: 'Time', active: pathname.includes('/time') },
-  ] as const
+    {
+      href: '/(app)/home' as const,
+      label: 'Home',
+      iconName: 'home-outline' as const,
+      iconNameActive: 'home' as const,
+      isActive: pathname === '/(app)/home' || pathname === '/home',
+    },
+    {
+      href: '/(app)/trips' as const,
+      label: 'Trips',
+      iconName: 'navigate-outline' as const,
+      iconNameActive: 'navigate' as const,
+      isActive: pathname.includes('/trips'),
+    },
+    {
+      href: '/(app)/documents' as const,
+      label: 'Docs',
+      iconName: 'document-text-outline' as const,
+      iconNameActive: 'document-text' as const,
+      isActive: pathname.includes('/documents'),
+    },
+    {
+      href: '/(app)/time' as const,
+      label: 'Time',
+      iconName: 'time-outline' as const,
+      iconNameActive: 'time' as const,
+      isActive: pathname.includes('/time'),
+    },
+  ]
 
   return (
     <View style={styles.dockWrap}>
       <View style={styles.dock}>
         {items.map((item) => (
-          <Link key={item.href} href={item.href} asChild>
-            <Pressable style={[styles.dockItem, item.active && styles.dockItemActive]}>
-              <Text style={[styles.dockLabel, item.active && styles.dockLabelActive]}>{item.label}</Text>
-            </Pressable>
-          </Link>
+          <DockNavItem key={item.href} {...item} />
         ))}
       </View>
     </View>
@@ -535,40 +640,40 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 12,
+    bottom: 14,
     alignItems: 'center',
   },
   dock: {
     flexDirection: 'row',
-    gap: 8,
-    padding: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 249, 241, 0.96)',
+    backgroundColor: 'rgba(255, 249, 241, 0.97)',
     borderWidth: 1,
     borderColor: 'rgba(234, 219, 199, 0.95)',
     width: '92%',
     shadowColor: '#5f4934',
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
   },
   dockItem: {
     flex: 1,
-    borderRadius: 999,
-    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  dockItemActive: {
-    backgroundColor: palette.hero,
+    paddingVertical: 6,
+    gap: 3,
   },
   dockLabel: {
-    color: '#6f645b',
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
-  dockLabelActive: {
-    color: palette.white,
+  dockUnderline: {
+    height: 3,
+    width: 20,
+    borderRadius: 99,
+    marginTop: 1,
   },
 })
