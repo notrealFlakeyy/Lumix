@@ -41,7 +41,8 @@ export function CompanyOnboarding({
   const [createState, createAction, isCreating] = React.useActionState(createCompany, onboardingInitialState)
   const [claimState, claimAction, isClaiming] = React.useActionState(claimDemoCompany, onboardingInitialState)
 
-  const resolvedDefault = (defaultPlan && planToBundle[defaultPlan]) ?? 'transport'
+  const resolvedDefault: (typeof onboardingModuleBundles)[number]['key'] =
+    (defaultPlan ? planToBundle[defaultPlan] : undefined) ?? 'transport'
 
   const [businessType, setBusinessType] = React.useState<(typeof onboardingModuleBundles)[number]['key']>(resolvedDefault)
   const [selectedModules, setSelectedModules] = React.useState<string[]>(
