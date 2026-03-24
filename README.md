@@ -84,7 +84,6 @@ Remaining legacy cleanup tasks:
 # Environment Variables
 Required environment variables:
 - `NEXT_PUBLIC_SITE_URL`
-- `NEXT_PUBLIC_PORTAL_URL` (optional, recommended for production portal subdomain setups)
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -105,6 +104,7 @@ Required environment variables:
 - `SMTP_PASS`
 - `SMTP_FROM`
 - `SMTP_REPLY_TO` (optional)
+- `CONTACT_FORM_TO` (optional, defaults to `SMTP_REPLY_TO` or `SMTP_FROM` for the public contact page)
 - `STRIPE_SECRET_KEY` (optional, required for Stripe billing flows)
 - `STRIPE_WEBHOOK_SECRET` (optional, required for Stripe webhook sync)
 - `STRIPE_PRICE_STARTER` (optional, required for Starter checkout)
@@ -346,6 +346,7 @@ Storage:
 
 Email:
 - [ ] Add SMTP env vars on the deployment platform
+- [ ] Add `CONTACT_FORM_TO` if you want contact form submissions to land in a dedicated inbox
 - [ ] Verify sender identity and invoice email delivery with a real inbox
 
 Stripe:

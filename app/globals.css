@@ -143,117 +143,16 @@ body {
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   50% {
     transform: translate3d(0, -10px, 0);
   }
 }
 
-/* Mesh blob drift — different axis per orb */
-@keyframes lumix-drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(40px, -30px) scale(1.06); }
-  66%       { transform: translate(-24px, 20px) scale(0.96); }
-}
-@keyframes lumix-drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  40%       { transform: translate(-50px, 35px) scale(1.08); }
-  75%       { transform: translate(30px, -20px) scale(0.94); }
-}
-@keyframes lumix-drift-c {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(20px, 40px) scale(1.04); }
-}
-
-/* Shimmer sweep for the hero badge */
-@keyframes lumix-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-
-/* Slow fade-up for hero text */
-@keyframes lumix-rise {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Border glow pulse */
-@keyframes lumix-pulse-ring {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 127, 90, 0.18); }
-  50%       { box-shadow: 0 0 0 8px rgba(244, 127, 90, 0); }
-}
-
-/* ── Module card hover (pure CSS, no JS handlers) ─────────── */
-.lumix-module-card {
-  background: rgb(var(--app-surface));
-  border: 1px solid rgba(var(--app-muted), 0.14);
-  box-shadow: 0 2px 12px rgba(95, 73, 52, 0.06);
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-.lumix-module-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 0 1px rgba(var(--app-accent), 0.2), 0 8px 24px rgba(95, 73, 52, 0.10);
-}
-
-/* ── Landing / Auth page backgrounds ─────────────────────── */
-.lumix-dot-bg {
-  background-image: radial-gradient(rgba(108, 93, 79, 0.13) 1px, transparent 1px);
-  background-size: 26px 26px;
-}
-
-.lumix-grid-bg {
-  background-image:
-    linear-gradient(to right,  rgba(108, 93, 79, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(108, 93, 79, 0.07) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Faded edge mask so dots/grid fade to transparent at the edges */
-.lumix-bg-mask {
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%);
-}
-
-/* Drifting mesh blobs */
-.lumix-blob-a { animation: lumix-drift-a 18s ease-in-out infinite; }
-.lumix-blob-b { animation: lumix-drift-b 22s ease-in-out infinite; }
-.lumix-blob-c { animation: lumix-drift-c 14s ease-in-out infinite; }
-
-/* Hero text entrance */
-.lumix-rise-1 { animation: lumix-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.lumix-rise-2 { animation: lumix-rise 0.7s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.lumix-rise-3 { animation: lumix-rise 0.7s 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.lumix-rise-4 { animation: lumix-rise 0.7s 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
-
-/* Shimmer badge */
-.lumix-shimmer-badge {
-  background: linear-gradient(
-    90deg,
-    rgba(255,249,241,0.85) 0%,
-    rgba(255,255,255,0.95) 40%,
-    rgba(244,127,90,0.12) 50%,
-    rgba(255,249,241,0.85) 60%,
-    rgba(255,249,241,0.85) 100%
-  );
-  background-size: 200% auto;
-  animation: lumix-shimmer 3.5s linear infinite;
-}
-
-/* Pulse ring on CTA button */
-.lumix-cta-pulse { animation: lumix-pulse-ring 2.4s ease-out infinite; }
-
 @media (prefers-reduced-motion: reduce) {
   .lumix-reveal,
   .lumix-orb,
-  .lumix-floating-metric,
-  .lumix-blob-a,
-  .lumix-blob-b,
-  .lumix-blob-c,
-  .lumix-rise-1,
-  .lumix-rise-2,
-  .lumix-rise-3,
-  .lumix-rise-4,
-  .lumix-shimmer-badge,
-  .lumix-cta-pulse {
+  .lumix-floating-metric {
     animation: none !important;
     transition: none !important;
     transform: none !important;
@@ -263,21 +162,24 @@ body {
 
 @media (max-width: 767px) {
   .lumix-dashboard-shell {
-    padding: 0;
+    padding: 0.5rem 0 2.5rem;
   }
 
   .lumix-dashboard-card {
     border-radius: 1.75rem;
-    padding: 1.25rem;
-    box-shadow: 0 18px 42px rgba(63, 45, 31, 0.18);
+    padding: 1.35rem;
   }
 
   .lumix-floating-metric {
-    position: static;
+    position: relative;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    margin-top: 1rem;
     min-width: 0;
-    margin-top: 0.85rem;
     width: 100%;
-    border-radius: 1.35rem;
+    animation-duration: 0s;
   }
 }
 

@@ -1,364 +1,431 @@
 import {
   ArrowRight,
-  BarChart3,
-  Boxes,
-  Calculator,
-  CheckSquare2,
-  Clock3,
-  CreditCard,
-  Receipt,
-  Truck,
-  Wrench,
-  Zap,
+  BriefcaseBusiness,
+  Building2,
+  CheckCircle2,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
+import {
+  aboutStats,
+  companyServiceAreas,
+  customerProfiles,
+  heroSignals,
+  homepageOfferings,
+  homepageOutcomes,
+  homepageUseCases,
+  partnershipHighlights,
+  processSteps,
+  serviceCards,
+  serviceAudience,
+  serviceSpotlights,
+} from '@/components/marketing/content'
+import { MarketingFooter } from '@/components/marketing/marketing-footer'
+import { MarketingHeader } from '@/components/marketing/marketing-header'
 import { ScrollReveal } from '@/components/marketing/scroll-reveal'
-import { LandingNav } from '@/components/marketing/landing-nav'
-import { getPortalConfigFromPublicEnv, getPortalLoginUrl, getPortalSignupUrl } from '@/lib/urls/portal'
-
-const modules = [
-  {
-    icon: Truck,
-    label: 'Transport ERP',
-    detail: 'Fleet, drivers, dispatch, trips, and invoicing in one flow.',
-  },
-  {
-    icon: Boxes,
-    label: 'Inventory',
-    detail: 'Branch-aware stock, products, and warehouse operations.',
-  },
-  {
-    icon: CreditCard,
-    label: 'Finance',
-    detail: 'Receivables, purchase bills, accounting-lite handoff.',
-  },
-  {
-    icon: Clock3,
-    label: 'Workforce',
-    detail: 'Time tracking, payroll prep, and shift visibility.',
-  },
-  {
-    icon: Receipt,
-    label: 'Expenses',
-    detail: 'Employee claims, receipt capture, and approvals.',
-  },
-  {
-    icon: CheckSquare2,
-    label: 'Tasks',
-    detail: 'Internal kanban, compliance to-dos, and assignments.',
-  },
-  {
-    icon: Wrench,
-    label: 'Maintenance',
-    detail: 'Fleet service scheduling, costs, and overdue alerts.',
-  },
-  {
-    icon: BarChart3,
-    label: 'Reports',
-    detail: 'Revenue by customer, driver, and vehicle at a glance.',
-  },
-] as const
-
-const proofPoints = [
-  'One login for every department',
-  'Mobile-first driver app',
-  'Branch-aware permissions',
-  'Invoice PDF generation',
-  'Modular — enable only what you need',
-  'Built on Supabase + Next.js 15',
-] as const
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function LandingPage({ locale }: { locale: string }) {
-  const portalOptions = getPortalConfigFromPublicEnv()
-  const portalLoginHref = getPortalLoginUrl(locale, portalOptions)
-  const portalSignupHref = getPortalSignupUrl(locale, portalOptions)
-
   return (
-    <main
-      className="relative min-h-screen overflow-x-hidden"
-      style={{ background: 'rgb(var(--app-bg))' }}
-    >
-      {/* ── Background layer ─────────────────────────────── */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Dot grid */}
-        <div className="lumix-dot-bg lumix-bg-mask absolute inset-0 opacity-60" />
-
-        {/* Drifting mesh blobs */}
-        <div
-          className="lumix-blob-a absolute left-[-12rem] top-[-8rem] h-[600px] w-[600px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, rgba(244,127,90,0.55) 0%, transparent 70%)',
-            filter: 'blur(72px)',
-          }}
-        />
-        <div
-          className="lumix-blob-b absolute right-[-10rem] top-[8rem] h-[500px] w-[500px] rounded-full opacity-25"
-          style={{
-            background: 'radial-gradient(circle, rgba(24,38,63,0.6) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-        <div
-          className="lumix-blob-c absolute bottom-[5rem] left-[35%] h-[380px] w-[380px] rounded-full opacity-20"
-          style={{
-            background: 'radial-gradient(circle, rgba(167,209,188,0.8) 0%, transparent 70%)',
-            filter: 'blur(64px)',
-          }}
-        />
+    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8efe3_0%,#f3e4d2_45%,#efe6da_100%)] text-[rgb(var(--app-fg))]">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="lumix-orb left-[-8rem] top-[-4rem] h-72 w-72 bg-[rgba(244,127,90,0.16)]" />
+        <div className="lumix-orb right-[-4rem] top-24 h-80 w-80 bg-[rgba(24,38,63,0.12)]" />
+        <div className="lumix-orb bottom-12 left-1/3 h-64 w-64 bg-[rgba(167,209,188,0.2)]" />
       </div>
 
-      {/* ── Header ───────────────────────────────────────── */}
-      <LandingNav locale={locale} loginHref={portalLoginHref} signupHref={portalSignupHref} />
+      <MarketingHeader />
 
-      {/* ── Hero ─────────────────────────────────────────── */}
-      <section className="relative mx-auto max-w-6xl px-5 pb-20 pt-24 text-center lg:px-10 lg:pb-28 lg:pt-32">
-        {/* Badge */}
-        <div className="lumix-rise-1 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold lumix-shimmer-badge"
-          style={{ borderColor: 'rgba(var(--app-muted), 0.2)', color: 'rgb(var(--app-muted))' }}
-        >
-          <Zap className="h-3.5 w-3.5" style={{ color: 'rgb(var(--app-accent))' }} />
-          The only app your office team will ever need
-        </div>
+      <section className="relative mx-auto max-w-7xl px-5 pb-16 pt-12 sm:px-6 lg:px-10 lg:pb-24 lg:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.06fr_0.94fr]">
+          <ScrollReveal className="space-y-7">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/75 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_14px_32px_rgba(95,73,52,0.08)] backdrop-blur">
+              <Sparkles className="h-4 w-4 text-[rgb(var(--app-accent))]" />
+              Lumix represents the company, the service, and the software in one clear public experience
+            </div>
 
-        {/* Headline */}
-        <h1
-          className="lumix-rise-2 mx-auto mt-7 max-w-4xl text-5xl font-semibold leading-[1.08] tracking-[-0.04em] sm:text-6xl md:text-7xl"
-          style={{ color: 'rgb(var(--app-contrast))' }}
-        >
-          One platform.
-          <br />
-          <span style={{ color: 'rgb(var(--app-accent))' }}>Every office operation.</span>
-        </h1>
+            <div className="space-y-5">
+              <h1 className="max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-[rgb(var(--app-contrast))] md:text-7xl">
+                Lumix helps transport companies run a more connected office.
+              </h1>
+              <p className="max-w-2xl text-lg leading-8 text-[rgb(var(--app-muted))] md:text-xl">
+                We offer a transport-focused operating platform together with rollout guidance for dispatch, driver workflow,
+                invoicing, admin coordination, and the day-to-day office work that usually gets split across too many tools.
+              </p>
+            </div>
 
-        {/* Sub */}
-        <p
-          className="lumix-rise-3 mx-auto mt-6 max-w-2xl text-lg leading-8"
-          style={{ color: 'rgb(var(--app-muted))' }}
-        >
-          Lumix replaces the patchwork of spreadsheets, separate apps, and email chains with a single
-          modular workspace — transport, finance, workforce, maintenance, and more.
-        </p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg" className="pr-6">
+                <Link href="/services" className="inline-flex items-center gap-2 no-underline">
+                  See what we offer <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="bg-white/70">
+                <Link href="/contact" className="no-underline">
+                  Contact Lumix
+                </Link>
+              </Button>
+            </div>
 
-        {/* CTAs */}
-        <div className="lumix-rise-4 mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button asChild size="lg">
-            <a href={portalLoginHref} className="inline-flex items-center gap-2 no-underline">
-              Launch workspace <ArrowRight className="h-4 w-4" />
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <a href={portalLoginHref} className="no-underline">
-              See a demo
-            </a>
-          </Button>
-        </div>
+            <div className="flex flex-wrap gap-3">
+              {heroSignals.map((signal) => (
+                <div
+                  key={signal}
+                  className="rounded-full border border-white/70 bg-white/72 px-4 py-2 text-sm font-medium text-[rgb(var(--app-contrast))] shadow-[0_10px_22px_rgba(95,73,52,0.06)]"
+                >
+                  {signal}
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
 
-        {/* Proof points strip */}
-        <div
-          className="lumix-rise-4 mx-auto mt-14 flex max-w-3xl flex-wrap justify-center gap-x-6 gap-y-2"
-        >
-          {proofPoints.map((point) => (
-            <span
-              key={point}
-              className="flex items-center gap-1.5 text-sm"
-              style={{ color: 'rgba(var(--app-muted), 0.8)' }}
-            >
-              <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: 'rgb(var(--app-accent))' }}
-              />
-              {point}
-            </span>
-          ))}
+          <ScrollReveal delay={140} className="relative">
+            <div className="lumix-dashboard-shell">
+              <div className="lumix-dashboard-card">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.25em] text-white/72">Operations pulse</div>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">A company offer built around real transport office needs.</h2>
+                  </div>
+                  <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/82">Offer</div>
+                </div>
+
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-[28px] border border-white/10 bg-white/8 p-5">
+                    <div className="text-sm text-white">For the company</div>
+                    <div className="mt-2 text-4xl font-semibold text-white">Visible</div>
+                    <div className="mt-3 text-sm leading-6 text-white">
+                      The site now explains who Lumix is, what we offer, and how we work before anyone reaches the portal.
+                    </div>
+                  </div>
+                  <div className="rounded-[28px] border border-white/10 bg-[rgba(244,127,90,0.16)] p-5">
+                    <div className="text-sm text-white">For customers</div>
+                    <div className="mt-2 text-4xl font-semibold text-white">Practical</div>
+                    <div className="mt-3 text-sm leading-6 text-white">
+                      The service promise is about reducing admin friction, improving follow-through, and giving teams one better system.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {homepageOutcomes.map((outcome) => (
+                    <div key={outcome} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white">
+                      <span>{outcome}</span>
+                      <ChevronRight className="h-4 w-4 text-white/60" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lumix-floating-metric right-5 top-0">
+                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgb(var(--app-muted))]">Company story</div>
+                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Clearer</div>
+              </div>
+              <div className="lumix-floating-metric bottom-10 left-[-1rem] bg-[rgba(167,209,188,0.92)]">
+                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgba(24,38,63,0.6)]">Service focus</div>
+                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Practical</div>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* ── Mock dashboard preview ────────────────────────── */}
-      <ScrollReveal>
-        <section className="mx-auto max-w-6xl px-5 pb-20 lg:px-10">
-          <div
-            className="relative overflow-hidden rounded-[2rem] p-7 shadow-[0_40px_120px_rgba(24,38,63,0.14)]"
-            style={{
-              background: 'linear-gradient(135deg, rgb(var(--app-contrast)) 0%, rgba(24,38,63,0.92) 100%)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
-            {/* Inner glow */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-64 w-96 opacity-20"
-              style={{
-                background: 'radial-gradient(circle at top right, rgb(var(--app-accent)), transparent 65%)',
-              }}
-            />
-
-            {/* Top bar */}
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-white/20" />
-                <div className="h-3 w-3 rounded-full bg-white/12" />
-                <div className="h-3 w-3 rounded-full bg-white/8" />
-              </div>
-              <div
-                className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em]"
-                style={{ background: 'rgba(var(--app-accent), 0.2)', color: 'rgb(var(--app-accent))' }}
-              >
-                Live
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="grid gap-3 sm:grid-cols-4">
-              {[
-                { label: 'Active trips', value: '24' },
-                { label: 'Open invoices', value: '€38 400' },
-                { label: 'Pending tasks', value: '7' },
-                { label: 'Fleet status', value: '12 / 14' },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl p-4"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
-                >
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/50">{stat.label}</div>
-                  <div className="mt-2 text-2xl font-semibold text-white">{stat.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Module row */}
-            <div className="mt-4 grid gap-2 sm:grid-cols-4">
-              {['Transport', 'Expenses', 'Maintenance', 'Reports'].map((mod, i) => (
-                <div
-                  key={mod}
-                  className="flex items-center justify-between rounded-2xl px-4 py-3"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                >
-                  <span className="text-sm text-white/75">{mod}</span>
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: i % 3 === 1 ? 'rgba(167,209,188,0.9)' : 'rgb(var(--app-accent))' }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ── Module grid ──────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-24 lg:px-10">
-        <ScrollReveal>
-          <div className="mb-12 text-center">
-            <div
-              className="mb-3 text-xs font-semibold uppercase tracking-[0.24em]"
-              style={{ color: 'rgb(var(--app-accent))' }}
-            >
-              Modular by design
-            </div>
-            <h2
-              className="text-3xl font-semibold tracking-tight sm:text-4xl"
-              style={{ color: 'rgb(var(--app-contrast))' }}
-            >
-              Enable only what you need.
-              <br />
-              Add the rest when you grow.
-            </h2>
-          </div>
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What Lumix offers</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            The homepage should make it obvious that Lumix is a company offer, not only a login screen.
+          </h2>
         </ScrollReveal>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {modules.map((mod, i) => {
-            const Icon = mod.icon
+        <div className="mb-6 grid gap-5 lg:grid-cols-3">
+          {homepageOfferings.map((service, index) => {
+            const Icon = service.icon
             return (
-              <ScrollReveal key={mod.label} delay={i * 50}>
-                <div
-                  className="lumix-module-card rounded-2xl p-5"
-                >
-                  <div
-                    className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl"
-                    style={{
-                      background: 'rgba(var(--app-accent), 0.1)',
-                      color: 'rgb(var(--app-accent))',
-                    }}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div
-                    className="mb-1.5 text-sm font-semibold"
-                    style={{ color: 'rgb(var(--app-contrast))' }}
-                  >
-                    {mod.label}
-                  </div>
-                  <p className="text-xs leading-relaxed" style={{ color: 'rgb(var(--app-muted))' }}>
-                    {mod.detail}
-                  </p>
-                </div>
+              <ScrollReveal key={service.title} delay={index * 60}>
+                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-white">{service.title}</h3>
+                    <p className="text-sm leading-7 text-white/74">{service.summary}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )
+          })}
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {serviceCards.map((service, index) => {
+            const Icon = service.icon
+            return (
+              <ScrollReveal key={service.title} delay={index * 70}>
+                <Card className="group h-full bg-[rgba(255,249,241,0.88)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(95,73,52,0.12)]">
+                  <CardHeader className="space-y-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))] transition group-hover:scale-105">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-[1.35rem]">{service.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-0">
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{service.summary}</p>
+                    {service.points ? (
+                      <div className="space-y-3">
+                        {service.points.map((point) => (
+                          <div key={point} className="flex items-start gap-3 text-sm text-[rgb(var(--app-contrast))]">
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--app-accent))]" />
+                            <span>{point}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
               </ScrollReveal>
             )
           })}
         </div>
       </section>
 
-      {/* ── Final CTA ────────────────────────────────────── */}
-      <ScrollReveal>
-        <section className="mx-auto max-w-6xl px-5 pb-24 lg:px-10">
-          <div
-            className="relative overflow-hidden rounded-[2rem] px-10 py-14 text-center"
-            style={{
-              background: 'rgb(var(--app-contrast))',
-              boxShadow: '0 32px 80px rgba(24,38,63,0.18)',
-            }}
-          >
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                backgroundImage: 'radial-gradient(rgba(244,127,90,0.12) 1px, transparent 1px)',
-                backgroundSize: '26px 26px',
-              }}
-            />
-            <div
-              className="pointer-events-none absolute left-1/2 top-0 h-64 w-96 -translate-x-1/2 opacity-30"
-              style={{
-                background: 'radial-gradient(circle at top, rgb(var(--app-accent)), transparent 65%)',
-              }}
-            />
-            <div className="relative">
-              <h2
-                className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl"
-              >
-                Ready to run your whole office from one place?
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base leading-7" style={{ color: 'rgba(255,255,255,0.62)' }}>
-                No setup fees, no per-module pricing. Enable what you need, when you need it.
-              </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-white hover:bg-white/92"
-                  style={{ color: 'rgb(var(--app-contrast))' }}
-                >
-                  <a href={portalSignupHref} className="inline-flex items-center gap-2 no-underline">
-                    Get started free <ArrowRight className="h-4 w-4" />
-                  </a>
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How the company works</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            Present Lumix as a service company with software, rollout support, and ongoing operational partnership.
+          </h2>
+        </ScrollReveal>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {companyServiceAreas.map((item, index) => {
+            const Icon = item.icon
+            return (
+              <ScrollReveal key={item.title} delay={index * 60}>
+                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.summary}</p>
+                    <div className="space-y-3">
+                      {item.points?.map((point) => (
+                        <div key={point} className="flex items-start gap-3 text-sm text-[rgb(var(--app-contrast))]">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--app-accent))]" />
+                          <span>{point}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <ScrollReveal className="space-y-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Why companies choose Lumix</div>
+            <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+              The public site should quickly explain the kind of company Lumix is and the outcomes we help create.
+            </h2>
+            <p className="text-base leading-8 text-[rgb(var(--app-muted))]">
+              We are not trying to look like generic software. The goal is to present Lumix as a transport-focused partner for
+              operations, office workflow, and the rollout work that gets a system adopted in the real world.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {aboutStats.map((item) => (
+                <Card key={item.label} className="bg-[rgba(255,249,241,0.86)]">
+                  <CardContent className="p-6">
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.label}</div>
+                    <div className="mt-3 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.value}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollReveal>
+
+          <div className="space-y-4">
+            {partnershipHighlights.map((item, index) => {
+              const Icon = item.icon
+              return (
+              <ScrollReveal key={item.title} delay={index * 80}>
+                <Card className="bg-[rgba(255,249,241,0.88)]">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.summary}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Who we help</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            The homepage should make it easy for the right company to recognize itself.
+          </h2>
+        </ScrollReveal>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {customerProfiles.map((item, index) => {
+            const Icon = item.icon
+            return (
+              <ScrollReveal key={item.title} delay={index * 70}>
+                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-white">{item.title}</h3>
+                    <p className="text-sm leading-7 text-white/74">{item.summary}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What the service includes</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            A homepage overview should still show the concrete parts of the offer.
+          </h2>
+        </ScrollReveal>
+
+        <div className="mb-6 grid gap-5 lg:grid-cols-3">
+          {serviceSpotlights.map((item, index) => (
+              <ScrollReveal key={item.title} delay={index * 70}>
+                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
+                  <CardContent className="space-y-3 p-7">
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.eyebrow}</div>
+                    <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+          ))}
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {serviceAudience.map((item, index) => {
+            const Icon = item.icon
+            return (
+              <ScrollReveal key={item.title} delay={index * 60}>
+                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-semibold tracking-tight text-white">{item.title}</h3>
+                    <p className="text-sm leading-7 text-white/74">{item.summary}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Typical use cases</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            A few grounded examples help the homepage feel like a company offer instead of abstract software positioning.
+          </h2>
+        </ScrollReveal>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          {homepageUseCases.map((item, index) => (
+            <ScrollReveal key={item.title} delay={index * 70}>
+              <Card className="h-full bg-[rgba(255,249,241,0.88)]">
+                <CardContent className="space-y-3 p-7">
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">Use case 0{index + 1}</div>
+                  <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
+                  <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
+        <ScrollReveal className="mb-8 max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How we work</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
+            Lumix should look like a company that can guide the rollout, not just ship software.
+          </h2>
+        </ScrollReveal>
+
+        <div className="grid gap-5 lg:grid-cols-4">
+          {processSteps.map((step, index) => {
+            const Icon = step.icon
+            return (
+              <ScrollReveal key={step.title} delay={index * 70}>
+                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
+                  <CardContent className="space-y-4 p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">0{index + 1}</div>
+                    <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{step.title}</h3>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{step.summary}</p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 pb-20 pt-6 sm:px-6 lg:px-10 lg:pb-24">
+        <ScrollReveal>
+          <Card className="overflow-hidden bg-[linear-gradient(135deg,rgba(24,38,63,0.98),rgba(33,52,83,0.95))] text-white">
+            <CardContent className="flex flex-col gap-8 p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
+              <div className="max-w-3xl">
+                <div className="text-xs font-semibold uppercase tracking-[0.28em] text-white/56">Next step</div>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
+                  Use the homepage to present Lumix clearly as a company and service offer.
+                </h2>
+                <p className="mt-4 text-base leading-8 text-white/72">
+                  Services, about, and contact now support that story, while the portal can stay focused on the actual product
+                  experience.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="lg" className="bg-white text-[rgb(var(--app-contrast))] hover:bg-white/92">
+                  <Link href="/about" className="inline-flex items-center gap-2 no-underline">
+                    About Lumix <Building2 className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="border-white/20 bg-white/8 text-white hover:bg-white/12">
+                  <Link href="/contact" className="inline-flex items-center gap-2 no-underline">
+                    Contact us <BriefcaseBusiness className="h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+      </section>
 
-      {/* ── Footer ───────────────────────────────────────── */}
-      <footer
-        className="border-t py-8 text-center text-sm"
-        style={{
-          borderColor: 'rgba(var(--app-muted), 0.12)',
-          color: 'rgba(var(--app-muted), 0.6)',
-        }}
-      >
-        © {new Date().getFullYear()} Lumix — modular operations platform
-      </footer>
+      <MarketingFooter />
     </main>
   )
 }

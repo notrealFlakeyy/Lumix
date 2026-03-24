@@ -18,6 +18,7 @@ const emailEnvSchema = z.object({
   SMTP_PASS: z.string().min(1).optional(),
   SMTP_FROM: z.string().min(1).optional(),
   SMTP_REPLY_TO: z.string().min(1).optional(),
+  CONTACT_FORM_TO: z.string().min(1).optional(),
 })
 
 type EmailEnv = z.infer<typeof emailEnvSchema>
@@ -35,6 +36,7 @@ export function getEmailEnv() {
     SMTP_PASS: process.env.SMTP_PASS,
     SMTP_FROM: process.env.SMTP_FROM,
     SMTP_REPLY_TO: process.env.SMTP_REPLY_TO,
+    CONTACT_FORM_TO: process.env.CONTACT_FORM_TO,
   })
 
   return cached
