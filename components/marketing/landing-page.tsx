@@ -74,16 +74,16 @@ export function LandingPage({ locale }: { locale: string }) {
           <ScrollReveal className="order-1 space-y-8 lg:order-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(34,28,21,0.08)] bg-white/85 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_18px_34px_rgba(91,64,40,0.08)]">
               <Sparkles className="h-4 w-4 text-[rgb(var(--app-accent))]" />
-              Inspired by the linked Paperpillar-style direction: soft editorial, rounded, warm, and illustration-led
+              One platform for transport operations, driver workflow, invoicing, reporting, and office follow-through
             </div>
 
             <div className="space-y-5">
               <h1 className="paper-display max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-[rgb(var(--app-contrast))] sm:text-6xl lg:text-[5.2rem] lg:leading-[0.95]">
-                A softer, clearer front page for a serious transport platform.
+                Transport software that keeps dispatch, drivers, and the office in sync.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[rgb(var(--app-muted))] md:text-xl">
-                Lumix brings dispatch, driver workflow, finance follow-through, and office automation into one premium operating
-                rhythm, while the public site explains the service with more warmth and confidence.
+                Lumix helps transport companies run orders, trips, proof of delivery, invoicing, time tracking, reporting,
+                and day-to-day admin work from one connected system instead of scattered tools and spreadsheets.
               </p>
             </div>
 
@@ -122,7 +122,7 @@ export function LandingPage({ locale }: { locale: string }) {
         <ScrollReveal className="mb-8 max-w-3xl">
           <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">Service layers</div>
           <h2 className="paper-display mt-3 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3.25rem]">
-            Softer visual language, same operational depth underneath.
+            Built to cover the operational chain from planning to payment follow-through.
           </h2>
         </ScrollReveal>
 
@@ -165,13 +165,13 @@ export function LandingPage({ locale }: { locale: string }) {
               <div className="paper-story-bubble bg-[rgba(255,255,255,0.12)]" />
               <div className="paper-story-bubble bottom-8 right-10 h-28 w-28 bg-[rgba(244,127,90,0.16)]" />
               <div className="relative z-10 space-y-5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/58">Experience direction</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/58">What the platform covers</div>
                 <h2 className="paper-display text-3xl font-semibold tracking-[-0.04em] text-white md:text-[3rem]">
-                  The landing page now feels more like a designed campaign than an admin brochure.
+                  Lumix is designed for the full handoff between field work, dispatch control, and office administration.
                 </h2>
                 <p className="max-w-2xl text-base leading-8 text-white/74">
-                  This direction borrows the same kind of soft cream canvas, warm orange accents, rounded illustration blocks,
-                  and editorial spacing from the linked Paperpillar reference while keeping Lumix-specific content and structure.
+                  The app brings together quote and order handling, trip execution, driver mobile actions, proof of delivery,
+                  invoice generation, reminders, imports, reporting, and branch-aware visibility in one operating environment.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {aboutStats.map((item) => (
@@ -205,7 +205,7 @@ export function LandingPage({ locale }: { locale: string }) {
         <ScrollReveal className="mb-8 max-w-3xl">
           <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">Rollout path</div>
           <h2 className="paper-display mt-3 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3.1rem]">
-            Let the story feel light while the product still reads as operationally serious.
+            Start with the transport core and expand into the rest of the office when the team is ready.
           </h2>
         </ScrollReveal>
 
@@ -237,11 +237,11 @@ export function LandingPage({ locale }: { locale: string }) {
               <div className="max-w-3xl">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgba(24,38,63,0.62)]">Next step</div>
                 <h2 className="paper-display mt-4 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3rem]">
-                  Keep the public side warm and memorable, while the portal stays focused on the work.
+                  See how Lumix could fit your transport workflow, team structure, and rollout timeline.
                 </h2>
                 <p className="mt-4 text-base leading-8 text-[rgba(24,38,63,0.78)]">
-                  Services, about, and contact already support the story. This homepage now gives Lumix a more designed
-                  first impression to match them.
+                  Whether you need better control of orders and trips, a stronger driver workflow, or less manual invoicing
+                  and reporting work in the office, we can shape the rollout around the workflows that matter first.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

@@ -200,9 +200,9 @@ export const serviceInterestOptions = [
 ] as const
 
 export const aboutStats = [
-  { label: 'Focus', value: 'Transport ERP' },
-  { label: 'Experience direction', value: 'Mobile + office' },
-  { label: 'Rollout style', value: 'Modular' },
+  { label: 'Core focus', value: 'Orders to invoices' },
+  { label: 'Daily users', value: 'Office + drivers' },
+  { label: 'Rollout model', value: 'Modular' },
 ] as const
 
 export const serviceSpotlights = [
