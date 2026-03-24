@@ -1,4 +1,5 @@
-import { ArrowRight, MenuSquare } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,15 +10,16 @@ export function MarketingHeader() {
     <header className="sticky top-0 z-30 border-b border-[rgba(34,28,21,0.08)] bg-[rgba(253,246,238,0.82)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 sm:px-6 lg:px-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-[1.35rem] bg-[rgb(var(--app-contrast))] text-white shadow-[0_16px_30px_rgba(57,38,20,0.14)]">
-              <MenuSquare className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[rgb(var(--app-muted))]">Lumix</div>
-              <div className="mt-1 text-sm font-semibold text-[rgb(var(--app-contrast))]">Transport operations software for the full office workflow</div>
-            </div>
-          </div>
+          <Link href="/" className="inline-flex w-fit shrink-0 items-center no-underline">
+            <Image
+              src="/lumix-logo-transparent.png"
+              alt="Lumix"
+              width={220}
+              height={68}
+              className="h-8 w-auto sm:h-9 lg:h-10 xl:h-11"
+              priority
+            />
+          </Link>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
             <nav className="flex flex-wrap items-center gap-2 text-sm md:gap-3">
