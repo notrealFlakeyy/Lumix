@@ -12,10 +12,10 @@ import {
   Zap,
 } from 'lucide-react'
 
-import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { ScrollReveal } from '@/components/marketing/scroll-reveal'
 import { LandingNav } from '@/components/marketing/landing-nav'
+import { getPortalConfigFromPublicEnv, getPortalLoginUrl, getPortalSignupUrl } from '@/lib/urls/portal'
 
 const modules = [
   {
@@ -70,6 +70,10 @@ const proofPoints = [
 ] as const
 
 export function LandingPage({ locale }: { locale: string }) {
+  const portalOptions = getPortalConfigFromPublicEnv()
+  const portalLoginHref = getPortalLoginUrl(locale, portalOptions)
+  const portalSignupHref = getPortalSignupUrl(locale, portalOptions)
+
   return (
     <main
       className="relative min-h-screen overflow-x-hidden"
@@ -105,7 +109,7 @@ export function LandingPage({ locale }: { locale: string }) {
       </div>
 
       {/* ── Header ───────────────────────────────────────── */}
-      <LandingNav />
+      <LandingNav locale={locale} loginHref={portalLoginHref} signupHref={portalSignupHref} />
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative mx-auto max-w-6xl px-5 pb-20 pt-24 text-center lg:px-10 lg:pb-28 lg:pt-32">
@@ -139,14 +143,14 @@ export function LandingPage({ locale }: { locale: string }) {
         {/* CTAs */}
         <div className="lumix-rise-4 mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link href="/login" className="inline-flex items-center gap-2 no-underline">
+            <a href={portalLoginHref} className="inline-flex items-center gap-2 no-underline">
               Launch workspace <ArrowRight className="h-4 w-4" />
-            </Link>
+            </a>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/login" className="no-underline">
+            <a href={portalLoginHref} className="no-underline">
               See a demo
-            </Link>
+            </a>
           </Button>
         </div>
 
@@ -335,9 +339,9 @@ export function LandingPage({ locale }: { locale: string }) {
                   className="bg-white hover:bg-white/92"
                   style={{ color: 'rgb(var(--app-contrast))' }}
                 >
-                  <Link href="/login" className="inline-flex items-center gap-2 no-underline">
+                  <a href={portalSignupHref} className="inline-flex items-center gap-2 no-underline">
                     Get started free <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </div>

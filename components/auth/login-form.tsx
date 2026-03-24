@@ -6,9 +6,12 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getPortalConfigFromPublicEnv, getPortalDashboardUrl, getPortalForgotPasswordUrl } from '@/lib/urls/portal'
 
 export function LoginForm({ locale }: { locale: string }) {
   const supabase = createSupabaseBrowserClient()
+  const portalOptions = getPortalConfigFromPublicEnv()
+  const forgotPasswordHref = getPortalForgotPasswordUrl(portalOptions)
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -30,7 +33,10 @@ export function LoginForm({ locale }: { locale: string }) {
           return
         }
 
-        window.location.href = `/${locale}/dashboard`
+        window.location.href = getPortalDashboardUrl(locale, {
+          ...portalOptions,
+          fallbackOrigin: window.location.origin,
+        })
       }}
       className="space-y-4"
     >
@@ -55,7 +61,7 @@ export function LoginForm({ locale }: { locale: string }) {
             Password
           </Label>
           <a
-            href="/forgot-password"
+            href={forgotPasswordHref}
             className="text-xs no-underline hover:underline"
             style={{ color: 'rgb(var(--app-muted))' }}
           >

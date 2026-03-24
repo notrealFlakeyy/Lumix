@@ -2,6 +2,7 @@ import { BarChart3, CheckSquare2, Receipt, Truck } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
 import { LoginForm } from '@/components/auth/login-form'
+import { getPortalConfigFromPublicEnv, getPublicLocaleUrl } from '@/lib/urls/portal'
 
 const benefits = [
   { icon: Truck,        text: 'Transport, fleet & driver workflows' },
@@ -12,6 +13,7 @@ const benefits = [
 
 export default async function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
+  const siteHref = getPublicLocaleUrl(locale, getPortalConfigFromPublicEnv())
 
   return (
     <main
@@ -39,9 +41,9 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
 
       {/* Header */}
       <header className="relative z-10 px-6 pt-8 lg:px-10">
-        <Link href="/" className="inline-flex items-center gap-2.5 no-underline">
+        <a href={siteHref} className="inline-flex items-center gap-2.5 no-underline">
           <img src="/lumix-logo-transparent.png" alt="Lumix" className="h-16 w-16 object-contain" />
-        </Link>
+        </a>
       </header>
 
       {/* Two-column layout */}

@@ -84,6 +84,7 @@ Remaining legacy cleanup tasks:
 # Environment Variables
 Required environment variables:
 - `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_PORTAL_URL` (optional, recommended for production portal subdomain setups)
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`

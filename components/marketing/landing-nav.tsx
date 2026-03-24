@@ -67,7 +67,15 @@ const navigationLinks: NavItem[] = [
   },
 ]
 
-export function LandingNav() {
+export function LandingNav({
+  locale: _locale,
+  loginHref,
+  signupHref,
+}: {
+  locale: string
+  loginHref: string
+  signupHref: string
+}) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
@@ -109,15 +117,15 @@ export function LandingNav() {
                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
               >
                 <path d="M4 12L20 12" className={cn(
-                  'origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)]',
+                  'origin-center transition-all duration-300 [transition-timing-function:cubic-bezier(.5,.85,.25,1.1)]',
                   mobileOpen ? 'translate-y-0 rotate-[315deg]' : '-translate-y-[7px]'
                 )} />
                 <path d="M4 12H20" className={cn(
-                  'origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.8)]',
+                  'origin-center transition-all duration-300 [transition-timing-function:cubic-bezier(.5,.85,.25,1.8)]',
                   mobileOpen ? 'rotate-45' : ''
                 )} />
                 <path d="M4 12H20" className={cn(
-                  'origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)]',
+                  'origin-center transition-all duration-300 [transition-timing-function:cubic-bezier(.5,.85,.25,1.1)]',
                   mobileOpen ? 'translate-y-0 rotate-[135deg]' : 'translate-y-[7px]'
                 )} />
               </svg>
@@ -211,14 +219,14 @@ export function LandingNav() {
           {/* ── Right: CTA buttons ── */}
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="text-sm">
-              <Link href="/login" className="no-underline">Sign in</Link>
+              <a href={loginHref} className="no-underline">Sign in</a>
             </Button>
             <Button
               asChild size="sm"
               className="lumix-cta-pulse text-sm"
               style={{ background: 'rgb(var(--app-accent))', color: '#fff' } as React.CSSProperties}
             >
-              <Link href="/signup" className="no-underline">Get started</Link>
+              <a href={signupHref} className="no-underline">Get started</a>
             </Button>
           </div>
         </div>
@@ -273,13 +281,13 @@ export function LandingNav() {
             ))}
             <div className="mt-3 flex gap-2 px-3">
               <Button asChild variant="outline" size="sm" className="flex-1 text-sm">
-                <Link href="/login" className="no-underline" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                <a href={loginHref} className="no-underline" onClick={() => setMobileOpen(false)}>Sign in</a>
               </Button>
               <Button
                 asChild size="sm" className="flex-1 text-sm"
                 style={{ background: 'rgb(var(--app-accent))', color: '#fff' } as React.CSSProperties}
               >
-                <Link href="/signup" className="no-underline" onClick={() => setMobileOpen(false)}>Get started</Link>
+                <a href={signupHref} className="no-underline" onClick={() => setMobileOpen(false)}>Get started</a>
               </Button>
             </div>
           </div>

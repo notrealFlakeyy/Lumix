@@ -8,6 +8,7 @@ import { publicEnv } from './lib/env/public'
 import { canAccessModule } from './lib/auth/permissions'
 import { defaultEnabledPlatformModules, normalizeEnabledPlatformModules } from './lib/platform/modules'
 import { getAppModuleForRouteSegment, getDefaultAuthenticatedHref, isProtectedRouteSegment } from './lib/platform/routing'
+import { buildAbsoluteUrl, hasDedicatedPortalOrigin, isPortalHostname, normalizeHostname, resolvePortalOrigin } from './lib/urls/portal'
 import type { CompanyRole } from './types/app'
 
 const intlMiddleware = createIntlMiddleware({
@@ -39,6 +40,11 @@ const isAuthPath = (pathname: string) => {
   return rest === '/login' || rest.startsWith('/login/') || rest === '/signup' || rest.startsWith('/signup/')
 }
 
+const isLocaleRootPath = (pathname: string) => {
+  const parts = pathname.split('/').filter(Boolean)
+  return parts.length === 1 && locales.includes(parts[0] as (typeof locales)[number])
+}
+
 export async function middleware(req: NextRequest) {
   const res = intlMiddleware(req)
 
@@ -61,6 +67,16 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const parts = pathname.split('/').filter(Boolean)
   const locale = locales.includes(parts[0] as any) ? parts[0] : defaultLocale
+  const portalOptions = {
+    siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL,
+    portalUrl: publicEnv.NEXT_PUBLIC_PORTAL_URL,
+    fallbackOrigin: req.nextUrl.origin,
+  }
+  const hasDedicatedPortal = hasDedicatedPortalOrigin(portalOptions)
+  const requestHost = normalizeHostname(req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? req.nextUrl.host)
+  const portalRequest = hasDedicatedPortal && isPortalHostname(requestHost, portalOptions)
+  const redirectToPortal = (nextPathname: string, search = '') =>
+    NextResponse.redirect(buildAbsoluteUrl(resolvePortalOrigin(portalOptions), nextPathname, search))
 
   let role: CompanyRole | null = null
   let enabledModules = [...defaultEnabledPlatformModules]
@@ -89,6 +105,34 @@ export async function middleware(req: NextRequest) {
       enabledModules = normalizeEnabledPlatformModules(
         companyModules?.filter((item) => item.is_enabled).map((item) => item.module_key) ?? defaultEnabledPlatformModules,
       )
+    }
+  }
+
+  if (hasDedicatedPortal) {
+    if (!portalRequest) {
+      if (isProtectedPath(pathname)) {
+        return redirectToPortal(pathname, req.nextUrl.search)
+      }
+
+      if (isAuthPath(pathname)) {
+        const target = isAuthed ? (role ? getDefaultAuthenticatedHref(locale, role, enabledModules) : `/${locale}/onboarding`) : pathname
+        return redirectToPortal(target, isAuthed ? '' : req.nextUrl.search)
+      }
+
+      if (isLocaleRootPath(pathname) && isAuthed) {
+        const target = role ? getDefaultAuthenticatedHref(locale, role, enabledModules) : `/${locale}/onboarding`
+        return redirectToPortal(target)
+      }
+    } else {
+      if (pathname === '/') {
+        const target = isAuthed ? (role ? getDefaultAuthenticatedHref(defaultLocale, role, enabledModules) : `/${defaultLocale}/onboarding`) : `/${defaultLocale}/login`
+        return redirectToPortal(target)
+      }
+
+      if (isLocaleRootPath(pathname)) {
+        const target = isAuthed ? (role ? getDefaultAuthenticatedHref(locale, role, enabledModules) : `/${locale}/onboarding`) : `/${locale}/login`
+        return redirectToPortal(target)
+      }
     }
   }
 

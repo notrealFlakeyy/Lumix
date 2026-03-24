@@ -6,9 +6,11 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getPortalConfigFromPublicEnv, getPortalPlansUrl } from '@/lib/urls/portal'
 
 export function SignupForm({ locale }: { locale: string }) {
   const supabase = createSupabaseBrowserClient()
+  const portalOptions = getPortalConfigFromPublicEnv()
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [done, setDone] = React.useState(false)
@@ -59,7 +61,10 @@ export function SignupForm({ locale }: { locale: string }) {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/${locale}/plans`,
+            emailRedirectTo: getPortalPlansUrl(locale, {
+              ...portalOptions,
+              fallbackOrigin: window.location.origin,
+            }),
           },
         })
 
@@ -72,7 +77,10 @@ export function SignupForm({ locale }: { locale: string }) {
 
         // If email confirmation is disabled in Supabase, session is created immediately
         if (data.session) {
-          window.location.href = `/${locale}/plans`
+          window.location.href = getPortalPlansUrl(locale, {
+            ...portalOptions,
+            fallbackOrigin: window.location.origin,
+          })
           return
         }
 
