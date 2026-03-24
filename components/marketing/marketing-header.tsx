@@ -15,7 +15,7 @@ export function MarketingHeader() {
             </div>
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Lumix</div>
-              <div className="mt-1 text-sm font-semibold text-[rgb(var(--app-contrast))]">Transport systems, workflow design, and operational rollout support</div>
+              <div className="mt-1 text-sm font-semibold text-[rgb(var(--app-contrast))]">Transport operations software for the full office workflow</div>
             </div>
           </div>
 

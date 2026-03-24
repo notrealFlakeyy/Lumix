@@ -10,16 +10,9 @@ import {
 import { Link } from '@/i18n/navigation'
 import {
   aboutStats,
-  companyServiceAreas,
-  customerProfiles,
   heroSignals,
-  homepageOfferings,
-  homepageOutcomes,
-  homepageUseCases,
-  partnershipHighlights,
   processSteps,
   serviceCards,
-  serviceAudience,
   serviceSpotlights,
 } from '@/components/marketing/content'
 import { MarketingFooter } from '@/components/marketing/marketing-footer'
@@ -44,28 +37,28 @@ export function LandingPage({ locale }: { locale: string }) {
           <ScrollReveal className="space-y-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/75 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_14px_32px_rgba(95,73,52,0.08)] backdrop-blur">
               <Sparkles className="h-4 w-4 text-[rgb(var(--app-accent))]" />
-              Lumix represents the company, the service, and the software in one clear public experience
+              One operating system for transport delivery, office admin, and driver follow-through
             </div>
 
             <div className="space-y-5">
               <h1 className="max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-[rgb(var(--app-contrast))] md:text-7xl">
-                Lumix helps transport companies run a more connected office.
+                Showcase the whole company, then move the real work into Lumix.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[rgb(var(--app-muted))] md:text-xl">
-                We offer a transport-focused operating platform together with rollout guidance for dispatch, driver workflow,
-                invoicing, admin coordination, and the day-to-day office work that usually gets split across too many tools.
+                Lumix helps transport companies run dispatch, driver workflow, finance follow-through, and office automation in
+                one calmer platform, while the public site tells the story clearly to new customers and partners.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="pr-6">
                 <Link href="/services" className="inline-flex items-center gap-2 no-underline">
-                  See what we offer <ArrowRight className="h-4 w-4" />
+                  Explore services <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="bg-white/70">
                 <Link href="/contact" className="no-underline">
-                  Contact Lumix
+                  Talk with us
                 </Link>
               </Button>
             </div>
@@ -88,32 +81,32 @@ export function LandingPage({ locale }: { locale: string }) {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-[0.25em] text-white/72">Operations pulse</div>
-                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">A company offer built around real transport office needs.</h2>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">Show the platform in motion, not as a static brochure.</h2>
                   </div>
-                  <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/82">Offer</div>
+                  <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/82">Interactive</div>
                 </div>
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <div className="rounded-[28px] border border-white/10 bg-white/8 p-5">
-                    <div className="text-sm text-white">For the company</div>
-                    <div className="mt-2 text-4xl font-semibold text-white">Visible</div>
+                    <div className="text-sm text-white">Public website</div>
+                    <div className="mt-2 text-4xl font-semibold text-white">Clear</div>
                     <div className="mt-3 text-sm leading-6 text-white">
-                      The site now explains who Lumix is, what we offer, and how we work before anyone reaches the portal.
+                      Dedicated pages for services, company story, and contact make the public experience feel intentional and professional.
                     </div>
                   </div>
                   <div className="rounded-[28px] border border-white/10 bg-[rgba(244,127,90,0.16)] p-5">
-                    <div className="text-sm text-white">For customers</div>
-                    <div className="mt-2 text-4xl font-semibold text-white">Practical</div>
+                    <div className="text-sm text-white">Workspace handoff</div>
+                    <div className="mt-2 text-4xl font-semibold text-white">Seamless</div>
                     <div className="mt-3 text-sm leading-6 text-white">
-                      The service promise is about reducing admin friction, improving follow-through, and giving teams one better system.
+                      Visitors can understand the service first, then move into login and onboarding without context loss.
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  {homepageOutcomes.map((outcome) => (
-                    <div key={outcome} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white">
-                      <span>{outcome}</span>
+                  {serviceCards.slice(0, 4).map((service) => (
+                    <div key={service.title} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white">
+                      <span>{service.title}</span>
                       <ChevronRight className="h-4 w-4 text-white/60" />
                     </div>
                   ))}
@@ -121,12 +114,12 @@ export function LandingPage({ locale }: { locale: string }) {
               </div>
 
               <div className="lumix-floating-metric right-5 top-0">
-                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgb(var(--app-muted))]">Company story</div>
-                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Clearer</div>
+                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgb(var(--app-muted))]">Public presence</div>
+                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Multi-page</div>
               </div>
               <div className="lumix-floating-metric bottom-10 left-[-1rem] bg-[rgba(167,209,188,0.92)]">
-                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgba(24,38,63,0.6)]">Service focus</div>
-                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Practical</div>
+                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgba(24,38,63,0.6)]">Experience</div>
+                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Responsive</div>
               </div>
             </div>
           </ScrollReveal>
@@ -135,30 +128,11 @@ export function LandingPage({ locale }: { locale: string }) {
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What Lumix offers</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Services at a glance</div>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            The homepage should make it obvious that Lumix is a company offer, not only a login screen.
+            The public site can now tell the whole product story instead of hiding everything behind login.
           </h2>
         </ScrollReveal>
-
-        <div className="mb-6 grid gap-5 lg:grid-cols-3">
-          {homepageOfferings.map((service, index) => {
-            const Icon = service.icon
-            return (
-              <ScrollReveal key={service.title} delay={index * 60}>
-                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
-                  <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-2xl font-semibold tracking-tight text-white">{service.title}</h3>
-                    <p className="text-sm leading-7 text-white/74">{service.summary}</p>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            )
-          })}
-        </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {serviceCards.map((service, index) => {
@@ -193,51 +167,15 @@ export function LandingPage({ locale }: { locale: string }) {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
-        <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How the company works</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            Present Lumix as a service company with software, rollout support, and ongoing operational partnership.
-          </h2>
-        </ScrollReveal>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          {companyServiceAreas.map((item, index) => {
-            const Icon = item.icon
-            return (
-              <ScrollReveal key={item.title} delay={index * 60}>
-                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
-                  <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
-                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.summary}</p>
-                    <div className="space-y-3">
-                      {item.points?.map((point) => (
-                        <div key={point} className="flex items-start gap-3 text-sm text-[rgb(var(--app-contrast))]">
-                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--app-accent))]" />
-                          <span>{point}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <ScrollReveal className="space-y-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Why companies choose Lumix</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What the experience shows</div>
             <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-              The public site should quickly explain the kind of company Lumix is and the outcomes we help create.
+              Each page can explain a different part of the service without losing the shared design language.
             </h2>
             <p className="text-base leading-8 text-[rgb(var(--app-muted))]">
-              We are not trying to look like generic software. The goal is to present Lumix as a transport-focused partner for
-              operations, office workflow, and the rollout work that gets a system adopted in the real world.
+              Services, about, and contact now work like a real public site. That gives you room to explain how Lumix helps a
+              transport operator before you ask them to sign in.
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
               {aboutStats.map((item) => (
@@ -252,124 +190,26 @@ export function LandingPage({ locale }: { locale: string }) {
           </ScrollReveal>
 
           <div className="space-y-4">
-            {partnershipHighlights.map((item, index) => {
-              const Icon = item.icon
-              return (
+            {serviceSpotlights.map((item, index) => (
               <ScrollReveal key={item.title} delay={index * 80}>
                 <Card className="bg-[rgba(255,249,241,0.88)]">
-                  <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
-                      <Icon className="h-5 w-5" />
-                    </div>
+                  <CardContent className="space-y-3 p-7">
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.eyebrow}</div>
                     <h3 className="text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
-                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.summary}</p>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
                   </CardContent>
                 </Card>
               </ScrollReveal>
-              )
-            })}
+            ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Who we help</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How Lumix rolls out</div>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            The homepage should make it easy for the right company to recognize itself.
-          </h2>
-        </ScrollReveal>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          {customerProfiles.map((item, index) => {
-            const Icon = item.icon
-            return (
-              <ScrollReveal key={item.title} delay={index * 70}>
-                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
-                  <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-2xl font-semibold tracking-tight text-white">{item.title}</h3>
-                    <p className="text-sm leading-7 text-white/74">{item.summary}</p>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
-        <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What the service includes</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            A homepage overview should still show the concrete parts of the offer.
-          </h2>
-        </ScrollReveal>
-
-        <div className="mb-6 grid gap-5 lg:grid-cols-3">
-          {serviceSpotlights.map((item, index) => (
-              <ScrollReveal key={item.title} delay={index * 70}>
-                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
-                  <CardContent className="space-y-3 p-7">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.eyebrow}</div>
-                    <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
-                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-          ))}
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          {serviceAudience.map((item, index) => {
-            const Icon = item.icon
-            return (
-              <ScrollReveal key={item.title} delay={index * 60}>
-                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
-                  <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-xl font-semibold tracking-tight text-white">{item.title}</h3>
-                    <p className="text-sm leading-7 text-white/74">{item.summary}</p>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
-        <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Typical use cases</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            A few grounded examples help the homepage feel like a company offer instead of abstract software positioning.
-          </h2>
-        </ScrollReveal>
-
-        <div className="grid gap-5 md:grid-cols-2">
-          {homepageUseCases.map((item, index) => (
-            <ScrollReveal key={item.title} delay={index * 70}>
-              <Card className="h-full bg-[rgba(255,249,241,0.88)]">
-                <CardContent className="space-y-3 p-7">
-                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">Use case 0{index + 1}</div>
-                  <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
-                  <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
-                </CardContent>
-              </Card>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
-        <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How we work</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            Lumix should look like a company that can guide the rollout, not just ship software.
+            The service story now has a clear path from first visit to real operational rollout.
           </h2>
         </ScrollReveal>
 
@@ -378,14 +218,14 @@ export function LandingPage({ locale }: { locale: string }) {
             const Icon = step.icon
             return (
               <ScrollReveal key={step.title} delay={index * 70}>
-                <Card className="h-full bg-[rgba(255,249,241,0.88)]">
+                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
                   <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))]">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">0{index + 1}</div>
-                    <h3 className="text-xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{step.title}</h3>
-                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{step.summary}</p>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/58">0{index + 1}</div>
+                    <h3 className="text-xl font-semibold tracking-tight text-white">{step.title}</h3>
+                    <p className="text-sm leading-7 text-white/74">{step.summary}</p>
                   </CardContent>
                 </Card>
               </ScrollReveal>
@@ -401,11 +241,11 @@ export function LandingPage({ locale }: { locale: string }) {
               <div className="max-w-3xl">
                 <div className="text-xs font-semibold uppercase tracking-[0.28em] text-white/56">Next step</div>
                 <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-                  Use the homepage to present Lumix clearly as a company and service offer.
+                  Let the public site explain the value, then let the platform prove it.
                 </h2>
                 <p className="mt-4 text-base leading-8 text-white/72">
-                  Services, about, and contact now support that story, while the portal can stay focused on the actual product
-                  experience.
+                  Services, about, and contact are now first-class pages. The rest of the site can keep evolving around that
+                  stronger company story.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

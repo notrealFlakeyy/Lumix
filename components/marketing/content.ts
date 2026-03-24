@@ -39,93 +39,11 @@ export const marketingNavLinks: MarketingLink[] = [
 ]
 
 export const heroSignals = [
-  'Transport systems and office workflow design',
-  'Driver, dispatch, and finance in one service layer',
-  'Rollout support for growing transport companies',
+  'Transport operations control',
+  'Mobile driver workflow',
+  'Office automation and finance follow-through',
 ] as const
 
-export const homepageOfferings: MarketingCard[] = [
-  {
-    title: 'Software that fits transport work',
-    summary: 'Lumix combines dispatch, driver workflow, office coordination, and finance follow-through in one calmer operating system.',
-    icon: Truck,
-  },
-  {
-    title: 'Implementation with real workflow focus',
-    summary: 'We help shape rollout around the places where manual coordination, repeated entry, and delayed follow-through hurt most.',
-    icon: BadgeCheck,
-  },
-  {
-    title: 'Longer-term operational partner',
-    summary: 'The goal is not only a launch. It is an operating setup that can keep improving as the company grows and the office evolves.',
-    icon: Headset,
-  },
-] as const
-
-export const homepageOutcomes = [
-  'Less manual coordination between dispatch and office staff',
-  'Cleaner handoff from completed trips to invoicing and reporting',
-  'A more focused driver experience in the field',
-  'A stronger public presence for the company alongside the portal',
-] as const
-
-export const companyServiceAreas: MarketingCard[] = [
-  {
-    title: 'Platform delivery',
-    summary: 'A transport-focused operating platform covering dispatch, trips, mobile driver actions, invoicing, and office follow-through.',
-    icon: Truck,
-    points: ['Transport core and office workflow in one system', 'Public website plus portal direction', 'Module-ready foundation for future expansion'],
-  },
-  {
-    title: 'Implementation and onboarding',
-    summary: 'A rollout approach that starts with the workflows causing the most friction today, then expands from a stable operational base.',
-    icon: BadgeCheck,
-    points: ['Workflow mapping and rollout scoping', 'Data import and setup support', 'Team onboarding around real office processes'],
-  },
-  {
-    title: 'Ongoing support and optimization',
-    summary: 'A longer-term service relationship focused on improving adoption, tightening workflows, and expanding the platform when the company is ready.',
-    icon: Headset,
-    points: ['Process refinement after launch', 'Operational review and feedback loops', 'Support for additional module rollout'],
-  },
-] as const
-
-export const customerProfiles: MarketingCard[] = [
-  {
-    title: 'Growing haulage and transport companies',
-    summary: 'Best for teams where the office workload grows faster than the current systems can handle cleanly.',
-    icon: Truck,
-  },
-  {
-    title: 'Operations with recurring admin burden',
-    summary: 'A strong fit when invoicing, proof follow-through, approvals, imports, and reporting are scattered across too many tools.',
-    icon: CreditCard,
-  },
-  {
-    title: 'Businesses ready for a phased rollout',
-    summary: 'Ideal when the company wants to improve core transport execution first and add more office services over time.',
-    icon: Boxes,
-  },
-] as const
-
-export const homepageUseCases = [
-  {
-    title: 'Recurring route and customer work',
-    detail: 'Use Lumix to manage repeat operational work with clearer planning, recurring order support, and better follow-through into invoicing.',
-  },
-  {
-    title: 'Dispatch and office coordination',
-    detail: 'Keep the transport planner, office admin team, and field staff in a more shared operating rhythm instead of bouncing between tools and calls.',
-  },
-  {
-    title: 'Driver visibility and proof capture',
-    detail: 'Give drivers a more focused mobile experience while the office gains clearer proof, checkpoint, and trip-status visibility.',
-  },
-  {
-    title: 'Operational expansion without fragmentation',
-    detail: 'Start with the transport core, then add adjacent workflows like workforce, finance follow-through, and data operations as the business grows.',
-  },
-] as const
 
 export const serviceCards: MarketingCard[] = [
   {
