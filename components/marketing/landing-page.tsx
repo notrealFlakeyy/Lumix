@@ -3,18 +3,13 @@ import {
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
-  ChevronRight,
+  CirclePlay,
   Sparkles,
 } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
-import {
-  aboutStats,
-  heroSignals,
-  processSteps,
-  serviceCards,
-  serviceSpotlights,
-} from '@/components/marketing/content'
+import { aboutStats, heroSignals, processSteps, serviceCards, serviceSpotlights } from '@/components/marketing/content'
+import { PaperHeroIllustration } from '@/components/marketing/paper-hero-illustration'
 import { MarketingFooter } from '@/components/marketing/marketing-footer'
 import { MarketingHeader } from '@/components/marketing/marketing-header'
 import { ScrollReveal } from '@/components/marketing/scroll-reveal'
@@ -23,104 +18,101 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function LandingPage({ locale }: { locale: string }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8efe3_0%,#f3e4d2_45%,#efe6da_100%)] text-[rgb(var(--app-fg))]">
+    <main className="relative min-h-screen overflow-hidden bg-[#fcf4ea] text-[rgb(var(--app-fg))]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="lumix-orb left-[-8rem] top-[-4rem] h-72 w-72 bg-[rgba(244,127,90,0.16)]" />
-        <div className="lumix-orb right-[-4rem] top-24 h-80 w-80 bg-[rgba(24,38,63,0.12)]" />
-        <div className="lumix-orb bottom-12 left-1/3 h-64 w-64 bg-[rgba(167,209,188,0.2)]" />
+        <div className="paper-grid absolute inset-0 opacity-70" />
+        <div className="paper-blob left-[-10rem] top-[-6rem] h-80 w-80 bg-[rgba(244,127,90,0.22)]" />
+        <div className="paper-blob right-[-7rem] top-32 h-[26rem] w-[26rem] bg-[rgba(170,205,177,0.22)]" />
+        <div className="paper-blob bottom-[-10rem] left-1/3 h-[24rem] w-[24rem] bg-[rgba(255,214,177,0.34)]" />
       </div>
 
       <MarketingHeader />
 
-      <section className="relative mx-auto max-w-7xl px-5 pb-16 pt-12 sm:px-6 lg:px-10 lg:pb-24 lg:pt-16">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.06fr_0.94fr]">
-          <ScrollReveal className="space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/75 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_14px_32px_rgba(95,73,52,0.08)] backdrop-blur">
+      <section className="relative mx-auto max-w-7xl px-5 pb-18 pt-12 sm:px-6 lg:px-10 lg:pb-24 lg:pt-18">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+          <ScrollReveal delay={80} className="order-2 lg:order-1">
+            <div className="paper-hero-visual">
+              <div className="paper-hero-surface">
+                <div className="paper-hero-glow bg-[rgba(244,127,90,0.18)]" />
+                <PaperHeroIllustration />
+                <div className="paper-hero-leaf left-10 top-10 h-24 w-16 rotate-[-18deg] bg-[#ffd9a9]" />
+                <div className="paper-hero-leaf left-20 top-28 h-20 w-14 rotate-[12deg] bg-[#b8d9c1]" />
+                <div className="paper-hero-leaf right-12 top-16 h-28 w-16 rotate-[16deg] bg-[#f7a97f]" />
+                <div className="paper-hero-leaf right-20 bottom-14 h-24 w-14 rotate-[-16deg] bg-[#c7dfcc]" />
+
+                <div className="paper-stack-card left-6 top-8">
+                  <div className="paper-stack-badge bg-[#2f3f31]" />
+                  <div className="paper-stack-line w-28" />
+                  <div className="paper-stack-line w-20" />
+                </div>
+
+                <div className="paper-stack-card right-8 top-24">
+                  <div className="paper-stack-badge bg-[#ea7846]" />
+                  <div className="paper-stack-line w-24" />
+                  <div className="paper-stack-line w-16" />
+                </div>
+
+                <div className="paper-feature-card left-8 bottom-10">
+                  <div className="text-[11px] uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Dispatch</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Calmer</div>
+                  <p className="mt-2 text-sm leading-6 text-[rgb(var(--app-muted))]">
+                    Orders, trips, and proof follow-through in one view.
+                  </p>
+                </div>
+
+                <div className="paper-feature-card right-10 bottom-8 bg-[#243654] text-white">
+                  <div className="text-[11px] uppercase tracking-[0.28em] text-white/62">Field + office</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight text-white">Connected</div>
+                  <p className="mt-2 text-sm leading-6 text-white/72">
+                    A shared rhythm for drivers, dispatch, and finance follow-through.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal className="order-1 space-y-8 lg:order-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(34,28,21,0.08)] bg-white/85 px-4 py-2 text-sm text-[rgb(var(--app-contrast))] shadow-[0_18px_34px_rgba(91,64,40,0.08)]">
               <Sparkles className="h-4 w-4 text-[rgb(var(--app-accent))]" />
-              One operating system for transport delivery, office admin, and driver follow-through
+              Inspired by the linked Paperpillar-style direction: soft editorial, rounded, warm, and illustration-led
             </div>
 
             <div className="space-y-5">
-              <h1 className="max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-[rgb(var(--app-contrast))] md:text-7xl">
-                Showcase the whole company, then move the real work into Lumix.
+              <h1 className="paper-display max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-[rgb(var(--app-contrast))] sm:text-6xl lg:text-[5.2rem] lg:leading-[0.95]">
+                A softer, clearer front page for a serious transport platform.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[rgb(var(--app-muted))] md:text-xl">
-                Lumix helps transport companies run dispatch, driver workflow, finance follow-through, and office automation in
-                one calmer platform, while the public site tells the story clearly to new customers and partners.
+                Lumix brings dispatch, driver workflow, finance follow-through, and office automation into one premium operating
+                rhythm, while the public site explains the service with more warmth and confidence.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="pr-6">
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full bg-[rgb(var(--app-accent))] px-7 text-[rgb(var(--app-contrast))] shadow-[0_20px_36px_rgba(234,108,63,0.22)] hover:bg-[rgb(var(--app-accent))]/90"
+              >
                 <Link href="/services" className="inline-flex items-center gap-2 no-underline">
                   Explore services <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white/70">
-                <Link href="/contact" className="no-underline">
-                  Talk with us
+              <Button asChild variant="outline" size="lg" className="rounded-full border-[rgba(34,28,21,0.14)] bg-white/70 px-7 text-[rgb(var(--app-contrast))]">
+                <Link href="/contact" className="inline-flex items-center gap-2 no-underline">
+                  Talk with us <CirclePlay className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="grid gap-3 sm:grid-cols-3">
               {heroSignals.map((signal) => (
                 <div
                   key={signal}
-                  className="rounded-full border border-white/70 bg-white/72 px-4 py-2 text-sm font-medium text-[rgb(var(--app-contrast))] shadow-[0_10px_22px_rgba(95,73,52,0.06)]"
+                  className="paper-hover-card rounded-[1.75rem] border border-[rgba(34,28,21,0.08)] bg-white/84 px-4 py-4 text-sm font-medium text-[rgb(var(--app-contrast))] shadow-[0_14px_28px_rgba(91,64,40,0.06)]"
                 >
                   {signal}
                 </div>
               ))}
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={140} className="relative">
-            <div className="lumix-dashboard-shell">
-              <div className="lumix-dashboard-card">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.25em] text-white/72">Operations pulse</div>
-                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">Show the platform in motion, not as a static brochure.</h2>
-                  </div>
-                  <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/82">Interactive</div>
-                </div>
-
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[28px] border border-white/10 bg-white/8 p-5">
-                    <div className="text-sm text-white">Public website</div>
-                    <div className="mt-2 text-4xl font-semibold text-white">Clear</div>
-                    <div className="mt-3 text-sm leading-6 text-white">
-                      Dedicated pages for services, company story, and contact make the public experience feel intentional and professional.
-                    </div>
-                  </div>
-                  <div className="rounded-[28px] border border-white/10 bg-[rgba(244,127,90,0.16)] p-5">
-                    <div className="text-sm text-white">Workspace handoff</div>
-                    <div className="mt-2 text-4xl font-semibold text-white">Seamless</div>
-                    <div className="mt-3 text-sm leading-6 text-white">
-                      Visitors can understand the service first, then move into login and onboarding without context loss.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  {serviceCards.slice(0, 4).map((service) => (
-                    <div key={service.title} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white">
-                      <span>{service.title}</span>
-                      <ChevronRight className="h-4 w-4 text-white/60" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="lumix-floating-metric right-5 top-0">
-                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgb(var(--app-muted))]">Public presence</div>
-                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Multi-page</div>
-              </div>
-              <div className="lumix-floating-metric bottom-10 left-[-1rem] bg-[rgba(167,209,188,0.92)]">
-                <div className="text-[11px] uppercase tracking-[0.26em] text-[rgba(24,38,63,0.6)]">Experience</div>
-                <div className="mt-2 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">Responsive</div>
-              </div>
             </div>
           </ScrollReveal>
         </div>
@@ -128,9 +120,9 @@ export function LandingPage({ locale }: { locale: string }) {
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">Services at a glance</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            The public site can now tell the whole product story instead of hiding everything behind login.
+          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">Service layers</div>
+          <h2 className="paper-display mt-3 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3.25rem]">
+            Softer visual language, same operational depth underneath.
           </h2>
         </ScrollReveal>
 
@@ -139,12 +131,12 @@ export function LandingPage({ locale }: { locale: string }) {
             const Icon = service.icon
             return (
               <ScrollReveal key={service.title} delay={index * 70}>
-                <Card className="group h-full bg-[rgba(255,249,241,0.88)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(95,73,52,0.12)]">
+                <Card className="paper-hover-card h-full rounded-[2rem] border-[rgba(34,28,21,0.08)] bg-white/88 shadow-[0_24px_44px_rgba(91,64,40,0.08)]">
                   <CardHeader className="space-y-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-[rgba(var(--app-accent),0.12)] text-[rgb(var(--app-accent))] transition group-hover:scale-105">
-                      <Icon className="h-5 w-5" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-[#ffe4cb] text-[rgb(var(--app-accent))]">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <CardTitle className="text-[1.35rem]">{service.title}</CardTitle>
+                    <CardTitle className="paper-display text-[1.45rem]">{service.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 pt-0">
                     <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{service.summary}</p>
@@ -167,35 +159,39 @@ export function LandingPage({ locale }: { locale: string }) {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <ScrollReveal className="space-y-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">What the experience shows</div>
-            <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-              Each page can explain a different part of the service without losing the shared design language.
-            </h2>
-            <p className="text-base leading-8 text-[rgb(var(--app-muted))]">
-              Services, about, and contact now work like a real public site. That gives you room to explain how Lumix helps a
-              transport operator before you ask them to sign in.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {aboutStats.map((item) => (
-                <Card key={item.label} className="bg-[rgba(255,249,241,0.86)]">
-                  <CardContent className="p-6">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.label}</div>
-                    <div className="mt-3 text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.value}</div>
-                  </CardContent>
-                </Card>
-              ))}
+        <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+          <ScrollReveal>
+            <div className="paper-story-panel bg-[#243654] text-white">
+              <div className="paper-story-bubble bg-[rgba(255,255,255,0.12)]" />
+              <div className="paper-story-bubble bottom-8 right-10 h-28 w-28 bg-[rgba(244,127,90,0.16)]" />
+              <div className="relative z-10 space-y-5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/58">Experience direction</div>
+                <h2 className="paper-display text-3xl font-semibold tracking-[-0.04em] text-white md:text-[3rem]">
+                  The landing page now feels more like a designed campaign than an admin brochure.
+                </h2>
+                <p className="max-w-2xl text-base leading-8 text-white/74">
+                  This direction borrows the same kind of soft cream canvas, warm orange accents, rounded illustration blocks,
+                  and editorial spacing from the linked Paperpillar reference while keeping Lumix-specific content and structure.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {aboutStats.map((item) => (
+                    <div key={item.label} className="rounded-[1.6rem] border border-white/10 bg-white/8 p-5">
+                      <div className="text-[11px] uppercase tracking-[0.28em] text-white/52">{item.label}</div>
+                      <div className="mt-3 text-2xl font-semibold tracking-tight text-white">{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </ScrollReveal>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {serviceSpotlights.map((item, index) => (
-              <ScrollReveal key={item.title} delay={index * 80}>
-                <Card className="bg-[rgba(255,249,241,0.88)]">
+              <ScrollReveal key={item.title} delay={index * 90}>
+                <Card className="paper-hover-card rounded-[2rem] border-[rgba(34,28,21,0.08)] bg-[#fff8f1] shadow-[0_24px_44px_rgba(91,64,40,0.06)]">
                   <CardContent className="space-y-3 p-7">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--app-muted))]">{item.eyebrow}</div>
-                    <h3 className="text-2xl font-semibold tracking-tight text-[rgb(var(--app-contrast))]">{item.title}</h3>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">{item.eyebrow}</div>
+                    <h3 className="paper-display text-2xl font-semibold tracking-[-0.03em] text-[rgb(var(--app-contrast))]">{item.title}</h3>
                     <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{item.detail}</p>
                   </CardContent>
                 </Card>
@@ -207,9 +203,9 @@ export function LandingPage({ locale }: { locale: string }) {
 
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-10 lg:py-16">
         <ScrollReveal className="mb-8 max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--app-muted))]">How Lumix rolls out</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[rgb(var(--app-contrast))] md:text-4xl">
-            The service story now has a clear path from first visit to real operational rollout.
+          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">Rollout path</div>
+          <h2 className="paper-display mt-3 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3.1rem]">
+            Let the story feel light while the product still reads as operationally serious.
           </h2>
         </ScrollReveal>
 
@@ -218,14 +214,14 @@ export function LandingPage({ locale }: { locale: string }) {
             const Icon = step.icon
             return (
               <ScrollReveal key={step.title} delay={index * 70}>
-                <Card className="h-full bg-[rgba(24,38,63,0.96)] text-white">
+                <Card className="paper-hover-card h-full rounded-[2rem] border-[rgba(34,28,21,0.08)] bg-white/88 shadow-[0_22px_40px_rgba(91,64,40,0.06)]">
                   <CardContent className="space-y-4 p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/10 text-white">
-                      <Icon className="h-5 w-5" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-[#e9f2ea] text-[#2f5b43]">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/58">0{index + 1}</div>
-                    <h3 className="text-xl font-semibold tracking-tight text-white">{step.title}</h3>
-                    <p className="text-sm leading-7 text-white/74">{step.summary}</p>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgb(var(--app-muted))]">0{index + 1}</div>
+                    <h3 className="paper-display text-xl font-semibold tracking-[-0.03em] text-[rgb(var(--app-contrast))]">{step.title}</h3>
+                    <p className="text-sm leading-7 text-[rgb(var(--app-muted))]">{step.summary}</p>
                   </CardContent>
                 </Card>
               </ScrollReveal>
@@ -236,26 +232,26 @@ export function LandingPage({ locale }: { locale: string }) {
 
       <section className="mx-auto max-w-7xl px-5 pb-20 pt-6 sm:px-6 lg:px-10 lg:pb-24">
         <ScrollReveal>
-          <Card className="overflow-hidden bg-[linear-gradient(135deg,rgba(24,38,63,0.98),rgba(33,52,83,0.95))] text-white">
+          <Card className="overflow-hidden rounded-[2.5rem] border-none bg-[#ef7c4c] text-[rgb(var(--app-contrast))] shadow-[0_34px_60px_rgba(234,108,63,0.24)]">
             <CardContent className="flex flex-col gap-8 p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
               <div className="max-w-3xl">
-                <div className="text-xs font-semibold uppercase tracking-[0.28em] text-white/56">Next step</div>
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-                  Let the public site explain the value, then let the platform prove it.
+                <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[rgba(24,38,63,0.62)]">Next step</div>
+                <h2 className="paper-display mt-4 text-3xl font-semibold tracking-[-0.04em] text-[rgb(var(--app-contrast))] md:text-[3rem]">
+                  Keep the public side warm and memorable, while the portal stays focused on the work.
                 </h2>
-                <p className="mt-4 text-base leading-8 text-white/72">
-                  Services, about, and contact are now first-class pages. The rest of the site can keep evolving around that
-                  stronger company story.
+                <p className="mt-4 text-base leading-8 text-[rgba(24,38,63,0.78)]">
+                  Services, about, and contact already support the story. This homepage now gives Lumix a more designed
+                  first impression to match them.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button asChild size="lg" className="bg-white text-[rgb(var(--app-contrast))] hover:bg-white/92">
+                <Button asChild size="lg" className="rounded-full bg-[rgb(var(--app-contrast))] px-7 text-white hover:bg-[rgb(var(--app-contrast))]/92">
                   <Link href="/about" className="inline-flex items-center gap-2 no-underline">
                     About Lumix <Building2 className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="border-white/20 bg-white/8 text-white hover:bg-white/12">
-                  <Link href="/contact" className="inline-flex items-center gap-2 no-underline">
+                <Button asChild variant="outline" size="lg" className="rounded-full border-[rgba(24,38,63,0.18)] bg-white/24 px-7 text-[rgb(var(--app-contrast))] hover:bg-white/34">
+                  <Link href={`/${locale}/contact`} className="inline-flex items-center gap-2 no-underline">
                     Contact us <BriefcaseBusiness className="h-4 w-4" />
                   </Link>
                 </Button>

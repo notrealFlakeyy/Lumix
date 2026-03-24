@@ -12,6 +12,8 @@
   --app-accent: 244 127 90;
   --app-accent-2: 167 209 188;
   --app-bg-end: 239 230 218;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
 
   --radius: 22px;
 
@@ -56,6 +58,7 @@ body {
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.65;
     letter-spacing: 0.01em;
@@ -136,6 +139,135 @@ body {
     backdrop-filter: blur(16px);
     animation: lumix-float 8s ease-in-out infinite;
   }
+
+  .paper-grid {
+    background-image:
+      linear-gradient(rgba(66, 52, 37, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(66, 52, 37, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.68), transparent 92%);
+  }
+
+  .paper-blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(24px);
+    animation: lumix-float 12s ease-in-out infinite;
+  }
+
+  .paper-hero-visual {
+    position: relative;
+    padding: 1rem;
+  }
+
+  .paper-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
+  }
+
+  .paper-hero-surface {
+    position: relative;
+    min-height: 36rem;
+    overflow: hidden;
+    border-radius: 3rem;
+    border: 1px solid rgba(34, 28, 21, 0.08);
+    background:
+      radial-gradient(circle at 16% 18%, rgba(255, 218, 173, 0.8), transparent 18%),
+      radial-gradient(circle at 85% 20%, rgba(244, 127, 90, 0.2), transparent 20%),
+      linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(250, 240, 227, 0.96));
+    box-shadow: 0 34px 60px rgba(91, 64, 40, 0.12);
+  }
+
+  .paper-hero-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 16rem;
+    width: 16rem;
+    translate: -50% -50%;
+    border-radius: 999px;
+    filter: blur(18px);
+  }
+
+  .paper-illustration-frame {
+    position: absolute;
+    inset: 0;
+    padding: 2.25rem;
+    animation: lumix-float 11s ease-in-out infinite;
+  }
+
+  .paper-hero-leaf {
+    position: absolute;
+    border-radius: 999px 999px 999px 10px;
+    box-shadow: inset 0 -10px 18px rgba(255, 255, 255, 0.28);
+    animation: paper-sway 12s ease-in-out infinite;
+  }
+
+  .paper-stack-card {
+    position: absolute;
+    width: 11rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(34, 28, 21, 0.08);
+    background: rgba(255, 255, 255, 0.86);
+    padding: 0.95rem 1rem;
+    box-shadow: 0 16px 34px rgba(91, 64, 40, 0.08);
+    backdrop-filter: blur(8px);
+    animation: paper-sway 10s ease-in-out infinite;
+  }
+
+  .paper-stack-badge {
+    height: 0.6rem;
+    width: 2.75rem;
+    border-radius: 999px;
+  }
+
+  .paper-stack-line {
+    margin-top: 0.75rem;
+    height: 0.58rem;
+    border-radius: 999px;
+    background: rgba(34, 28, 21, 0.1);
+  }
+
+  .paper-feature-card {
+    position: absolute;
+    width: min(16rem, calc(100% - 3rem));
+    border-radius: 2rem;
+    border: 1px solid rgba(34, 28, 21, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1.2rem 1.25rem;
+    box-shadow: 0 18px 36px rgba(91, 64, 40, 0.1);
+    animation: paper-sway 9s ease-in-out infinite;
+  }
+
+  .paper-hover-card {
+    transition:
+      transform 240ms ease,
+      box-shadow 240ms ease,
+      background-color 240ms ease;
+  }
+
+  .paper-hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 48px rgba(91, 64, 40, 0.1);
+  }
+
+  .paper-story-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2.5rem;
+    padding: 2rem;
+    box-shadow: 0 32px 58px rgba(42, 56, 88, 0.18);
+  }
+
+  .paper-story-bubble {
+    position: absolute;
+    right: 2rem;
+    top: 2rem;
+    height: 10rem;
+    width: 10rem;
+    border-radius: 999px;
+    filter: blur(8px);
+  }
 }
 
 @keyframes lumix-float {
@@ -149,10 +281,26 @@ body {
   }
 }
 
+@keyframes paper-sway {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(0, -6px, 0) rotate(1.5deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lumix-reveal,
   .lumix-orb,
-  .lumix-floating-metric {
+  .lumix-floating-metric,
+  .paper-blob,
+  .paper-hero-leaf,
+  .paper-stack-card,
+  .paper-feature-card,
+  .paper-illustration-frame {
     animation: none !important;
     transition: none !important;
     transform: none !important;
@@ -180,6 +328,24 @@ body {
     min-width: 0;
     width: 100%;
     animation-duration: 0s;
+  }
+
+  .paper-hero-surface {
+    min-height: 31rem;
+    border-radius: 2.25rem;
+  }
+
+  .paper-illustration-frame {
+    padding: 1.25rem;
+  }
+
+  .paper-feature-card {
+    width: calc(100% - 2.5rem);
+  }
+
+  .paper-story-panel {
+    border-radius: 2rem;
+    padding: 1.5rem;
   }
 }
 

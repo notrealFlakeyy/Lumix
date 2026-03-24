@@ -1,10 +1,21 @@
 import '@/app/globals.css'
 import type { Metadata, Viewport } from 'next'
+import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
 import { locales, type AppLocale } from '@/i18n/routing'
+
+const bodyFont = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
+})
+
+const displayFont = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+})
 
 export const metadata: Metadata = {
   applicationName: 'Lumix Transport ERP',
@@ -20,16 +31,13 @@ export const metadata: Metadata = {
     title: 'Lumix ERP',
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/lumix-logo-transparent.png', sizes: '192x192', type: 'image/png' },
-    ],
-    apple: '/apple-touch-icon.png',
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f47f5a',
+  themeColor: '#0ea5e9',
 }
 
 export function generateStaticParams() {
@@ -50,7 +58,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      <body>
+      <body className={`${bodyFont.variable} ${displayFont.variable}`}>
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>
